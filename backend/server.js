@@ -22,8 +22,8 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to FashionHub API' });
 });
 
-// Import routes (will be added in Phase 2)
-// app.use('/api/auth', require('./routes/auth'));
+// Import routes
+app.use('/api/auth', require('./routes/auth'));
 // app.use('/api/products', require('./routes/products'));
 // app.use('/api/orders', require('./routes/orders'));
 // app.use('/api/contact', require('./routes/contact'));
