@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const { sendEmail } = require('../utils/email');
+const { sendEmail } = require('../config/email');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -32,6 +32,14 @@ exports.register = async (req, res) => {
       email,
       password,
     });
+
+    // Send welcome email
+    await sendEmail(
+      user.email,
+      'Welcome to Cobra Market!',
+      'welcomeEmail',
+      user
+    );
 
     // Generate token
     const token = generateToken(user._id);
@@ -161,23 +169,15 @@ exports.forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     // Create reset URL
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-
-    // Email message
-    const message = `
-      <h1>Password Reset Request</h1>
-      <p>You requested a password reset. Please click the link below to reset your password:</p>
-      <a href="${resetUrl}" clicktracking=off>${resetUrl}</a>
-      <p>This link will expire in 10 minutes.</p>
-      <p>If you didn't request this, please ignore this email.</p>
-    `;
+    const resetUrl = `${process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
 
     try {
-      await sendEmail({
-        to: user.email,
-        subject: 'Password Reset Request - FashionHub',
-        html: message,
-      });
+      await sendEmail(
+        user.email,
+        'Password Reset Request - Cobra Market',
+        'passwordReset',
+        { user, resetLink: resetUrl }
+      );
 
       res.status(200).json({
         success: true,
@@ -243,6 +243,110 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message || 'Server error',
+    });
+  }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/auth/update-profile
+// @access  Private
+exports.updateProfile = async (req, res) => {
+  try {
+    const { firstName, lastName, email } = req.body;
+
+    // Check if email is already taken by another user
+    if (email) {
+      const emailExists = await User.findOne({
+        email,
+        _id: { $ne: req.user.id }
+      });
+
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already in use'
+        });
+      }
+    }
+
+    // Update user
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        firstName: firstName || req.user.firstName,
+        lastName: lastName || req.user.lastName,
+        email: email || req.user.email
+      },
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Server error'
+    });
+  }
+};
+
+// @desc    Update password
+// @route   PUT /api/auth/update-password
+// @access  Private
+exports.updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide current and new password'
+      });
+    }
+
+    // Get user with password
+    const user = await User.findById(req.user.id).select('+password');
+
+    // Check current password
+    const isPasswordMatch = await user.comparePassword(currentPassword);
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    // Generate new token
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully',
+      token
+    });
+  } catch (error) {
+    console.error('Update password error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Server error'
     });
   }
 };

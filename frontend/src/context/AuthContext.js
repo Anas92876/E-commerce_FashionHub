@@ -3,6 +3,8 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
+
+
 // Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -86,6 +88,15 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('cart'); // Clear cart on logout
+
+    // Dispatch custom event to notify CartContext
+    window.dispatchEvent(new CustomEvent('clearCart'));
+  };
+
+  // Update user
+  const updateUser = (updatedUserData) => {
+    setUser(updatedUserData);
   };
 
   // Check if user is admin
@@ -100,6 +111,7 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
+    updateUser,
     isAdmin,
   };
 
