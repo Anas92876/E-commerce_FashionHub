@@ -24,13 +24,14 @@ const Checkout = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
 
   const [loading, setLoading] = useState(false);
+  const [isOrderComplete, setIsOrderComplete] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     address: '',
     city: '',
     postalCode: '',
-    country: 'Pakistan',
+    country: '',
     notes: ''
   });
 
@@ -44,13 +45,13 @@ const Checkout = () => {
     }
   }, [user]);
 
-  // Redirect if cart is empty
+  // Redirect if cart is empty (but not if order is being completed)
   useEffect(() => {
-    if (cartItems.length === 0) {
+    if (cartItems.length === 0 && !isOrderComplete) {
       toast('Your cart is empty');
       navigate('/cart');
     }
-  }, [cartItems, navigate]);
+  }, [cartItems, navigate, isOrderComplete]);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -72,8 +73,8 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.postalCode) {
-        toast.error('Please fill all required fields');
+      if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.postalCode || !formData.country) {
+        toast.error('Please fill all required fields including country');
         setLoading(false);
         return;
       }
@@ -115,9 +116,21 @@ const Checkout = () => {
       });
 
       if (data.success) {
-        toast.success('Order placed successfully!');
+        // Mark order as complete to prevent redirect
+        setIsOrderComplete(true);
+        
+        // Clear cart
         clearCart();
-        navigate(`/my-orders`);
+        
+        // Show success message
+        toast.success('Order placed successfully! Redirecting to your orders...', {
+          autoClose: 2000,
+        });
+        
+        // Navigate to my-orders page after a short delay to show the success message
+        setTimeout(() => {
+          navigate('/my-orders', { replace: true });
+        }, 1500);
       }
 
     } catch (error) {
@@ -128,7 +141,7 @@ const Checkout = () => {
     }
   };
 
-  if (!user || cartItems.length === 0) {
+  if ((!user || cartItems.length === 0) && !isOrderComplete) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-24">
         <LoadingSpinner />
@@ -231,16 +244,16 @@ const Checkout = () => {
                 {/* Country */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Country
+                    Country *
                   </label>
                   <input
                     type="text"
                     name="country"
                     value={formData.country}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50"
+                    placeholder="Choose your Country"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                     required
-
                   />
                 </div>
 

@@ -123,14 +123,15 @@ exports.deleteCategory = async (req, res, next) => {
     }
 
     // Delete all products that belong to this category (cascade delete)
-    const deleteResult = await Product.deleteMany({ category: req.params.id });
+    // Products store category as a string (category name), not ObjectId
+    const deleteResult = await Product.deleteMany({ category: category.name });
 
     // Delete the category
     await Category.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
-      message: `Category deleted successfully. ${deleteResult.deletedCount} product(s) also deleted.`,
+      message: `Category "${category.name}" deleted successfully. ${deleteResult.deletedCount} product(s) also deleted.`,
       deletedProducts: deleteResult.deletedCount,
     });
   } catch (error) {
