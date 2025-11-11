@@ -1,7 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-
-
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
@@ -14,33 +13,132 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
+  const { user, loading: authLoading } = useAuth();
   const [cartItems, setCartItems] = useState([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Load cart from localStorage on mount
+  // Get cart storage key based on user
+  const getCartKey = () => {
+    return user ? `cart_${user._id}` : 'cart_guest';
+  };
+
+  // Load cart from localStorage on mount and when user changes
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
+    // Wait for auth to finish loading before initializing cart
+    if (authLoading) return;
+    
+    setIsInitialized(false); // Reset initialization when user changes
+    
+    const cartKey = user ? `cart_${user._id}` : 'cart_guest';
+    const savedCart = localStorage.getItem(cartKey);
+    
     if (savedCart) {
       try {
-        setCartItems(JSON.parse(savedCart));
+        const parsedCart = JSON.parse(savedCart);
+        if (Array.isArray(parsedCart)) {
+          setCartItems(parsedCart);
+        } else {
+          setCartItems([]);
+        }
       } catch (error) {
         console.error('Error loading cart:', error);
-        localStorage.removeItem('cart');
+        localStorage.removeItem(cartKey);
+        setCartItems([]);
+      }
+    } else {
+      // If no saved cart, ensure cart is empty
+      setCartItems([]);
+    }
+    
+    setIsInitialized(true);
+  }, [user?._id, authLoading]); // Reload when user ID changes or auth finishes loading
+
+  // Save cart to localStorage whenever it changes (only after initialization)
+  useEffect(() => {
+    if (!isInitialized) return; // Don't save before initial load
+    
+    const cartKey = getCartKey();
+    if (cartItems.length > 0) {
+      localStorage.setItem(cartKey, JSON.stringify(cartItems));
+    } else {
+      // Remove empty cart from storage
+      localStorage.removeItem(cartKey);
+    }
+  }, [cartItems, user?._id, isInitialized]);
+
+  // Handle user login - merge guest cart with user cart if needed
+  useEffect(() => {
+    if (!user || !isInitialized) return;
+
+    const guestCartKey = 'cart_guest';
+    const userCartKey = `cart_${user._id}`;
+    
+    const guestCart = localStorage.getItem(guestCartKey);
+    const userCart = localStorage.getItem(userCartKey);
+
+    if (guestCart && !userCart) {
+      // User logged in for first time, move guest cart to user cart
+      try {
+        const parsedGuestCart = JSON.parse(guestCart);
+        if (Array.isArray(parsedGuestCart) && parsedGuestCart.length > 0) {
+          setCartItems(parsedGuestCart);
+          localStorage.setItem(userCartKey, guestCart);
+          localStorage.removeItem(guestCartKey);
+        }
+      } catch (error) {
+        console.error('Error merging guest cart:', error);
+      }
+    } else if (guestCart && userCart) {
+      // Both exist - merge them (user cart takes priority for duplicates)
+      try {
+        const parsedGuestCart = JSON.parse(guestCart);
+        const parsedUserCart = JSON.parse(userCart);
+        
+        if (Array.isArray(parsedGuestCart) && parsedGuestCart.length > 0) {
+          // Merge carts, avoiding duplicates
+          const mergedCart = [...parsedUserCart];
+          parsedGuestCart.forEach(guestItem => {
+            const exists = mergedCart.some(userItem => 
+              userItem._id === guestItem._id && 
+              userItem.selectedSize === guestItem.selectedSize &&
+              (userItem.variant?.color?.code || userItem.variant?.color) === 
+              (guestItem.variant?.color?.code || guestItem.variant?.color)
+            );
+            if (!exists) {
+              mergedCart.push(guestItem);
+            }
+          });
+          setCartItems(mergedCart);
+          localStorage.setItem(userCartKey, JSON.stringify(mergedCart));
+          localStorage.removeItem(guestCartKey);
+        }
+      } catch (error) {
+        console.error('Error merging carts:', error);
+      }
+    } else if (userCart) {
+      // User has existing cart, load it
+      try {
+        const parsedUserCart = JSON.parse(userCart);
+        if (Array.isArray(parsedUserCart)) {
+          setCartItems(parsedUserCart);
+        }
+      } catch (error) {
+        console.error('Error loading user cart:', error);
       }
     }
+  }, [user?._id, isInitialized]);
 
-    // Listen for cart clear events (e.g., on logout)
+  // Listen for cart clear events (e.g., on logout)
+  useEffect(() => {
     const handleClearCart = () => {
       setCartItems([]);
+      const cartKey = getCartKey();
+      localStorage.removeItem(cartKey);
     };
 
     window.addEventListener('clearCart', handleClearCart);
     return () => window.removeEventListener('clearCart', handleClearCart);
-  }, []);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+  }, [user?._id]);
 
   // Add item to cart
   const addToCart = (cartItemOrProduct, selectedSize = null, quantity = 1) => {
