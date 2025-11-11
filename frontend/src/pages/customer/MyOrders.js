@@ -20,8 +20,7 @@ import {
 import { OrderListSkeleton } from '../../components/skeletons/OrderCardSkeleton';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../../utils/api';
 
 const MyOrders = () => {
   const navigate = useNavigate();

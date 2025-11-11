@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import AdminLayout from '../../components/AdminLayout';
+import { API_URL } from '../../utils/api';
 import './ProductForm.css';
-
-const API_URL = 'http://localhost:5000/api';
 
 // Helper function to generate SKU
 const generateSKU = (productName, colorCode, size = null) => {

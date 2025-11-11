@@ -13,8 +13,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
-
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../../utils/api';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);

@@ -13,8 +13,7 @@ import {
   CheckCircleIcon,
   ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-
-const API_URL = "http://localhost:5000/api";
+import { API_URL } from "../../utils/api";
 
 const Profile = () => {
   const navigate = useNavigate();

@@ -9,8 +9,7 @@ import Footer from '../../components/Footer';
 import { ProductGridSkeleton } from '../../components/skeletons';
 import LazyImage from '../../components/LazyImage';
 import { EmptySearch } from '../../components/EmptyState';
-
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../../utils/api';
 
 const Products = () => {
   const [products, setProducts] = useState([]);

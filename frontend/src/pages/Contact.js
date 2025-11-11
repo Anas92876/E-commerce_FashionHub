@@ -4,9 +4,8 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { API_URL } from '../utils/api';
 import './Contact.css'; // kept to avoid breaking anything if file exists
-
-const API_URL = 'http://localhost:5000/api';
 
 const Contact = () => {
   const navigate = useNavigate();

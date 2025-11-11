@@ -7,9 +7,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ProductGridSkeleton } from '../components/skeletons';
 import LazyImage from '../components/LazyImage';
+import { API_URL } from '../utils/api';
 import './Home.css';
-
-const API_URL = 'http://localhost:5000/api';
 
 // Professional Auto-scrolling Review Carousel Component
 const ReviewCarousel = ({ reviews }) => {

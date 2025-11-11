@@ -16,8 +16,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import LazyImage from '../../components/LazyImage';
 import LoadingSpinner from '../../components/LoadingSpinner';
-
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../../utils/api';
 
 const Checkout = () => {
   const navigate = useNavigate();

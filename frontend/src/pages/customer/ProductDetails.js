@@ -27,8 +27,7 @@ import Footer from '../../components/Footer';
 import LazyImage from '../../components/LazyImage';
 import { ProductDetailsSkeleton } from '../../components/skeletons';
 import VariantSelector from '../../components/VariantSelector';
-
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../../utils/api';
 
 const ProductDetails = () => {
   const { id } = useParams();
