@@ -20,6 +20,8 @@ import {
 import { OrderListSkeleton } from '../../components/skeletons/OrderCardSkeleton';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import { useConfirm } from '../../hooks/useConfirm';
 import { API_URL } from '../../utils/api';
 
 const MyOrders = () => {
@@ -27,6 +29,7 @@ const MyOrders = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const confirm = useConfirm();
 
   useEffect(() => {
     if (!user) {
@@ -88,15 +91,20 @@ const MyOrders = () => {
   };
 
   const handleCancelOrder = async (orderId) => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Cancel Order',
+      message: 'Are you sure you want to cancel this order? This action cannot be undone.',
+      confirmText: 'Cancel Order',
+      cancelText: 'Keep Order',
+      variant: 'warning'
+    });
 
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_URL}/orders/${orderId}/cancel`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+    if (confirmed) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.put(`${API_URL}/orders/${orderId}/cancel`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
       toast.success('Order cancelled successfully');
       fetchOrders();
@@ -415,6 +423,18 @@ const MyOrders = () => {
 
   {/* Footer */}
   <Footer />
+
+  {/* Confirmation Modal */}
+  <ConfirmationModal
+    isOpen={confirm.isOpen}
+    onClose={confirm.close}
+    onConfirm={confirm.handleConfirm}
+    title={confirm.title}
+    message={confirm.message}
+    confirmText={confirm.confirmText}
+    cancelText={confirm.cancelText}
+    variant={confirm.variant}
+  />
 </div>
 
   );

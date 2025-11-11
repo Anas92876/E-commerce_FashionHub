@@ -9,11 +9,14 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import LazyImage from '../../components/LazyImage';
 import { EmptyCart } from '../../components/EmptyState';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import { useConfirm } from '../../hooks/useConfirm';
 
 const Cart = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+  const confirm = useConfirm();
 
   const handleRemoveItem = (item) => {
     const colorCode = item.variant?.color?.code || item.variant?.color || null;
@@ -21,8 +24,16 @@ const Cart = () => {
     toast.success('Item removed from cart');
   };
 
-  const handleClearCart = () => {
-    if (window.confirm('Are you sure you want to clear your cart?')) {
+  const handleClearCart = async () => {
+    const confirmed = await confirm({
+      title: 'Clear Cart',
+      message: 'Are you sure you want to clear your cart? All items will be removed.',
+      confirmText: 'Clear Cart',
+      cancelText: 'Cancel',
+      variant: 'warning'
+    });
+
+    if (confirmed) {
       clearCart();
       toast('Cart cleared');
     }
@@ -318,6 +329,18 @@ const Cart = () => {
 
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirm.isOpen}
+        onClose={confirm.close}
+        onConfirm={confirm.handleConfirm}
+        title={confirm.title}
+        message={confirm.message}
+        confirmText={confirm.confirmText}
+        cancelText={confirm.cancelText}
+        variant={confirm.variant}
+      />
 
       <Footer />
     </div>

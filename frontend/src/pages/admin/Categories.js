@@ -13,6 +13,8 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import { useConfirm } from '../../hooks/useConfirm';
 import { API_URL } from '../../utils/api';
 
 const Categories = () => {
@@ -24,6 +26,7 @@ const Categories = () => {
   const [categoryImage, setCategoryImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState('');
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetchCategories();
@@ -149,18 +152,27 @@ const Categories = () => {
   };
 
   const handleDelete = async (categoryId, categoryName) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete "${categoryName}"? This action cannot be undone.`
-      )
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete Category',
+      message: `Are you sure you want to delete "${categoryName}"? This action cannot be undone and will also delete all products in this category.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger'
+    });
+
+    if (confirmed) {
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`${API_URL}/categories/${categoryId}`, {
+        const response = await axios.delete(`${API_URL}/categories/${categoryId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        toast.success('Category deleted successfully');
+        const deletedCount = response.data.deletedProducts || 0;
+        toast.success(
+          deletedCount > 0
+            ? `Category deleted successfully. ${deletedCount} product(s) also deleted.`
+            : 'Category deleted successfully'
+        );
         fetchCategories();
       } catch (err) {
         console.error('Error deleting category:', err);
@@ -397,6 +409,18 @@ const Categories = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={confirm.isOpen}
+          onClose={confirm.close}
+          onConfirm={confirm.handleConfirm}
+          title={confirm.title}
+          message={confirm.message}
+          confirmText={confirm.confirmText}
+          cancelText={confirm.cancelText}
+          variant={confirm.variant}
+        />
       </div>
     </AdminLayout>
   );

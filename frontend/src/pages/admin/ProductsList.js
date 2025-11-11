@@ -17,6 +17,8 @@ import { toast } from 'react-toastify';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import LazyImage from '../../components/LazyImage';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import { useConfirm } from '../../hooks/useConfirm';
 
 const ProductsList = () => {
   const [products, setProducts] = useState([]);
@@ -27,6 +29,7 @@ const ProductsList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
+  const confirm = useConfirm();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -93,7 +96,15 @@ const ProductsList = () => {
   };
 
   const handleDelete = async (productId, productName) => {
-    if (window.confirm(`Are you sure you want to delete "${productName}"?`)) {
+    const confirmed = await confirm({
+      title: 'Delete Product',
+      message: `Are you sure you want to delete "${productName}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger'
+    });
+
+    if (confirmed) {
       try {
         await axios.delete(
           `${process.env.REACT_APP_API_URL}/products/${productId}`
@@ -379,6 +390,18 @@ const ProductsList = () => {
             </>
           )}
         </motion.div>
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={confirm.isOpen}
+          onClose={confirm.close}
+          onConfirm={confirm.handleConfirm}
+          title={confirm.title}
+          message={confirm.message}
+          confirmText={confirm.confirmText}
+          cancelText={confirm.cancelText}
+          variant={confirm.variant}
+        />
       </div>
     </AdminLayout>
   );

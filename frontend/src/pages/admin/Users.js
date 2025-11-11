@@ -17,6 +17,8 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import { useConfirm } from '../../hooks/useConfirm';
 import { API_URL } from '../../utils/api';
 
 const Users = () => {
@@ -26,6 +28,7 @@ const Users = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetchUsers();
@@ -65,20 +68,26 @@ const Users = () => {
   };
 
   const handleDeleteUser = async (userId, userName) => {
-    if (!window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Delete User',
+      message: `Are you sure you want to delete user "${userName}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger'
+    });
 
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API_URL}/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+    if (confirmed) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`${API_URL}/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-      toast.success('User deleted successfully');
-      setUsers(users.filter(u => u._id !== userId));
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete user');
+        toast.success('User deleted successfully');
+        setUsers(users.filter(u => u._id !== userId));
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to delete user');
+      }
     }
   };
 
@@ -342,6 +351,18 @@ const Users = () => {
             </>
           )}
         </motion.div>
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={confirm.isOpen}
+          onClose={confirm.close}
+          onConfirm={confirm.handleConfirm}
+          title={confirm.title}
+          message={confirm.message}
+          confirmText={confirm.confirmText}
+          cancelText={confirm.cancelText}
+          variant={confirm.variant}
+        />
       </div>
     </AdminLayout>
   );

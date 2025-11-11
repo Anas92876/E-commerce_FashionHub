@@ -17,6 +17,8 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import { useConfirm } from '../../hooks/useConfirm';
 import { API_URL } from '../../utils/api';
 
 const Messages = () => {
@@ -31,6 +33,7 @@ const Messages = () => {
     message: ''
   });
   const [sending, setSending] = useState(false);
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetchMessages();
@@ -93,23 +96,29 @@ const Messages = () => {
   };
 
   const handleDeleteMessage = async (messageId) => {
-    if (!window.confirm('Are you sure you want to delete this message?')) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Delete Message',
+      message: 'Are you sure you want to delete this message? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger'
+    });
 
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API_URL}/contact/${messageId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+    if (confirmed) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`${API_URL}/contact/${messageId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-      toast.success('Message deleted successfully');
-      setMessages(messages.filter(m => m._id !== messageId));
-      if (selectedMessage && selectedMessage._id === messageId) {
-        setSelectedMessage(null);
+        toast.success('Message deleted successfully');
+        setMessages(messages.filter(m => m._id !== messageId));
+        if (selectedMessage && selectedMessage._id === messageId) {
+          setSelectedMessage(null);
+        }
+      } catch (error) {
+        toast.error('Failed to delete message');
       }
-    } catch (error) {
-      toast.error('Failed to delete message');
     }
   };
 
@@ -471,6 +480,18 @@ const Messages = () => {
             </>
           )}
         </AnimatePresence>
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={confirm.isOpen}
+          onClose={confirm.close}
+          onConfirm={confirm.handleConfirm}
+          title={confirm.title}
+          message={confirm.message}
+          confirmText={confirm.confirmText}
+          cancelText={confirm.cancelText}
+          variant={confirm.variant}
+        />
       </div>
     </AdminLayout>
   );
