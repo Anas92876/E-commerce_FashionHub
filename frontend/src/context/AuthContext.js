@@ -39,16 +39,51 @@ export const AuthProvider = ({ children }) => {
           const { data } = await axios.get(
             `${API_URL}/auth/me`
           );
-          setUser(data.user);
+          if (data?.user) {
+            setUser(data.user);
+          } else {
+            console.error('Invalid user data received');
+            setToken(null);
+          }
         } catch (error) {
           console.error('Load user error:', error);
-          setToken(null);
+          // Only clear token if it's an authentication error (401/403)
+          if (error.response?.status === 401 || error.response?.status === 403) {
+            setToken(null);
+          }
         }
+      } else {
+        setUser(null);
       }
       setLoading(false);
     };
 
     loadUser();
+  }, [token]);
+
+  // Refresh user data (useful when role is updated in database)
+  const refreshUser = async () => {
+    if (token) {
+      try {
+        const { data } = await axios.get(`${API_URL}/auth/me`);
+        if (data?.user) {
+          setUser(data.user);
+          console.log('User data refreshed:', data.user);
+          return { success: true, user: data.user };
+        }
+      } catch (error) {
+        console.error('Refresh user error:', error);
+        return { success: false, error: error.message };
+      }
+    }
+    return { success: false, error: 'No token available' };
+  };
+
+  // Expose refreshUser to window for console access
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.refreshUserData = refreshUser;
+    }
   }, [token]);
 
   // Register user
@@ -114,6 +149,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUser,
     isAdmin,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

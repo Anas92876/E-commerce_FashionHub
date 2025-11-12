@@ -18,12 +18,13 @@ import {
   ShieldCheckIcon,
   ChevronRightIcon,
   XMarkIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { API_URL } from "../../utils/api";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser, logout, refreshUser } = useAuth();
 
   const [profileData, setProfileData] = useState({
     firstName: "",
