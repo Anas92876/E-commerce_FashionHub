@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { API_URL } from '../../utils/api';
 import {
   ShoppingBagIcon,
   TagIcon,
@@ -43,17 +44,17 @@ const Dashboard = () => {
 
         // Fetch products count
         const productsRes = await axios.get(
-          `${process.env.REACT_APP_API_URL}/products`
+          `${API_URL}/products`
         );
 
         // Fetch categories count
         const categoriesRes = await axios.get(
-          `${process.env.REACT_APP_API_URL}/categories`
+          `${API_URL}/categories`
         );
 
         // Fetch all orders
         const ordersRes = await axios.get(
-          `${process.env.REACT_APP_API_URL}/orders`,
+          `${API_URL}/orders`,
           config
         );
 

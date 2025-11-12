@@ -13,6 +13,7 @@ import {
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
+import { API_URL, IMAGE_BASE_URL } from '../../utils/api';
 import { toast } from 'react-toastify';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -35,7 +36,7 @@ const ProductsList = () => {
     const fetchCategories = async () => {
       try {
         const { data } = await axios.get(
-          `${process.env.REACT_APP_API_URL}/categories`
+          `${API_URL}/categories`
         );
         setCategories(data.data);
       } catch (error) {
@@ -70,7 +71,7 @@ const ProductsList = () => {
       }
 
       const { data } = await axios.get(
-        `${process.env.REACT_APP_API_URL}/products`,
+        `${API_URL}/products`,
         { params }
       );
 
@@ -107,7 +108,7 @@ const ProductsList = () => {
     if (confirmed) {
       try {
         await axios.delete(
-          `${process.env.REACT_APP_API_URL}/products/${productId}`
+          `${API_URL}/products/${productId}`
         );
 
         toast.success('Product deleted successfully');
@@ -294,10 +295,7 @@ const ProductsList = () => {
                             <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
                               {product.image ? (
                                 <LazyImage
-                                  src={`${process.env.REACT_APP_API_URL.replace(
-                                    '/api',
-                                    ''
-                                  )}${product.image}`}
+                                  src={`${IMAGE_BASE_URL}${product.image}`}
                                   alt={product.name}
                                   className="w-full h-full object-cover"
                                 />
