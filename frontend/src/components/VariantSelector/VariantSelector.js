@@ -24,6 +24,7 @@ const VariantSelector = ({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availabilityMatrix]);
 
   // Update available sizes when color changes
@@ -48,6 +49,7 @@ const VariantSelector = ({
         stock: selectedColor?.sizes.find(s => s.size === selectedSize)?.stock
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedColor, selectedSize]);
 
   const handleColorSelect = (color) => {

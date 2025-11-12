@@ -26,7 +26,7 @@ const Categories = () => {
   const [categoryImage, setCategoryImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState('');
-  const confirm = useConfirm();
+  const { confirm, ...confirmState } = useConfirm();
 
   useEffect(() => {
     fetchCategories();
@@ -185,15 +185,15 @@ const Categories = () => {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-display font-bold text-gray-900 mb-2">Categories Management</h1>
-          <p className="text-gray-600">Organize your products with categories</p>
+          <h1 className="text-3xl font-display font-bold text-gray-900 dark:text-white mb-2">Categories Management</h1>
+          <p className="text-gray-600 dark:text-gray-300">Organize your products with categories</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -204,27 +204,27 @@ const Categories = () => {
             transition={{ delay: 0.1 }}
             className="lg:col-span-1"
           >
-            <div className="card p-6 sticky top-6">
+            <div className="card p-6 sticky top-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50">
               <div className="flex items-center gap-2 mb-6">
                 {isEditing ? (
-                  <PencilIcon className="w-6 h-6 text-primary-600" />
+                  <PencilIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                 ) : (
-                  <PlusIcon className="w-6 h-6 text-primary-600" />
+                  <PlusIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                 )}
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                   {isEditing ? 'Edit Category' : 'Add Category'}
                 </h2>
               </div>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300 text-sm">
                   {error}
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="categoryName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="categoryName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Category Name *
                   </label>
                   <input
@@ -233,18 +233,18 @@ const Categories = () => {
                     value={categoryName}
                     onChange={(e) => setCategoryName(e.target.value)}
                     placeholder="e.g., T-Shirts, Jeans, Accessories"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="categoryImage" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="categoryImage" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Category Image
                   </label>
                   <div className="space-y-3">
                     {imagePreview && (
-                      <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                      <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600">
                         <img
                           src={imagePreview}
                           alt="Category preview"
@@ -256,7 +256,7 @@ const Categories = () => {
                             setCategoryImage(null);
                             setImagePreview(null);
                           }}
-                          className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                          className="absolute top-2 right-2 p-1.5 bg-red-500 dark:bg-red-600 text-white rounded-full hover:bg-red-600 dark:hover:bg-red-700 transition-colors shadow-lg"
                         >
                           <XMarkIcon className="w-4 h-4" />
                         </button>
@@ -264,14 +264,14 @@ const Categories = () => {
                     )}
                     <label
                       htmlFor="categoryImage"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 hover:bg-gray-50 transition-all"
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
                     >
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <PhotoIcon className="w-10 h-10 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-600 font-medium">
+                        <PhotoIcon className="w-10 h-10 text-gray-400 dark:text-gray-500 mb-2" />
+                        <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">
                           {imagePreview ? 'Change Image' : 'Upload Image'}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">PNG, JPG up to 5MB</p>
                       </div>
                       <input
                         id="categoryImage"
@@ -287,7 +287,7 @@ const Categories = () => {
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 dark:bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors shadow-lg hover:shadow-xl"
                   >
                     {isEditing ? (
                       <>
@@ -306,7 +306,7 @@ const Categories = () => {
                     <button
                       type="button"
                       onClick={handleCancelEdit}
-                      className="flex items-center gap-2 px-4 py-2.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       <XMarkIcon className="w-5 h-5" />
                       Cancel
@@ -324,9 +324,9 @@ const Categories = () => {
             transition={{ delay: 0.2 }}
             className="lg:col-span-2"
           >
-            <div className="card p-6">
+            <div className="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                   All Categories ({categories.length})
                 </h2>
               </div>
@@ -337,9 +337,9 @@ const Categories = () => {
                 </div>
               ) : categories.length === 0 ? (
                 <div className="text-center py-12">
-                  <TagIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">No categories yet</p>
-                  <p className="text-gray-400 text-sm mt-2">Add your first category to get started</p>
+                  <TagIcon className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 text-lg">No categories yet</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Add your first category to get started</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -351,11 +351,11 @@ const Categories = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
                         transition={{ delay: index * 0.05 }}
-                        className="border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:shadow-md transition-all overflow-hidden"
+                        className="border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:shadow-md dark:hover:shadow-gray-900/70 transition-all overflow-hidden bg-white dark:bg-gray-800"
                       >
                         {/* Category Image */}
                         {category.image ? (
-                          <div className="w-full h-40 bg-gray-100 overflow-hidden">
+                          <div className="w-full h-40 bg-gray-100 dark:bg-gray-700 overflow-hidden">
                             <img
                               src={`http://localhost:5000${category.image}`}
                               alt={category.name}
@@ -363,8 +363,8 @@ const Categories = () => {
                             />
                           </div>
                         ) : (
-                          <div className="w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            <PhotoIcon className="w-16 h-16 text-gray-400" />
+                          <div className="w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center">
+                            <PhotoIcon className="w-16 h-16 text-gray-400 dark:text-gray-500" />
                           </div>
                         )}
 
@@ -372,13 +372,13 @@ const Categories = () => {
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <TagIcon className="w-5 h-5 text-primary-600" />
-                                <h3 className="font-bold text-gray-900">{category.name}</h3>
+                                <TagIcon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                                <h3 className="font-bold text-gray-900 dark:text-white">{category.name}</h3>
                               </div>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
                                 Slug: <span className="font-mono">{category.slug}</span>
                               </p>
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 Created {new Date(category.createdAt).toLocaleDateString()}
                               </p>
                             </div>
@@ -387,14 +387,14 @@ const Categories = () => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(category)}
-                              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium"
+                              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-sm font-medium"
                             >
                               <PencilIcon className="w-4 h-4" />
                               Edit
                             </button>
                             <button
                               onClick={() => handleDelete(category._id, category.name)}
-                              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+                              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-sm font-medium"
                             >
                               <TrashIcon className="w-4 h-4" />
                               Delete
@@ -412,14 +412,14 @@ const Categories = () => {
 
         {/* Confirmation Modal */}
         <ConfirmationModal
-          isOpen={confirm.isOpen}
-          onClose={confirm.close}
-          onConfirm={confirm.handleConfirm}
-          title={confirm.title}
-          message={confirm.message}
-          confirmText={confirm.confirmText}
-          cancelText={confirm.cancelText}
-          variant={confirm.variant}
+          isOpen={confirmState.isOpen}
+          onClose={confirmState.close}
+          onConfirm={confirmState.handleConfirm}
+          title={confirmState.title}
+          message={confirmState.message}
+          confirmText={confirmState.confirmText}
+          cancelText={confirmState.cancelText}
+          variant={confirmState.variant}
         />
       </div>
     </AdminLayout>

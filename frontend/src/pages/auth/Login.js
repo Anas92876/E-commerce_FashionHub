@@ -124,11 +124,11 @@ const Login = () => {
   };
 
   return (
-   <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
+   <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
     {/* Background Decorative Elements */}
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary-100/30 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent-100/30 rounded-full blur-3xl" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-primary-100/30 dark:bg-primary-900/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent-100/30 dark:bg-accent-900/20 rounded-full blur-3xl" />
     </div>
 
     <div className="relative w-full max-w-6xl">
@@ -141,14 +141,14 @@ const Login = () => {
           transition={{ duration: 0.6 }}
           className="w-full max-w-md mx-auto"
         >
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 md:p-10">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-2xl dark:shadow-gray-900/50 p-8 md:p-10 border border-gray-200/50 dark:border-gray-700/50">
 
             {/* ✅ Back button INSIDE the card (non-absolute) */}
             <div className="mb-6">
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                className="inline-flex items-center gap-2 text-gray-700 hover:text-primary-600 font-semibold transition"
+                className="inline-flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-semibold transition"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -167,10 +167,10 @@ const Login = () => {
               >
                 <LockClosedIcon className="w-8 h-8 text-white" />
               </motion.div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 font-display">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2 font-display">
                 Welcome Back
               </h1>
-              <p className="text-gray-600 font-sans">
+              <p className="text-gray-600 dark:text-gray-400 font-sans">
                 Login to continue shopping
               </p>
             </div>
@@ -182,11 +182,11 @@ const Login = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg"
+                  className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-400 p-4 rounded-lg"
                 >
                   <div className="flex items-center">
                     <div className="ml-3">
-                      <p className="text-sm font-semibold text-red-800">
+                      <p className="text-sm font-semibold text-red-800 dark:text-red-300">
                         {authError}
                       </p>
                     </div>
@@ -196,12 +196,12 @@ const Login = () => {
 
               {/* Email Field */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 font-heading">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 font-heading">
                   Email Address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                    <EnvelopeIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <input
                     type="email"
@@ -210,10 +210,10 @@ const Login = () => {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     placeholder="you@example.com"
-                    className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-sans ${
+                    className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all font-sans bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
                       errors.email && touched.email
-                        ? 'border-red-500 focus:ring-red-500'
-                        : 'border-gray-200'
+                        ? 'border-red-500 dark:border-red-400 focus:ring-red-500 dark:focus:ring-red-400'
+                        : 'border-gray-200 dark:border-gray-600'
                     }`}
                   />
                 </div>
@@ -221,7 +221,7 @@ const Login = () => {
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-red-600"
+                    className="mt-2 text-sm text-red-600 dark:text-red-400"
                   >
                     {errors.email}
                   </motion.p>
@@ -230,12 +230,12 @@ const Login = () => {
 
               {/* Password Field */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 font-heading">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 font-heading">
                   Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                    <LockClosedIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -244,16 +244,16 @@ const Login = () => {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     placeholder="••••••••"
-                    className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-sans ${
+                    className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all font-sans bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
                       errors.password && touched.password
-                        ? 'border-red-500 focus:ring-red-500'
-                        : 'border-gray-200'
+                        ? 'border-red-500 dark:border-red-400 focus:ring-red-500 dark:focus:ring-red-400'
+                        : 'border-gray-200 dark:border-gray-600'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     {showPassword ? (
                       <EyeSlashIcon className="h-5 w-5" />
@@ -266,7 +266,7 @@ const Login = () => {
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-red-600"
+                    className="mt-2 text-sm text-red-600 dark:text-red-400"
                   >
                     {errors.password}
                   </motion.p>
@@ -277,7 +277,7 @@ const Login = () => {
               <div className="text-right">
                 <Link
                   to="/forgot-password"
-                  className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+                  className="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
                 >
                   Forgot Password?
                 </Link>
@@ -297,11 +297,11 @@ const Login = () => {
 
             {/* Register Link */}
             <div className="mt-8 text-center">
-              <p className="text-gray-600 font-sans">
+              <p className="text-gray-600 dark:text-gray-400 font-sans">
                 Don't have an account?{' '}
                 <Link
                   to="/register"
-                  className="font-bold text-primary-600 hover:text-primary-700 transition-colors"
+                  className="font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
                 >
                   Register here
                 </Link>

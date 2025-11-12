@@ -4,14 +4,15 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import {
-  EnvelopeIcon,
+  EnvelopeIcon, 
   LockClosedIcon,
   ShieldCheckIcon,
   ShoppingBagIcon,
   HeartIcon,
   UserPlusIcon,
   EyeIcon,
-  EyeSlashIcon
+  EyeSlashIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 const Register = () => {
@@ -60,6 +61,7 @@ const Register = () => {
     if (confirmPassword !== password) return 'Passwords do not match';
     return '';
   };
+
 
   // Validate individual field
   const validateField = (name, value) => {
@@ -153,17 +155,25 @@ const Register = () => {
       toast.success('Registration successful!');
       navigate('/');
     } else {
+      // Check if the error is about existing account
+      if (result.message?.toLowerCase().includes('already exists')) {
+        setErrors(prev => ({
+          ...prev,
+          email: 'An account with this email already exists. Please use a different email or try logging in.'
+        }));
+        setTouched(prev => ({ ...prev, email: true }));
+      }
       toast.error(result.message);
     }
   };
 
   return (
-  <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
+  <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
 
     {/* Background Elements */}
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary-100/30 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent-100/30 rounded-full blur-3xl" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-primary-100/30 dark:bg-primary-900/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent-100/30 dark:bg-accent-900/20 rounded-full blur-3xl" />
     </div>
 
     <div className="relative w-full max-w-6xl">
@@ -176,14 +186,14 @@ const Register = () => {
           transition={{ duration: 0.6 }}
           className="w-full max-w-md mx-auto"
         >
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 md:p-10">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-2xl dark:shadow-gray-900/50 p-8 md:p-10 border border-gray-200/50 dark:border-gray-700/50">
 
             {/* ✅ Back Button INSIDE the left card */}
             <div className="mb-6">
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                className="inline-flex items-center gap-2 text-gray-700 hover:text-primary-600 font-semibold transition"
+                className="inline-flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-semibold transition"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -202,10 +212,10 @@ const Register = () => {
               >
                 <UserPlusIcon className="w-8 h-8 text-white" />
               </motion.div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 font-display">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2 font-display">
                 Create Account
               </h1>
-              <p className="text-gray-600 font-sans">
+              <p className="text-gray-600 dark:text-gray-400 font-sans">
                 Join us and start shopping
               </p>
             </div>
@@ -218,7 +228,7 @@ const Register = () => {
 
                 {/* First Name */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 font-heading">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 font-heading">
                     First Name
                   </label>
                   <input
@@ -228,14 +238,14 @@ const Register = () => {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     placeholder="John"
-                    className={`w-full px-4 py-3 border-2 rounded-xl ${
+                    className={`w-full px-4 py-3 border-2 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
                       errors.firstName && touched.firstName
-                        ? "border-red-500"
-                        : "border-gray-200"
+                        ? "border-red-500 dark:border-red-400"
+                        : "border-gray-200 dark:border-gray-600"
                     }`}
                   />
                   {errors.firstName && touched.firstName && (
-                    <motion.p className="mt-1 text-xs text-red-600">
+                    <motion.p className="mt-1 text-xs text-red-600 dark:text-red-400">
                       {errors.firstName}
                     </motion.p>
                   )}
@@ -243,7 +253,7 @@ const Register = () => {
 
                 {/* Last Name */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 font-heading">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 font-heading">
                     Last Name
                   </label>
                   <input
@@ -253,14 +263,14 @@ const Register = () => {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     placeholder="Doe"
-                    className={`w-full px-4 py-3 border-2 rounded-xl ${
+                    className={`w-full px-4 py-3 border-2 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
                       errors.lastName && touched.lastName
-                        ? "border-red-500"
-                        : "border-gray-200"
+                        ? "border-red-500 dark:border-red-400"
+                        : "border-gray-200 dark:border-gray-600"
                     }`}
                   />
                   {errors.lastName && touched.lastName && (
-                    <motion.p className="mt-1 text-xs text-red-600">
+                    <motion.p className="mt-1 text-xs text-red-600 dark:text-red-400">
                       {errors.lastName}
                     </motion.p>
                   )}
@@ -270,12 +280,12 @@ const Register = () => {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 font-heading">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 font-heading">
                   Email Address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                    <EnvelopeIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <input
                     type="email"
@@ -284,15 +294,20 @@ const Register = () => {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     placeholder="you@example.com"
-                    className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl ${
+                    className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
                       errors.email && touched.email
-                        ? "border-red-500"
-                        : "border-gray-200"
+                        ? "border-red-500 dark:border-red-400"
+                        : "border-gray-200 dark:border-gray-600"
                     }`}
                   />
                 </div>
                 {errors.email && touched.email && (
-                  <motion.p className="mt-2 text-sm text-red-600">
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
                     {errors.email}
                   </motion.p>
                 )}
@@ -300,12 +315,12 @@ const Register = () => {
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 font-heading">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 font-heading">
                   Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                    <LockClosedIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -314,16 +329,16 @@ const Register = () => {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     placeholder="Min 8 characters"
-                    className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl ${
+                    className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
                       errors.password && touched.password
-                        ? "border-red-500"
-                        : "border-gray-200"
+                        ? "border-red-500 dark:border-red-400"
+                        : "border-gray-200 dark:border-gray-600"
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 pr-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     {showPassword ? (
                       <EyeSlashIcon className="h-5 w-5" />
@@ -333,7 +348,7 @@ const Register = () => {
                   </button>
                 </div>
                 {errors.password && touched.password && (
-                  <motion.p className="mt-2 text-sm text-red-600">
+                  <motion.p className="mt-2 text-sm text-red-600 dark:text-red-400">
                     {errors.password}
                   </motion.p>
                 )}
@@ -341,12 +356,12 @@ const Register = () => {
 
               {/* Confirm Password */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 font-heading">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 font-heading">
                   Confirm Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                    <LockClosedIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <input
                     type={showConfirmPassword ? "text" : "password"}
@@ -355,16 +370,16 @@ const Register = () => {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     placeholder="Confirm password"
-                    className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl ${
+                    className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
                       errors.confirmPassword && touched.confirmPassword
-                        ? "border-red-500"
-                        : "border-gray-200"
+                        ? "border-red-500 dark:border-red-400"
+                        : "border-gray-200 dark:border-gray-600"
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 pr-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     {showConfirmPassword ? (
                       <EyeSlashIcon className="h-5 w-5" />
@@ -374,7 +389,7 @@ const Register = () => {
                   </button>
                 </div>
                 {errors.confirmPassword && touched.confirmPassword && (
-                  <motion.p className="mt-2 text-sm text-red-600">
+                  <motion.p className="mt-2 text-sm text-red-600 dark:text-red-400">
                     {errors.confirmPassword}
                   </motion.p>
                 )}
@@ -386,7 +401,7 @@ const Register = () => {
                 disabled={loading}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full py-4 bg-primary-600 text-white font-bold rounded-xl mt-2"
+                className="w-full py-4 bg-primary-600 dark:bg-primary-500 text-white font-bold rounded-xl mt-2 hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
               >
                 {loading ? "Creating Account..." : "Create Account"}
               </motion.button>
@@ -395,9 +410,9 @@ const Register = () => {
 
             {/* Login Link */}
             <div className="mt-8 text-center">
-              <p className="text-gray-600 font-sans">
+              <p className="text-gray-600 dark:text-gray-400 font-sans">
                 Already have an account?{" "}
-                <Link to="/login" className="font-bold text-primary-600 hover:text-primary-700">
+                <Link to="/login" className="font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
                   Login here
                 </Link>
               </p>

@@ -79,10 +79,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
                   {cancelText}
                 </button>
                 <button
-                  onClick={() => {
-                    onConfirm();
-                    onClose();
-                  }}
+                  onClick={onConfirm}
                   className={`flex-1 px-4 py-2.5 ${styles.button} text-white font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
                 >
                   {confirmText}

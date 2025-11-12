@@ -146,11 +146,13 @@ const EditProduct = () => {
     };
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Update available sizes when size type changes
   useEffect(() => {
     setAvailableSizes(SIZE_TYPES[sizeType]?.sizes || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sizeType]);
 
   // Handle product info change
@@ -421,7 +423,7 @@ const EditProduct = () => {
       }
 
       const token = localStorage.getItem('token');
-      const response = await axios.put(
+      await axios.put(
         `${API_URL}/admin/products/${id}`,
         formData,
         {
@@ -448,10 +450,10 @@ const EditProduct = () => {
   if (fetchingProduct) {
     return (
       <AdminLayout>
-        <div className="flex justify-center items-center py-20">
+        <div className="flex justify-center items-center py-20 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading product...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400 mx-auto"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-300">Loading product...</p>
           </div>
         </div>
       </AdminLayout>
@@ -460,32 +462,32 @@ const EditProduct = () => {
 
   return (
     <AdminLayout>
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto bg-gray-50 dark:bg-gray-900 min-h-screen p-6 transition-colors duration-300">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Product</h1>
-          <p className="text-gray-600 mt-2">Update product information and variants</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Product</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Update product information and variants</p>
         </div>
 
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <div className="mb-6 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
             {error}
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+          <div className="mb-6 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 px-4 py-3 rounded-lg">
             {successMessage}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Product Information */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Basic Information</h2>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Product Name *
                 </label>
                 <input
@@ -493,14 +495,14 @@ const EditProduct = () => {
                   name="name"
                   value={productInfo.name}
                   onChange={handleProductInfoChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="e.g., Premium Cotton T-Shirt"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Description *
                 </label>
                 <textarea
@@ -508,7 +510,7 @@ const EditProduct = () => {
                   value={productInfo.description}
                   onChange={handleProductInfoChange}
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="Detailed product description..."
                   required
                 />
@@ -516,14 +518,14 @@ const EditProduct = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Category *
                   </label>
                   <select
                     name="category"
                     value={productInfo.category}
                     onChange={handleProductInfoChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                   >
                     <option value="">Select category</option>
@@ -534,7 +536,7 @@ const EditProduct = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Base Price * ($)
                   </label>
                   <input
@@ -544,7 +546,7 @@ const EditProduct = () => {
                     onChange={handleProductInfoChange}
                     step="0.01"
                     min="0"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="0.00"
                     required
                   />
@@ -552,19 +554,19 @@ const EditProduct = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Size Type *
                 </label>
                 <select
                   value={sizeType}
                   onChange={(e) => setSizeType(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   {Object.entries(SIZE_TYPES).map(([key, { label }]) => (
                     <option key={key} value={key}>{label}</option>
                   ))}
                 </select>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   Sizes: {availableSizes.join(', ')}
                 </p>
               </div>
@@ -576,9 +578,9 @@ const EditProduct = () => {
                   name="isActive"
                   checked={productInfo.isActive}
                   onChange={handleProductInfoChange}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-primary-600 dark:text-primary-400 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded"
                 />
-                <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
+                <label htmlFor="isActive" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                   Product is active and visible to customers
                 </label>
               </div>
@@ -587,24 +589,24 @@ const EditProduct = () => {
 
           {/* Variants Section */}
           {productMode === 'variants' && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Color Variants</h2>
-                  <p className="text-sm text-gray-600 mt-1">Manage product colors and their stock</p>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Color Variants</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Manage product colors and their stock</p>
                 </div>
                 <button
                   type="button"
                   onClick={handleAddVariant}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
                 >
                   + Add Variant
                 </button>
               </div>
 
               {variants.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                  <p className="text-gray-600">No variants yet. Click "Add Variant" to create one.</p>
+                <div className="text-center py-12 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+                  <p className="text-gray-600 dark:text-gray-300">No variants yet. Click "Add Variant" to create one.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -614,22 +616,22 @@ const EditProduct = () => {
                     const totalImages = (variant.existingImages?.length || 0) + (variant.newImages?.length || 0);
 
                     return (
-                      <div key={variant.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div key={variant.id} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
                         {/* Variant Header */}
                         <div
                           onClick={() => toggleVariantExpansion(variant.id)}
-                          className="px-4 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors flex items-center justify-between"
+                          className="px-4 py-3 bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center justify-between"
                         >
                           <div className="flex items-center gap-3">
                             <div
-                              className="w-8 h-8 rounded-full border-2 border-gray-300"
+                              className="w-8 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600"
                               style={{ backgroundColor: variant.color.hex }}
                             />
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-medium text-gray-900 dark:text-white">
                                 {variant.color.name || `Variant ${index + 1}`}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {totalImages} images • {totalStock} total stock
                               </p>
                             </div>
@@ -641,12 +643,12 @@ const EditProduct = () => {
                                 e.stopPropagation();
                                 handleRemoveVariant(variant.id);
                               }}
-                              className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+                              className="px-3 py-1 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
                             >
                               Remove
                             </button>
                             <svg
-                              className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                              className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -658,10 +660,10 @@ const EditProduct = () => {
 
                         {/* Variant Content */}
                         {isExpanded && (
-                          <div className="p-4 space-y-4">
+                          <div className="p-4 space-y-4 bg-white dark:bg-gray-800">
                             {/* Quick Color Selection */}
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Quick Color Selection
                               </label>
                               <div className="flex flex-wrap gap-2">
@@ -691,33 +693,33 @@ const EditProduct = () => {
                             {/* Custom Color */}
                             <div className="grid grid-cols-3 gap-4">
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                   Color Name *
                                 </label>
                                 <input
                                   type="text"
                                   value={variant.color.name}
                                   onChange={(e) => handleVariantColorChange(variant.id, 'name', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                   placeholder="e.g., Navy Blue"
                                   required
                                 />
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                   Color Code *
                                 </label>
                                 <input
                                   type="text"
                                   value={variant.color.code}
                                   onChange={(e) => handleVariantColorChange(variant.id, 'code', e.target.value.toUpperCase())}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                   placeholder="e.g., NAVY"
                                   required
                                 />
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                   Hex Color *
                                 </label>
                                 <div className="flex gap-2">
@@ -725,13 +727,13 @@ const EditProduct = () => {
                                     type="color"
                                     value={variant.color.hex}
                                     onChange={(e) => handleVariantColorChange(variant.id, 'hex', e.target.value)}
-                                    className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                                    className="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
                                   />
                                   <input
                                     type="text"
                                     value={variant.color.hex}
                                     onChange={(e) => handleVariantColorChange(variant.id, 'hex', e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                     placeholder="#000000"
                                     pattern="^#[0-9A-Fa-f]{6}$"
                                     required
@@ -742,21 +744,21 @@ const EditProduct = () => {
 
                             {/* Images */}
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Product Images ({totalImages} / 5)
                               </label>
 
                               {/* Existing Images */}
                               {variant.existingImages && variant.existingImages.length > 0 && (
                                 <div className="mb-3">
-                                  <p className="text-xs text-gray-600 mb-2">Existing Images:</p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Existing Images:</p>
                                   <div className="grid grid-cols-5 gap-2">
                                     {variant.existingImages.map((img, idx) => (
                                       <div key={idx} className="relative group">
                                         <img
                                           src={`http://localhost:5000${img}`}
                                           alt={`Existing ${idx + 1}`}
-                                          className="w-full h-24 object-cover rounded-lg border border-gray-300"
+                                          className="w-full h-24 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
                                         />
                                         <button
                                           type="button"
@@ -776,14 +778,14 @@ const EditProduct = () => {
                               {/* New Images Preview */}
                               {variant.imagePreviews && variant.imagePreviews.length > 0 && (
                                 <div className="mb-3">
-                                  <p className="text-xs text-gray-600 mb-2">New Images:</p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">New Images:</p>
                                   <div className="grid grid-cols-5 gap-2">
                                     {variant.imagePreviews.map((preview, idx) => (
                                       <div key={idx} className="relative group">
                                         <img
                                           src={preview}
                                           alt={`Preview ${idx + 1}`}
-                                          className="w-full h-24 object-cover rounded-lg border border-gray-300"
+                                          className="w-full h-24 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
                                         />
                                         <button
                                           type="button"
@@ -802,12 +804,12 @@ const EditProduct = () => {
 
                               {/* Upload Button */}
                               {totalImages < 5 && (
-                                <label className="flex items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                                <label className="flex items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary-500 dark:hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors bg-gray-50 dark:bg-gray-700">
                                   <div className="text-center">
-                                    <svg className="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-8 h-8 mx-auto text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                     </svg>
-                                    <p className="text-sm text-gray-600">Add Images ({5 - totalImages} remaining)</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300">Add Images ({5 - totalImages} remaining)</p>
                                   </div>
                                   <input
                                     type="file"
@@ -822,7 +824,7 @@ const EditProduct = () => {
 
                             {/* Price Override */}
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Price Override (Optional)
                               </label>
                               <input
@@ -831,7 +833,7 @@ const EditProduct = () => {
                                 onChange={(e) => handleVariantPriceChange(variant.id, e.target.value)}
                                 step="0.01"
                                 min="0"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                 placeholder={`Leave empty to use base price ($${productInfo.basePrice || '0.00'})`}
                               />
                             </div>
@@ -839,14 +841,14 @@ const EditProduct = () => {
                             {/* Stock Management */}
                             <div>
                               <div className="flex items-center justify-between mb-2">
-                                <label className="block text-sm font-medium text-gray-700">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                   Stock by Size *
                                 </label>
                                 <div className="flex items-center gap-2">
                                   <input
                                     type="number"
                                     placeholder="Quick fill"
-                                    className="w-24 px-2 py-1 text-sm border border-gray-300 rounded"
+                                    className="w-24 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     onKeyPress={(e) => {
                                       if (e.key === 'Enter') {
                                         e.preventDefault();
@@ -855,13 +857,13 @@ const EditProduct = () => {
                                       }
                                     }}
                                   />
-                                  <span className="text-xs text-gray-500">Press Enter</span>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">Press Enter</span>
                                 </div>
                               </div>
                               <div className="grid grid-cols-6 gap-2">
                                 {availableSizes.map(size => (
                                   <div key={size} className="text-center">
-                                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                       {size}
                                     </label>
                                     <input
@@ -869,13 +871,13 @@ const EditProduct = () => {
                                       value={variant.stock[size] || 0}
                                       onChange={(e) => handleVariantStockChange(variant.id, size, e.target.value)}
                                       min="0"
-                                      className="w-full px-2 py-1 text-center border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                      className="w-full px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     />
                                   </div>
                                 ))}
                               </div>
-                              <p className="text-sm text-gray-500 mt-2">
-                                Total Stock: <span className="font-semibold">{totalStock}</span> units
+                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                                Total Stock: <span className="font-semibold text-gray-900 dark:text-white">{totalStock}</span> units
                               </p>
                             </div>
                           </div>
@@ -889,18 +891,18 @@ const EditProduct = () => {
           )}
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
               onClick={() => navigate('/admin/products')}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Updating...' : '✓ Update Product'}
             </button>

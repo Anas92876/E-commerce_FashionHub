@@ -429,18 +429,18 @@ const AddProduct = () => {
 
   return (
     <AdminLayout>
-      <div className="product-form-page">
+      <div className="product-form-page bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
         <div className="page-header">
-          <h1 className="page-title">Add New Product</h1>
+          <h1 className="page-title text-gray-900 dark:text-white">Add New Product</h1>
           <button
-            className="btn-secondary"
+            className="btn-secondary dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
             onClick={() => navigate('/admin/products')}
           >
             ← Back to Products
           </button>
         </div>
 
-        <div className="admin-card">
+        <div className="admin-card bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/50">
           {error && <div className="alert alert-error">{error}</div>}
           {successMessage && <div className="alert alert-success">{successMessage}</div>}
 

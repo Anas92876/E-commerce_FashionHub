@@ -41,33 +41,33 @@ const ReviewCarousel = ({ reviews }) => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
       >
-        <div className="text-center">
-          <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600">
-            {avgRating.toFixed(1)}
+          <div className="text-center">
+            <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600 dark:from-primary-400 dark:to-accent-400">
+              {avgRating.toFixed(1)}
+            </div>
+            <div className="flex items-center justify-center mt-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <svg
+                  key={star}
+                  className={`w-6 h-6 ${
+                    star <= Math.round(avgRating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
+                  }`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Average Rating</p>
           </div>
-          <div className="flex items-center justify-center mt-2">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <svg
-                key={star}
-                className={`w-6 h-6 ${
-                  star <= Math.round(avgRating) ? 'text-yellow-400' : 'text-gray-300'
-                }`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            ))}
+          <div className="h-16 w-px bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
+          <div className="text-center">
+            <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-600 to-primary-600 dark:from-accent-400 dark:to-primary-400">
+              {reviews.length}
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Total Reviews</p>
           </div>
-          <p className="text-sm text-gray-600 mt-1">Average Rating</p>
-        </div>
-        <div className="h-16 w-px bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div>
-        <div className="text-center">
-          <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-600 to-primary-600">
-            {reviews.length}
-          </div>
-          <p className="text-sm text-gray-600 mt-1">Total Reviews</p>
-        </div>
       </motion.div>
 
       {/* Main Review Card */}
@@ -78,9 +78,9 @@ const ReviewCarousel = ({ reviews }) => {
         transition={{ duration: 0.6 }}
         className="relative"
       >
-        <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl dark:shadow-gray-900/50 p-8 md:p-12 border border-gray-100 dark:border-gray-700">
           {/* Quote Icon */}
-          <div className="absolute top-8 right-8 text-primary-100">
+          <div className="absolute top-8 right-8 text-primary-100 dark:text-primary-900/30">
             <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
             </svg>
@@ -95,7 +95,7 @@ const ReviewCarousel = ({ reviews }) => {
                 animate={{ scale: 1 }}
                 transition={{ delay: star * 0.1 }}
                 className={`w-7 h-7 ${
-                  star <= currentReview.rating ? 'text-yellow-400' : 'text-gray-300'
+                  star <= currentReview.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
                 }`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
@@ -106,7 +106,7 @@ const ReviewCarousel = ({ reviews }) => {
           </div>
 
           {/* Review Comment */}
-          <p className="text-xl md:text-2xl text-gray-800 font-medium leading-relaxed mb-8 italic">
+          <p className="text-xl md:text-2xl text-gray-800 dark:text-gray-200 font-medium leading-relaxed mb-8 italic">
             "{currentReview.comment}"
           </p>
 
@@ -117,20 +117,20 @@ const ReviewCarousel = ({ reviews }) => {
                 {currentReview.user?.firstName?.[0]}{currentReview.user?.lastName?.[0] || ''}
               </div>
               <div>
-                <p className="text-lg font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {currentReview.user?.firstName} {currentReview.user?.lastName}
                 </p>
-                <p className="text-sm text-gray-500">Verified Customer</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Verified Customer</p>
               </div>
             </div>
 
             {/* Product Tag */}
             {currentReview.productName && (
-              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-50 to-accent-50 rounded-full border border-primary-200">
-                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-900/30 dark:to-accent-900/30 rounded-full border border-primary-200 dark:border-primary-700">
+                <svg className="w-5 h-5 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                <span className="text-sm font-semibold text-gray-700">{currentReview.productName}</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{currentReview.productName}</span>
               </div>
             )}
           </div>
@@ -143,10 +143,10 @@ const ReviewCarousel = ({ reviews }) => {
           <button
             key={idx}
             onClick={() => setCurrentIndex(idx)}
-            className={`h-2 rounded-full transition-all duration-300 ${
+                className={`h-2 rounded-full transition-all duration-300 ${
               idx === currentIndex
-                ? 'w-8 bg-gradient-to-r from-primary-600 to-accent-600'
-                : 'w-2 bg-gray-300 hover:bg-gray-400'
+                ? 'w-8 bg-gradient-to-r from-primary-600 to-accent-600 dark:from-primary-400 dark:to-accent-400'
+                : 'w-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
             }`}
             aria-label={`Go to review ${idx + 1}`}
           />
@@ -157,17 +157,17 @@ const ReviewCarousel = ({ reviews }) => {
       <div className="flex justify-center gap-4 mt-6">
         <button
           onClick={() => setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length)}
-          className="p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all border border-gray-200 hover:border-primary-300 group"
+          className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg dark:shadow-gray-900/50 hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-500 group"
         >
-          <svg className="w-6 h-6 text-gray-600 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
         <button
           onClick={() => setCurrentIndex((prev) => (prev + 1) % reviews.length)}
-          className="p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all border border-gray-200 hover:border-primary-300 group"
+          className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg dark:shadow-gray-900/50 hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-500 group"
         >
-          <svg className="w-6 h-6 text-gray-600 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -177,7 +177,7 @@ const ReviewCarousel = ({ reviews }) => {
 };
 
 const Home = () => {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -232,15 +232,15 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="home-container pt-16">
+    <div className="home-container pt-16 bg-white dark:bg-gray-900 transition-colors duration-300">
       <Navbar />
 
       {/* Professional Hero Section */}
-      <section className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-hidden">
+      <section className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 overflow-hidden transition-colors duration-300">
         {/* Static Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary-100/30 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent-100/30 rounded-full blur-3xl" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary-100/30 dark:bg-primary-900/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent-100/30 dark:bg-accent-900/20 rounded-full blur-3xl" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 min-h-screen flex items-center">
@@ -258,7 +258,7 @@ const Home = () => {
                 transition={{ delay: 0.2, duration: 0.6 }}
                 className="inline-block"
               >
-                <span className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 rounded-full text-sm font-semibold border border-primary-200">
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm font-semibold border border-primary-200 dark:border-primary-700">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
@@ -272,11 +272,11 @@ const Home = () => {
                 transition={{ delay: 0.3, duration: 0.6 }}
                 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight font-display"
               >
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-primary-900 to-gray-900">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-primary-900 to-gray-900 dark:from-white dark:via-primary-300 dark:to-white">
                   Elevate Your
                 </span>
                 <br />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600 dark:from-primary-400 dark:to-accent-400">
                   Style Journey
                 </span>
               </motion.h1>
@@ -285,7 +285,7 @@ const Home = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
-                className="text-lg md:text-xl text-gray-600 max-w-xl leading-relaxed"
+                className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-xl leading-relaxed"
               >
                 Discover premium fashion collections crafted with precision and designed to express your unique personality.
               </motion.p>
@@ -299,7 +299,7 @@ const Home = () => {
               >
                 <motion.button
                   onClick={() => navigate('/products')}
-                  className="group px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl text-lg hover:shadow-2xl hover:shadow-primary-500/50 transition-all duration-300 flex items-center justify-center gap-2"
+                  className="group px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-500 dark:to-primary-600 text-white font-semibold rounded-xl text-lg hover:shadow-2xl hover:shadow-primary-500/50 dark:hover:shadow-primary-400/50 transition-all duration-300 flex items-center justify-center gap-2"
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -312,7 +312,7 @@ const Home = () => {
                 {!user && (
                   <motion.button
                     onClick={() => navigate('/register')}
-                    className="px-8 py-4 bg-white text-gray-900 font-semibold rounded-xl text-lg border-2 border-gray-200 hover:border-primary-600 hover:text-primary-600 transition-all duration-300 flex items-center justify-center gap-2"
+                    className="px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold rounded-xl text-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary-600 dark:hover:border-primary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-300 flex items-center justify-center gap-2"
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -326,19 +326,19 @@ const Home = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
-                className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200"
+                className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200 dark:border-gray-700"
               >
                 <div>
-                  <div className="text-3xl font-bold text-gray-900">500+</div>
-                  <div className="text-sm text-gray-600">Products</div>
+                  <div className="text-3xl font-bold text-gray-900 dark:text-white">500+</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Products</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-900">10K+</div>
-                  <div className="text-sm text-gray-600">Happy Customers</div>
+                  <div className="text-3xl font-bold text-gray-900 dark:text-white">10K+</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Happy Customers</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-900">4.9★</div>
-                  <div className="text-sm text-gray-600">Rating</div>
+                  <div className="text-3xl font-bold text-gray-900 dark:text-white">4.9★</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Rating</div>
                 </div>
               </motion.div>
             </motion.div>
@@ -363,8 +363,8 @@ const Home = () => {
                 {/* Floating Icons Around Central Cart - Simplified */}
                 {/* T-Shirt Icon */}
                 <div className="absolute top-8 left-8">
-                  <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center">
-                    <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
@@ -372,8 +372,8 @@ const Home = () => {
 
                 {/* Tag/Price Icon */}
                 <div className="absolute top-8 right-8">
-                  <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center">
-                    <svg className="w-10 h-10 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-accent-600 dark:text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
                   </div>
@@ -381,8 +381,8 @@ const Home = () => {
 
                 {/* Shopping Bag Icon */}
                 <div className="absolute bottom-8 left-8">
-                  <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center">
-                    <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
                   </div>
@@ -390,8 +390,8 @@ const Home = () => {
 
                 {/* Heart/Favorite Icon */}
                 <div className="absolute bottom-8 right-8">
-                  <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center">
-                    <svg className="w-10 h-10 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                  <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-red-500 dark:text-red-400" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                     </svg>
                   </div>
@@ -399,8 +399,8 @@ const Home = () => {
 
                 {/* Delivery Truck Icon */}
                 <div className="absolute top-1/2 right-0 -translate-y-1/2">
-                  <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center">
-                    <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
@@ -408,8 +408,8 @@ const Home = () => {
 
                 {/* Star/Quality Icon */}
                 <div className="absolute top-1/2 left-0 -translate-y-1/2">
-                  <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center">
-                    <svg className="w-10 h-10 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                  <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-yellow-500 dark:text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
                   </div>
@@ -417,38 +417,38 @@ const Home = () => {
 
                 {/* Small Service Badges - Reduced to 4 and Simplified */}
                 <div className="absolute top-12 left-1/2 -translate-x-1/2">
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 px-3 py-2 rounded-full shadow-md border border-green-200">
-                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 px-3 py-2 rounded-full shadow-md border border-green-200 dark:border-green-700">
+                    <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-xs font-semibold text-green-700">Free Ship</span>
+                    <span className="text-xs font-semibold text-green-700 dark:text-green-300">Free Ship</span>
                   </div>
                 </div>
 
                 <div className="absolute top-1/2 right-8 -translate-y-1/2">
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 px-3 py-2 rounded-full shadow-md border border-blue-200">
-                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 px-3 py-2 rounded-full shadow-md border border-blue-200 dark:border-blue-700">
+                    <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
-                    <span className="text-xs font-semibold text-blue-700">24/7</span>
+                    <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">24/7</span>
                   </div>
                 </div>
 
                 <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 px-3 py-2 rounded-full shadow-md border border-purple-200">
-                    <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 px-3 py-2 rounded-full shadow-md border border-purple-200 dark:border-purple-700">
+                    <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    <span className="text-xs font-semibold text-purple-700">Secure</span>
+                    <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">Secure</span>
                   </div>
                 </div>
 
                 <div className="absolute top-1/2 left-8 -translate-y-1/2">
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 px-3 py-2 rounded-full shadow-md border border-orange-200">
-                    <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 px-3 py-2 rounded-full shadow-md border border-orange-200 dark:border-orange-700">
+                    <svg className="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    <span className="text-xs font-semibold text-orange-700">Fast</span>
+                    <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">Fast</span>
                   </div>
                 </div>
               </div>
@@ -462,10 +462,10 @@ const Home = () => {
 
       {/* Modern Categories Section */}
       {categories.length > 0 && (
-        <section className="py-12 bg-white">
+        <section className="py-12 bg-white dark:bg-gray-900 transition-colors duration-300">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.h2
-              className="text-4xl font-bold text-center mb-12 font-heading"
+              className="text-4xl font-bold text-center mb-12 font-heading text-gray-900 dark:text-white"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -520,10 +520,10 @@ const Home = () => {
       )}
 
       {/* Modern Featured Products Section */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2
-            className="text-4xl font-bold text-center mb-12 font-heading"
+            className="text-4xl font-bold text-center mb-12 font-heading text-gray-900 dark:text-white"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -544,11 +544,11 @@ const Home = () => {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.05 }}
                     whileHover={{ y: -8 }}
-                    className="card overflow-hidden group"
+                    className="card overflow-hidden group bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl dark:hover:shadow-gray-900/70"
                   >
                     <Link to={`/products/${product._id}`} className="block">
                       {/* Image */}
-                      <div className="relative w-full h-80 overflow-hidden rounded-lg bg-gray-100">
+                      <div className="relative w-full h-80 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
                         {product.image ? (
                           <LazyImage
                             src={`http://localhost:5000${product.image}`}
@@ -556,33 +556,33 @@ const Home = () => {
                             className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 text-gray-500 font-semibold">
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 text-gray-500 dark:text-gray-400 font-semibold">
                             No Image
                           </div>
                         )}
                         {product.stock === 0 && (
-                          <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                          <div className="absolute top-4 right-4 bg-red-500 dark:bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                             Out of Stock
                           </div>
                         )}
                         {product.stock > 0 && product.stock < 10 && (
-                          <div className="absolute top-4 left-4 bg-accent-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                          <div className="absolute top-4 left-4 bg-accent-500 dark:bg-accent-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                             Low Stock
                           </div>
                         )}
                       </div>
 
                       {/* Product Info */}
-                      <div className="p-4">
-                        <p className="text-sm text-primary-600 font-semibold uppercase tracking-wide mb-1 font-sans">
+                      <div className="p-4 bg-white dark:bg-gray-800">
+                        <p className="text-sm text-primary-600 dark:text-primary-400 font-semibold uppercase tracking-wide mb-1 font-sans">
                           {product.category}
                         </p>
-                        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors font-heading">
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors font-heading">
                           {product.name}
                         </h3>
                         <div className="flex items-center justify-between mt-4">
-                          <span className="text-2xl font-bold text-primary-600">${product.price}</span>
-                          <span className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 group-hover:gap-2 transition-all">
+                          <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">${product.price}</span>
+                          <span className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 dark:text-primary-400 group-hover:gap-2 transition-all">
                             View
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -598,7 +598,7 @@ const Home = () => {
               <div className="text-center mt-12">
                 <motion.button
                   onClick={() => navigate('/products')}
-                  className="px-8 py-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-lg"
+                  className="px-8 py-4 bg-primary-600 dark:bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors shadow-lg"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -607,7 +607,7 @@ const Home = () => {
               </div>
             </>
           ) : (
-            <p className="text-center text-xl text-gray-600 py-12">
+            <p className="text-center text-xl text-gray-600 dark:text-gray-400 py-12">
               No products available at the moment.
             </p>
           )}
@@ -615,11 +615,11 @@ const Home = () => {
       </section>
 
       {/* About Cobra Market - Business Centers Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden transition-colors duration-300">
         {/* Background Decorations */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-100 rounded-full blur-3xl opacity-30" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent-100 rounded-full blur-3xl opacity-30" />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-100 dark:bg-primary-900/20 rounded-full blur-3xl opacity-30" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent-100 dark:bg-accent-900/20 rounded-full blur-3xl opacity-30" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -630,10 +630,10 @@ const Home = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-heading">
-              About <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600">Cobra Market</span>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 font-heading">
+              About <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600 dark:from-primary-400 dark:to-accent-400">Cobra Market</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Your premier destination for quality fashion and exceptional service across multiple locations
             </p>
           </motion.div>
@@ -642,7 +642,7 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Distribution Center */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100"
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl dark:shadow-gray-900/50 hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -654,11 +654,11 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Distribution Center</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Distribution Center</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 State-of-the-art warehouse facility ensuring fast and reliable delivery to all our customers nationwide.
               </p>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -676,7 +676,7 @@ const Home = () => {
 
             {/* Retail Center */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100"
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl dark:shadow-gray-900/50 hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -688,11 +688,11 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Retail Center</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Retail Center</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Modern shopping experience with our flagship stores offering personalized styling and premium collections.
               </p>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -710,7 +710,7 @@ const Home = () => {
 
             {/* Customer Service Center */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100"
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl dark:shadow-gray-900/50 hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -722,11 +722,11 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Service Center</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Service Center</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Dedicated support team ready to assist with orders, returns, and all customer inquiries.
               </p>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -744,7 +744,7 @@ const Home = () => {
 
             {/* Design Center */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100"
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl dark:shadow-gray-900/50 hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -756,11 +756,11 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Design Center</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Design Center</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Creative hub where our talented designers craft exclusive collections and trending fashion pieces.
               </p>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -785,12 +785,12 @@ const Home = () => {
             viewport={{ once: true }}
             transition={{ delay: 0.5 }}
           >
-            <p className="text-lg text-gray-700 mb-6">
+            <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
               Experience the Cobra Market difference at any of our centers
             </p>
             <Link
               to="/products"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-600 to-accent-600 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-primary-500/50 transition-all duration-300 transform hover:scale-105"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-600 to-accent-600 dark:from-primary-500 dark:to-accent-500 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-primary-500/50 dark:hover:shadow-primary-400/50 transition-all duration-300 transform hover:scale-105"
             >
               <span>Explore Our Collection</span>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -802,11 +802,11 @@ const Home = () => {
       </section>
 
       {/* Customer Reviews Section */}
-      <section className="py-20 bg-gradient-to-br from-white via-primary-50 to-accent-50 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-white via-primary-50 to-accent-50 dark:from-gray-900 dark:via-primary-900/20 dark:to-accent-900/20 relative overflow-hidden transition-colors duration-300">
         {/* Background Decoration */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-200 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-accent-200 rounded-full blur-3xl" />
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-200 dark:bg-primary-800 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-accent-200 dark:bg-accent-800 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -816,10 +816,10 @@ const Home = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600 dark:from-primary-400 dark:to-accent-400">
               What Our Customers Say
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Real experiences from our valued customers who love our products
             </p>
           </motion.div>
@@ -828,13 +828,13 @@ const Home = () => {
             <ReviewCarousel reviews={allReviews} />
           ) : (
             <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary-100 to-accent-100 mb-4">
-                <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary-100 to-accent-100 dark:from-primary-900/30 dark:to-accent-900/30 mb-4">
+                <svg className="w-10 h-10 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                 </svg>
               </div>
-              <p className="text-xl text-gray-600 font-medium">No reviews yet</p>
-              <p className="text-gray-500 mt-2">Be the first to share your experience!</p>
+              <p className="text-xl text-gray-600 dark:text-gray-300 font-medium">No reviews yet</p>
+              <p className="text-gray-500 dark:text-gray-400 mt-2">Be the first to share your experience!</p>
             </div>
           )}
         </div>
@@ -958,26 +958,26 @@ const Home = () => {
             viewport={{ once: true }}
             transition={{ delay: 0.5 }}
           >
-            <a href="#" className="w-12 h-12 bg-white/10 backdrop-blur-lg rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all group">
+            <button type="button" onClick={() => window.open('https://facebook.com', '_blank')} className="w-12 h-12 bg-white/10 backdrop-blur-lg rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all group" aria-label="Facebook">
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
               </svg>
-            </a>
-            <a href="#" className="w-12 h-12 bg-white/10 backdrop-blur-lg rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all group">
+            </button>
+            <button type="button" onClick={() => window.open('https://twitter.com', '_blank')} className="w-12 h-12 bg-white/10 backdrop-blur-lg rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all group" aria-label="Twitter">
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
               </svg>
-            </a>
-            <a href="#" className="w-12 h-12 bg-white/10 backdrop-blur-lg rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all group">
+            </button>
+            <button type="button" onClick={() => window.open('https://instagram.com', '_blank')} className="w-12 h-12 bg-white/10 backdrop-blur-lg rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all group" aria-label="Instagram">
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/>
               </svg>
-            </a>
-            <a href="#" className="w-12 h-12 bg-white/10 backdrop-blur-lg rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all group">
+            </button>
+            <button type="button" onClick={() => window.open('https://linkedin.com', '_blank')} className="w-12 h-12 bg-white/10 backdrop-blur-lg rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all group" aria-label="LinkedIn">
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
               </svg>
-            </a>
+            </button>
           </motion.div>
         </div>
       </section>

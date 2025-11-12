@@ -16,7 +16,7 @@ const Cart = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
-  const confirm = useConfirm();
+  const { confirm, ...confirmState } = useConfirm();
 
   const handleRemoveItem = (item) => {
     const colorCode = item.variant?.color?.code || item.variant?.color || null;
@@ -50,7 +50,7 @@ const Cart = () => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50 pt-24">
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 pt-24 transition-colors duration-300">
         <Navbar />
         <div className="flex-1 flex items-center justify-center py-16">
           <EmptyCart />
@@ -61,50 +61,50 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 pt-24">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 pt-24 transition-colors duration-300">
       <Navbar />
 
       {/* Header in same layout as Products */}
-      <div className="relative pt-1 pb-12 border-b border-gray-200">
+      <div className="relative pt-1 pb-12 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
 
           {/* Breadcrumb */}
-          <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
-            <Link to="/" className="hover:text-gray-700 transition-colors">
+          <div className="mb-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <Link to="/" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
               Home
             </Link>
             <span>/</span>
-            <span className="text-gray-700 font-medium">Cart</span>
+            <span className="text-gray-700 dark:text-gray-300 font-medium">Cart</span>
           </div>
 
           {/* Heading */}
           <motion.h1
-            className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-3"
+            className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-3"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
             Your{" "}
-            <span className="bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary-600 to-primary-500 dark:from-primary-400 dark:to-primary-300 bg-clip-text text-transparent">
               Shopping Cart
             </span>
           </motion.h1>
 
           {/* Description */}
           <motion.p
-            className="text-base sm:text-lg text-gray-600"
+            className="text-base sm:text-lg text-gray-600 dark:text-gray-300"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
             You currently have{" "}
-            <span className="font-semibold text-gray-900">{cartItems.length}</span>{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">{cartItems.length}</span>{" "}
             {cartItems.length === 1 ? "item" : "items"} in your cart.
           </motion.p>
 
           {/* Line + Cart Counter */}
           <div className="mt-6 flex items-center justify-between">
-            <span className="inline-block h-1 w-24 rounded-full bg-gradient-to-r from-primary-600 to-primary-400" />
-            <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 font-medium">
+            <span className="inline-block h-1 w-24 rounded-full bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-400 dark:to-primary-300" />
+            <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1 text-sm text-gray-700 dark:text-gray-300 font-medium">
               🛒 {cartItems.length} items
             </span>
           </div>
@@ -131,7 +131,7 @@ const Cart = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ delay: index * 0.05 }}
-                    className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 p-5 flex flex-col sm:flex-row gap-5 hover:shadow-md transition-all"
+                    className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/50 ring-1 ring-gray-200 dark:ring-gray-700 p-5 flex flex-col sm:flex-row gap-5 hover:shadow-md dark:hover:shadow-gray-900/70 transition-all"
                   >
 
                     {/* Product Image */}
@@ -139,7 +139,7 @@ const Cart = () => {
                       to={`/products/${item._id}`}
                       className="w-full sm:w-32 h-32 flex-shrink-0"
                     >
-                      <div className="w-full h-full rounded-xl overflow-hidden bg-gray-100">
+                      <div className="w-full h-full rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
                         {item.image ? (
                           <LazyImage
                             src={`http://localhost:5000${item.image}`}
@@ -147,7 +147,7 @@ const Cart = () => {
                             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 text-gray-500 text-sm font-semibold">
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 text-gray-500 dark:text-gray-400 text-sm font-semibold">
                             No Image
                           </div>
                         )}
@@ -157,53 +157,53 @@ const Cart = () => {
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
                       <Link to={`/products/${item._id}`} className="block group">
-                        <h3 className="font-semibold text-gray-900 text-lg mb-1 truncate group-hover:text-primary-600 transition-colors">
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-lg mb-1 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                           {item.name}
                         </h3>
                       </Link>
 
-                      <p className="text-sm text-gray-600 mb-2">{item.category}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{item.category}</p>
 
                       <div className="flex items-center gap-4 mb-3 flex-wrap">
                         {/* Color */}
                         {item.variant && item.variant.color && (
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600">Color:</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Color:</span>
                             <div className="flex items-center gap-1.5">
                               <div
-                                className="w-5 h-5 rounded-full border-2 border-gray-300"
+                                className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600"
                                 style={{ backgroundColor: item.variant.color.hex || '#808080' }}
                               />
-                              <span className="font-semibold text-gray-900 text-sm">
+                              <span className="font-semibold text-gray-900 dark:text-white text-sm">
                                 {item.variant.color.name || item.variant.color.code}
                               </span>
                             </div>
                           </div>
                         )}
 
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
                           Size:{" "}
-                          <span className="font-semibold text-gray-900">{item.selectedSize}</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">{item.selectedSize}</span>
                         </span>
 
-                        <span className="text-lg font-bold text-primary-600">${item.price}</span>
+                        <span className="text-lg font-bold text-primary-600 dark:text-primary-400">${item.price}</span>
                       </div>
 
                       {/* Quantity Controls */}
                       <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+                        <div className="flex items-center border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-700">
                           <button
                             onClick={() => {
                               const colorCode = item.variant?.color?.code || item.variant?.color || null;
                               updateQuantity(item._id, item.selectedSize, item.quantity - 1, colorCode);
                             }}
                             disabled={item.quantity <= 1}
-                            className="px-3 py-1 bg-gray-50 hover:bg-gray-100 disabled:opacity-50 font-bold"
+                            className="px-3 py-1 bg-gray-50 dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 disabled:opacity-50 font-bold text-gray-700 dark:text-gray-300 transition-colors"
                           >
                             −
                           </button>
 
-                          <span className="px-4 py-1 font-semibold min-w-[3rem] text-center">
+                          <span className="px-4 py-1 font-semibold min-w-[3rem] text-center text-gray-900 dark:text-white">
                             {item.quantity}
                           </span>
 
@@ -213,7 +213,7 @@ const Cart = () => {
                               updateQuantity(item._id, item.selectedSize, item.quantity + 1, colorCode);
                             }}
                             disabled={item.quantity >= item.stock}
-                            className="px-3 py-1 bg-gray-50 hover:bg-gray-100 disabled:opacity-50 font-bold"
+                            className="px-3 py-1 bg-gray-50 dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 disabled:opacity-50 font-bold text-gray-700 dark:text-gray-300 transition-colors"
                           >
                             +
                           </button>
@@ -221,15 +221,15 @@ const Cart = () => {
 
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className="text-xs text-gray-500">Total</p>
-                            <p className="text-xl font-bold text-gray-900">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+                            <p className="text-xl font-bold text-gray-900 dark:text-white">
                               ${(item.price * item.quantity).toFixed(2)}
                             </p>
                           </div>
 
                           <motion.button
                             onClick={() => handleRemoveItem(item)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -239,7 +239,7 @@ const Cart = () => {
                       </div>
 
                       {item.quantity >= item.stock && (
-                        <p className="text-xs text-amber-600 mt-2">Maximum quantity reached</p>
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Maximum quantity reached</p>
                       )}
                     </div>
                   </motion.div>
@@ -250,7 +250,7 @@ const Cart = () => {
             {/* Clear Cart */}
             <motion.button
               onClick={handleClearCart}
-              className="w-full px-6 py-3 rounded-xl bg-red-50 text-red-600 font-semibold border border-red-200 hover:bg-red-100 transition-all"
+              className="w-full px-6 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-semibold border border-red-200 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -263,37 +263,37 @@ const Cart = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 p-6 sticky top-28 space-y-6"
+              className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/50 ring-1 ring-gray-200 dark:ring-gray-700 p-6 sticky top-28 space-y-6 transition-colors duration-300"
             >
-              <h2 className="text-2xl font-bold text-gray-900">Order Summary</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Order Summary</h2>
 
               <div className="space-y-4">
-                <div className="flex justify-between text-gray-700">
+                <div className="flex justify-between text-gray-700 dark:text-gray-300">
                   <span>Subtotal ({cartItems.length} items)</span>
-                  <span className="font-semibold">${getCartTotal().toFixed(2)}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">${getCartTotal().toFixed(2)}</span>
                 </div>
 
-                <div className="flex justify-between text-gray-700">
+                <div className="flex justify-between text-gray-700 dark:text-gray-300">
                   <span>Shipping</span>
-                  <span className="font-semibold text-green-600">FREE</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">FREE</span>
                 </div>
 
-                <div className="flex justify-between text-gray-700">
+                <div className="flex justify-between text-gray-700 dark:text-gray-300">
                   <span>Tax</span>
-                  <span className="font-semibold">Calculated at checkout</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Calculated at checkout</span>
                 </div>
 
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-xl font-bold text-gray-900">
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                  <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white">
                     <span>Total</span>
-                    <span className="text-primary-600">${getCartTotal().toFixed(2)}</span>
+                    <span className="text-primary-600 dark:text-primary-400">${getCartTotal().toFixed(2)}</span>
                   </div>
                 </div>
               </div>
 
               <motion.button
                 onClick={handleProceedToCheckout}
-                className="w-full px-8 py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 shadow-lg flex items-center justify-center gap-2 transition-all"
+                className="w-full px-8 py-4 bg-primary-600 dark:bg-primary-500 text-white font-semibold rounded-xl hover:bg-primary-700 dark:hover:bg-primary-600 shadow-lg dark:shadow-gray-900/50 flex items-center justify-center gap-2 transition-all"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -303,22 +303,22 @@ const Cart = () => {
 
               <Link
                 to="/products"
-                className="block w-full px-8 py-4 rounded-xl bg-white border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 text-center transition-all"
+                className="block w-full px-8 py-4 rounded-xl bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-600 text-center transition-all"
               >
                 Continue Shopping
               </Link>
 
-              <div className="space-y-3 pt-4 border-t">
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <TruckIcon className="w-5 h-5 text-primary-600" />
+              <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                  <TruckIcon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                   <span>Free shipping on all orders</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <ShieldCheckIcon className="w-5 h-5 text-primary-600" />
+                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                  <ShieldCheckIcon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                   <span>Secure payment processing</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                  <svg className="w-5 h-5 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span>Cash on delivery available</span>
@@ -332,14 +332,14 @@ const Cart = () => {
 
       {/* Confirmation Modal */}
       <ConfirmationModal
-        isOpen={confirm.isOpen}
-        onClose={confirm.close}
-        onConfirm={confirm.handleConfirm}
-        title={confirm.title}
-        message={confirm.message}
-        confirmText={confirm.confirmText}
-        cancelText={confirm.cancelText}
-        variant={confirm.variant}
+        isOpen={confirmState.isOpen}
+        onClose={confirmState.close}
+        onConfirm={confirmState.handleConfirm}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        variant={confirmState.variant}
       />
 
       <Footer />

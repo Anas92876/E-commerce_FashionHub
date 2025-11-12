@@ -51,6 +51,7 @@ export const CartProvider = ({ children }) => {
     }
     
     setIsInitialized(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?._id, authLoading]); // Reload when user ID changes or auth finishes loading
 
   // Save cart to localStorage whenever it changes (only after initialization)
@@ -64,6 +65,7 @@ export const CartProvider = ({ children }) => {
       // Remove empty cart from storage
       localStorage.removeItem(cartKey);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartItems, user?._id, isInitialized]);
 
   // Handle user login - merge guest cart with user cart if needed
@@ -126,6 +128,7 @@ export const CartProvider = ({ children }) => {
         console.error('Error loading user cart:', error);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?._id, isInitialized]);
 
   // Listen for cart clear events (e.g., on logout)
@@ -138,6 +141,7 @@ export const CartProvider = ({ children }) => {
 
     window.addEventListener('clearCart', handleClearCart);
     return () => window.removeEventListener('clearCart', handleClearCart);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?._id]);
 
   // Add item to cart

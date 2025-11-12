@@ -190,19 +190,19 @@ const Dashboard = () => {
   // Status badge colors
   const getStatusColor = (status) => {
     const colors = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      processing: 'bg-blue-100 text-blue-800 border-blue-200',
-      shipped: 'bg-purple-100 text-purple-800 border-purple-200',
-      delivered: 'bg-green-100 text-green-800 border-green-200',
-      cancelled: 'bg-red-100 text-red-800 border-red-200',
+      pending: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700',
+      processing: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700',
+      shipped: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-700',
+      delivered: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700',
+      cancelled: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-200 dark:border-red-700',
     };
-    return colors[status?.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
+    return colors[status?.toLowerCase()] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600';
   };
 
   if (loading) {
     return (
       <AdminLayout>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
           <LoadingSpinner />
         </div>
       </AdminLayout>
@@ -211,15 +211,15 @@ const Dashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-display font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's what's happening with your store.</p>
+          <h1 className="text-3xl font-display font-bold text-gray-900 dark:text-white mb-2">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-300">Welcome back! Here's what's happening with your store.</p>
         </motion.div>
 
         {/* Stats Grid */}
@@ -230,22 +230,22 @@ const Dashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${card.bgGradient} p-6 shadow-lg hover:shadow-xl transition-all duration-300`}
+              className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${card.bgGradient} dark:from-gray-800 dark:to-gray-700 p-6 shadow-lg dark:shadow-gray-900/50 hover:shadow-xl transition-all duration-300`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">{card.title}</p>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">{card.value}</h3>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">{card.title}</p>
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{card.value}</h3>
                   <div className="flex items-center gap-1">
                     {card.trendUp ? (
-                      <ArrowTrendingUpIcon className="w-4 h-4 text-green-600" />
+                      <ArrowTrendingUpIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
                     ) : (
-                      <ArrowTrendingDownIcon className="w-4 h-4 text-red-600" />
+                      <ArrowTrendingDownIcon className="w-4 h-4 text-red-600 dark:text-red-400" />
                     )}
-                    <span className={`text-sm font-semibold ${card.trendUp ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`text-sm font-semibold ${card.trendUp ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {card.trend}
                     </span>
-                    <span className="text-sm text-gray-500 ml-1">vs last month</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">vs last month</span>
                   </div>
                 </div>
                 <div className={`p-3 rounded-lg bg-gradient-to-br ${card.gradient} shadow-lg`}>
@@ -261,25 +261,25 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="card p-6 mb-8"
+          className="card p-6 mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50"
         >
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {quickActions.map((action, index) => (
               <Link
                 key={action.title}
                 to={action.link}
-                className="group p-4 rounded-lg border-2 border-gray-200 hover:border-primary-500 hover:shadow-md transition-all duration-300"
+                className="group p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 hover:shadow-md dark:hover:shadow-gray-900/70 transition-all duration-300 bg-white dark:bg-gray-800"
               >
                 <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg bg-${action.color}-100 group-hover:bg-${action.color}-200 transition-colors`}>
-                    <action.icon className={`w-5 h-5 text-${action.color}-600`} />
+                  <div className={`p-2 rounded-lg bg-${action.color}-100 dark:bg-${action.color}-900/30 group-hover:bg-${action.color}-200 dark:group-hover:bg-${action.color}-900/50 transition-colors`}>
+                    <action.icon className={`w-5 h-5 text-${action.color}-600 dark:text-${action.color}-400`} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mb-1">
                       {action.title}
                     </h3>
-                    <p className="text-sm text-gray-600">{action.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{action.description}</p>
                   </div>
                 </div>
               </Link>
@@ -292,13 +292,13 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="card p-6"
+          className="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50"
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Orders</h2>
             <Link
               to="/admin/orders"
-              className="text-primary-600 hover:text-primary-700 font-semibold text-sm flex items-center gap-1"
+              className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold text-sm flex items-center gap-1"
             >
               View All
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -310,40 +310,40 @@ const Dashboard = () => {
           {recentOrders.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       Order ID
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       Customer
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       Total
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       Date
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {recentOrders.map((order) => (
-                    <tr key={order._id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={order._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="font-mono text-sm font-semibold text-gray-900">
+                        <span className="font-mono text-sm font-semibold text-gray-900 dark:text-white">
                           #{order._id.slice(-8).toUpperCase()}
                         </span>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">
+                        <span className="text-sm text-gray-900 dark:text-white">
                           {order.user?.firstName} {order.user?.lastName}
                         </span>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="text-sm font-semibold text-gray-900">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
                           ${order.totalPrice?.toFixed(2) || '0.00'}
                         </span>
                       </td>
@@ -352,7 +352,7 @@ const Dashboard = () => {
                           {order.status}
                         </span>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                         {new Date(order.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -366,9 +366,9 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <ShoppingCartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No orders yet</p>
-              <p className="text-gray-400 text-sm mt-2">Orders will appear here once customers start purchasing</p>
+              <ShoppingCartIcon className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-lg">No orders yet</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Orders will appear here once customers start purchasing</p>
             </div>
           )}
         </motion.div>
