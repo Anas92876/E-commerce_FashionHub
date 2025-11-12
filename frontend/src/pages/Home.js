@@ -191,32 +191,49 @@ const Home = () => {
         setLoading(true);
 
         // Fetch featured products (newest 8 products)
-        const productsRes = await axios.get(`${API_URL}/products`, {
-          params: { limit: 8, sort: 'newest' }
-        });
-        const products = productsRes.data.data;
+        let products = [];
+        try {
+          const productsRes = await axios.get(`${API_URL}/products`, {
+            params: { limit: 8, sort: 'newest' }
+          });
+          products = Array.isArray(productsRes.data?.data) ? productsRes.data.data : [];
+        } catch (error) {
+          console.error('Error fetching products:', error);
+          products = [];
+        }
         setFeaturedProducts(products);
 
         // Fetch categories
-        const categoriesRes = await axios.get(`${API_URL}/categories`);
-        setCategories(categoriesRes.data.data || []);
+        try {
+          const categoriesRes = await axios.get(`${API_URL}/categories`);
+          setCategories(Array.isArray(categoriesRes.data?.data) ? categoriesRes.data.data : []);
+        } catch (error) {
+          console.error('Error fetching categories:', error);
+          setCategories([]);
+        }
 
-        // Fetch all reviews
+        // Fetch all reviews only if we have products
         const reviewsData = [];
-        for (const product of products) {
-          try {
-            const reviewsRes = await axios.get(`${API_URL}/reviews/product/${product._id}`);
-            const productReviews = reviewsRes.data.data || [];
-            // Add product info to each review
-            productReviews.forEach(review => {
-              reviewsData.push({
-                ...review,
-                productName: product.name,
-                productImage: product.image
+        if (Array.isArray(products) && products.length > 0) {
+          for (const product of products) {
+            if (!product || !product._id) continue;
+            try {
+              const reviewsRes = await axios.get(`${API_URL}/reviews/product/${product._id}`);
+              const productReviews = Array.isArray(reviewsRes.data?.data) ? reviewsRes.data.data : [];
+              // Add product info to each review
+              productReviews.forEach(review => {
+                if (review) {
+                  reviewsData.push({
+                    ...review,
+                    productName: product.name,
+                    productImage: product.image
+                  });
+                }
               });
-            });
-          } catch (err) {
-            // Skip if error
+            } catch (err) {
+              // Skip if error
+              console.error(`Error fetching reviews for product ${product._id}:`, err);
+            }
           }
         }
         setAllReviews(reviewsData);
@@ -224,6 +241,10 @@ const Home = () => {
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
+        // Ensure arrays are set to empty arrays on error
+        setFeaturedProducts([]);
+        setCategories([]);
+        setAllReviews([]);
         setLoading(false);
       }
     };
@@ -533,7 +554,7 @@ const Home = () => {
 
           {loading ? (
             <ProductGridSkeleton count={8} />
-          ) : featuredProducts.length > 0 ? (
+          ) : Array.isArray(featuredProducts) && featuredProducts.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {featuredProducts.map((product, index) => (
