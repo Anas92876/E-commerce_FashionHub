@@ -13,8 +13,38 @@ connectDB();
 const app = express();
 
 // Middleware
+// CORS configuration - allow multiple origins
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:3000',
+  'https://fashionhubclient.netlify.app',
+  'https://*.netlify.app'
+].filter(Boolean);
+
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.some(allowed => {
+      if (allowed.includes('*')) {
+        // Handle wildcard domains
+        const pattern = allowed.replace('*', '.*');
+        return new RegExp(pattern).test(origin);
+      }
+      return origin === allowed;
+    })) {
+      callback(null, true);
+    } else {
+      // In development, allow all origins
+      if (process.env.NODE_ENV !== 'production') {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -27,7 +57,20 @@ app.use('/uploads', express.static('uploads'));
 
 // Basic route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to Cobra API' });
+  res.json({ 
+    message: 'Welcome to Cobra API',
+    status: 'running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
 // Import routes
