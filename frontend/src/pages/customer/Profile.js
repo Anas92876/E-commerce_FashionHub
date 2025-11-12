@@ -322,11 +322,32 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
-            Account Settings
-          </h1>
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
+              Account Settings
+            </h1>
+            <button
+              onClick={async () => {
+                const result = await refreshUser();
+                if (result.success) {
+                  toast.success('User data refreshed! Your role: ' + result.user.role);
+                } else {
+                  toast.error('Failed to refresh user data. Please log out and log back in.');
+                }
+              }}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              title="Refresh user data (useful after changing role in database)"
+            >
+              <ArrowPathIcon className="w-5 h-5" />
+            </button>
+          </div>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Manage your personal information and secure your account
+            {user && (
+              <span className="block mt-2 text-xs">
+                Current role: <span className="font-semibold">{user.role || 'customer'}</span>
+              </span>
+            )}
           </p>
         </motion.div>
       </header>
