@@ -32,9 +32,10 @@ const Products = () => {
     const fetchCategories = async () => {
       try {
         const { data } = await axios.get(`${API_URL}/categories`);
-        setCategories(data.data || []);
+        setCategories(Array.isArray(data?.data) ? data.data : []);
       } catch (error) {
         console.error('Error fetching categories:', error);
+        setCategories([]);
       }
     };
     fetchCategories();
@@ -61,12 +62,16 @@ const Products = () => {
 
       const { data } = await axios.get(`${API_URL}/products`, { params });
 
-      setProducts(data.data);
-      setTotalPages(data.pages);
-      setTotalProducts(data.total);
+      setProducts(Array.isArray(data?.data) ? data.data : []);
+      setTotalPages(data?.pages || 1);
+      setTotalProducts(data?.total || 0);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching products:', error);
+      // Set defaults on error
+      setProducts([]);
+      setTotalPages(1);
+      setTotalProducts(0);
       setLoading(false);
     }
   };
