@@ -7,3 +7,9 @@
   NODE_VERSION = "20"
   CI = "false"
 
+# SPA redirect rules - all routes should go to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+

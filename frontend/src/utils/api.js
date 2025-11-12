@@ -17,10 +17,24 @@ export const API_URL = getApiUrl();
 
 // Image base URL - for serving uploaded images
 // In production, this should be your backend URL
-export const IMAGE_BASE_URL = process.env.REACT_APP_IMAGE_BASE_URL || 
-  (process.env.REACT_APP_API_URL 
-    ? process.env.REACT_APP_API_URL.replace('/api', '') 
-    : 'https://web-production-2d7c0.up.railway.app/');
+const getImageBaseUrl = () => {
+  if (process.env.REACT_APP_IMAGE_BASE_URL) {
+    return process.env.REACT_APP_IMAGE_BASE_URL.endsWith('/') 
+      ? process.env.REACT_APP_IMAGE_BASE_URL 
+      : `${process.env.REACT_APP_IMAGE_BASE_URL}/`;
+  }
+  
+  const apiUrl = process.env.REACT_APP_API_URL;
+  if (apiUrl) {
+    // Remove /api if present and ensure it ends with /
+    const baseUrl = apiUrl.replace(/\/api\/?$/, '');
+    return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  }
+  
+  return 'http://localhost:5000/';
+};
+
+export const IMAGE_BASE_URL = getImageBaseUrl();
 
 // Helper function to get full image URL
 export const getImageUrl = (imagePath) => {
