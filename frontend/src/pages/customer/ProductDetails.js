@@ -1003,7 +1003,7 @@ const ProductDetails = () => {
                   </button>
                   {currentImages.length > 0 && (
                     <img
-                      src={`http://localhost:5000${currentImages[selectedImageIndex]}`}
+                      src={getImageUrl(currentImages[selectedImageIndex])}
                       alt={product.name}
                       className="w-full h-auto rounded-lg"
                     />
