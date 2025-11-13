@@ -7,7 +7,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ProductGridSkeleton } from '../components/skeletons';
 import LazyImage from '../components/LazyImage';
-import { API_URL } from '../utils/api';
+import { API_URL, IMAGE_BASE_URL, getImageUrl } from '../utils/api';
 import './Home.css';
 
 // Professional Auto-scrolling Review Carousel Component
@@ -510,7 +510,7 @@ const Home = () => {
                     <LazyImage
                       src={
                         category.image
-                          ? `http://localhost:5000${category.image}`
+                          ? getImageUrl(category.image)
                           : `https://source.unsplash.com/featured/400x600/?${category.name.toLowerCase()},fashion`
                       }
                       alt={category.name}
@@ -572,7 +572,7 @@ const Home = () => {
                       <div className="relative w-full h-80 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
                         {product.image ? (
                           <LazyImage
-                            src={`http://localhost:5000${product.image}`}
+                            src={getImageUrl(product.image)}
                             alt={product.name}
                             className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
                           />

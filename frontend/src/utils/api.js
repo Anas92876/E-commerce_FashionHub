@@ -1,33 +1,54 @@
 // Centralized API configuration
-// Ensure API_URL always ends with /api
+// Ensure API_URL always ends with /api and is a full absolute URL
 const getApiUrl = () => {
   const envUrl = process.env.REACT_APP_API_URL;
   
-  // Debug logging (remove in production if needed)
-  console.log('REACT_APP_API_URL from env:', envUrl);
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('REACT_APP_API_URL from env:', envUrl);
+  }
   
   if (!envUrl) {
     const defaultUrl = 'http://localhost:5000/api';
-    console.log('Using default API_URL:', defaultUrl);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Using default API_URL:', defaultUrl);
+    }
     return defaultUrl;
   }
   
-  // Ensure it starts with http:// or https://
-  let url = envUrl.trim();
+  // Clean and normalize the URL
+  let url = String(envUrl).trim();
+  
+  // Remove any leading/trailing slashes and whitespace
+  url = url.replace(/^\/+|\/+$/g, '').trim();
+  
+  // If it's empty after cleaning, use default
+  if (!url) {
+    const defaultUrl = 'http://localhost:5000/api';
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Using default API_URL:', defaultUrl);
+    }
+    return defaultUrl;
+  }
+  
+  // Ensure it starts with http:// or https:// (CRITICAL for absolute URLs)
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     url = `https://${url}`;
   }
   
-  // If it already includes /api, return as is
-  if (url.includes('/api')) {
-    const finalUrl = url.endsWith('/api') ? url : `${url}/api`;
-    console.log('Final API_URL (with /api):', finalUrl);
-    return finalUrl;
-  }
+  // Remove /api if it's in the middle or at the end, we'll add it properly
+  url = url.replace(/\/api\/?$/, '');
   
-  // Otherwise, add /api
-  const finalUrl = `${url.replace(/\/$/, '')}/api`;
-  console.log('Final API_URL (added /api):', finalUrl);
+  // Ensure it doesn't end with a slash
+  url = url.replace(/\/$/, '');
+  
+  // Add /api at the end
+  const finalUrl = `${url}/api`;
+  
+  // Always log in production to help debug
+  console.log('[API Config] REACT_APP_API_URL:', envUrl);
+  console.log('[API Config] Final API_URL:', finalUrl);
+  
   return finalUrl;
 };
 
