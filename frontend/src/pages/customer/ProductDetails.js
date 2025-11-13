@@ -21,7 +21,7 @@ import Footer from '../../components/Footer';
 import LazyImage from '../../components/LazyImage';
 import { ProductDetailsSkeleton } from '../../components/skeletons';
 import VariantSelector from '../../components/VariantSelector';
-import { API_URL } from '../../utils/api';
+import { API_URL, getImageUrl } from '../../utils/api';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -392,7 +392,7 @@ const ProductDetails = () => {
                   {currentImages.length > 0 ? (
                     <>
                       <LazyImage
-                        src={`http://localhost:5000${currentImages[selectedImageIndex]}`}
+                        src={getImageUrl(currentImages[selectedImageIndex])}
                         alt={product.name}
                         className="w-full h-full object-cover"
                       />
@@ -406,7 +406,7 @@ const ProductDetails = () => {
                     </>
                   ) : product.image ? (
                     <LazyImage
-                      src={`http://localhost:5000${product.image}`}
+                      src={getImageUrl(product.image)}
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />
@@ -452,7 +452,7 @@ const ProductDetails = () => {
                         }`}
                       >
                         <img
-                          src={`http://localhost:5000${img}`}
+                          src={getImageUrl(img)}
                           alt={`${product.name} - ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
@@ -829,7 +829,7 @@ const ProductDetails = () => {
                     <div className="aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden mb-3">
                       {relatedProduct.image ? (
                         <img
-                          src={`http://localhost:5000${relatedProduct.image}`}
+                          src={getImageUrl(relatedProduct.image)}
                           alt={relatedProduct.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />

@@ -142,7 +142,7 @@ const Cart = () => {
                       <div className="w-full h-full rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
                         {item.image ? (
                           <LazyImage
-                            src={`http://localhost:5000${item.image}`}
+                            src={getImageUrl(item.image)}
                             alt={item.name}
                             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                           />

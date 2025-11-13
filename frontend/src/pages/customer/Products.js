@@ -9,7 +9,7 @@ import Footer from '../../components/Footer';
 import { ProductGridSkeleton } from '../../components/skeletons';
 import LazyImage from '../../components/LazyImage';
 import { EmptySearch } from '../../components/EmptyState';
-import { API_URL } from '../../utils/api';
+import { API_URL, getImageUrl } from '../../utils/api';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -273,7 +273,7 @@ const Products = () => {
                         <div className="relative aspect-[4/5] overflow-hidden bg-gray-100 dark:bg-gray-700">
                           {product.image ? (
                             <LazyImage
-                              src={`http://localhost:5000${product.image}`}
+                              src={getImageUrl(product.image)}
                               alt={product.name}
                               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />

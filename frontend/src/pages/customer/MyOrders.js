@@ -22,7 +22,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { useConfirm } from '../../hooks/useConfirm';
-import { API_URL } from '../../utils/api';
+import { API_URL, getImageUrl } from '../../utils/api';
 
 const MyOrders = () => {
   const navigate = useNavigate();
@@ -213,7 +213,7 @@ const MyOrders = () => {
                               >
                                 {item.image ? (
                                   <img
-                                    src={`http://localhost:5000${item.image}`}
+                                    src={getImageUrl(item.image)}
                                     alt={item.name}
                                     className="w-full h-full object-cover"
                                   />
@@ -269,7 +269,7 @@ const MyOrders = () => {
                                       <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
                                         {item.image ? (
                                           <img
-                                            src={`http://localhost:5000${item.image}`}
+                                            src={getImageUrl(item.image)}
                                             alt={item.name}
                                             className="w-full h-full object-cover"
                                           />

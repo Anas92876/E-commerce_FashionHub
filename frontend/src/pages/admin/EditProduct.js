@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import AdminLayout from '../../components/AdminLayout';
-import { API_URL } from '../../utils/api';
+import { API_URL, getImageUrl } from '../../utils/api';
 import './ProductForm.css';
 
 // Helper function to generate SKU
@@ -756,7 +756,7 @@ const EditProduct = () => {
                                     {variant.existingImages.map((img, idx) => (
                                       <div key={idx} className="relative group">
                                         <img
-                                          src={`http://localhost:5000${img}`}
+                                          src={getImageUrl(img)}
                                           alt={`Existing ${idx + 1}`}
                                           className="w-full h-24 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
                                         />

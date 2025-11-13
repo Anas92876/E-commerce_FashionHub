@@ -15,7 +15,7 @@ import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { useConfirm } from '../../hooks/useConfirm';
-import { API_URL } from '../../utils/api';
+import { API_URL, getImageUrl, IMAGE_BASE_URL } from '../../utils/api';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -135,7 +135,7 @@ const Categories = () => {
     setCategoryImage(null);
     // Set preview to existing image if available
     if (category.image) {
-      setImagePreview(`http://localhost:5000${category.image}`);
+      setImagePreview(getImageUrl(category.image));
     } else {
       setImagePreview(null);
     }
@@ -357,7 +357,7 @@ const Categories = () => {
                         {category.image ? (
                           <div className="w-full h-40 bg-gray-100 dark:bg-gray-700 overflow-hidden">
                             <img
-                              src={`http://localhost:5000${category.image}`}
+                              src={getImageUrl(category.image)}
                               alt={category.name}
                               className="w-full h-full object-cover"
                             />

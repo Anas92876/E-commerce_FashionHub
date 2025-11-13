@@ -16,7 +16,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import LazyImage from '../../components/LazyImage';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { API_URL } from '../../utils/api';
+import { API_URL, getImageUrl } from '../../utils/api';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -377,7 +377,7 @@ const Checkout = () => {
                     <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
                       {item.image ? (
                         <LazyImage
-                          src={`http://localhost:5000${item.image}`}
+                          src={getImageUrl(item.image)}
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />

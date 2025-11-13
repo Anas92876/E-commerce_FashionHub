@@ -1,4 +1,5 @@
 import React from 'react';
+import { getImageUrl } from '../../utils/api';
 import './VariantSelector.css';
 
 const ColorSelector = ({ colors, selectedColor, onColorSelect, disabled }) => {
@@ -56,7 +57,7 @@ const ColorSelector = ({ colors, selectedColor, onColorSelect, disabled }) => {
               {/* Small thumbnail image on hover */}
               {color.image && (
                 <div className="color-image-preview">
-                  <img src={`http://localhost:5000/${color.image}`} alt={color.name} />
+                  <img src={getImageUrl(color.image)} alt={color.name} />
                 </div>
               )}
             </button>
