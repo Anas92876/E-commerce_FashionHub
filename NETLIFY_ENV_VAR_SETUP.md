@@ -1,8 +1,15 @@
 # Netlify Environment Variable Setup Guide
 
-## Critical: Setting REACT_APP_API_URL in Netlify
+## ⚠️ CRITICAL: Setting REACT_APP_API_URL in Netlify
 
-The API URL error you're seeing is because the `REACT_APP_API_URL` environment variable is not set correctly in Netlify.
+**If you see `localhost:5000` errors in production, it means the environment variable is NOT set!**
+
+The API URL and image display errors you're seeing are because the `REACT_APP_API_URL` environment variable is not set correctly (or not set at all) in Netlify.
+
+**Check your browser console** - you should see warnings like:
+```
+[Image Config] WARNING: No REACT_APP_API_URL or REACT_APP_IMAGE_BASE_URL set! Using default: http://localhost:5000/
+```
 
 ### Steps to Fix:
 
@@ -35,7 +42,10 @@ After deployment, open your browser console on the deployed site. You should see
 ```
 [API Config] REACT_APP_API_URL: https://web-production-2d7c0.up.railway.app/api
 [API Config] Final API_URL: https://web-production-2d7c0.up.railway.app/api
+[Image Config] Derived from REACT_APP_API_URL: https://web-production-2d7c0.up.railway.app/
 ```
+
+**If you see warnings about localhost, the variable is NOT set correctly!**
 
 ### Common Mistakes:
 
