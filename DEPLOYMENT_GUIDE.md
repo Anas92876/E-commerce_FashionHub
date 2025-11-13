@@ -185,35 +185,6 @@ REACT_APP_API_URL=https://your-backend.railway.app/api
 
 ---
 
-### Option B: Netlify (Alternative)
-
-#### Step 1: Sign Up
-1. Go to [Netlify](https://netlify.com)
-2. Sign up with GitHub
-
-#### Step 2: Add New Site
-1. Click **"Add new site"** → **"Import an existing project"**
-2. Connect to GitHub
-3. Select your repository
-
-#### Step 3: Configure Build
-- **Base directory**: `frontend`
-- **Build command**: `npm run build`
-- **Publish directory**: `frontend/build`
-
-#### Step 4: Add Environment Variables
-Go to **"Site settings"** → **"Environment variables"**:
-```
-REACT_APP_API_URL=https://your-backend.railway.app/api
-```
-
-#### Step 5: Deploy
-1. Click **"Deploy site"**
-2. Wait for deployment
-3. Copy your site URL
-
----
-
 ## 4. Post-Deployment Configuration
 
 ### Step 1: Verify Backend is Running

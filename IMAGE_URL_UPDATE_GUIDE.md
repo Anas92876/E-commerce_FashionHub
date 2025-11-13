@@ -67,7 +67,7 @@ Then add the import statement to each file.
 
 After updating the code, set these environment variables in your deployment platform:
 
-**Vercel/Netlify:**
+**Vercel:**
 ```env
 REACT_APP_API_URL=https://your-backend.railway.app/api
 REACT_APP_IMAGE_BASE_URL=https://your-backend.railway.app

@@ -249,8 +249,7 @@ npm run build
 This creates optimized production files in `build/` directory.
 
 Deploy the `build/` folder to any static hosting service:
-- Netlify
-- Vercel
+- Vercel (Recommended)
 - GitHub Pages
 - AWS S3 + CloudFront
 

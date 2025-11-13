@@ -59,8 +59,8 @@ Use this checklist to ensure everything is configured correctly before and after
 
 ## Frontend Deployment
 
-### Vercel/Netlify Setup
-- [ ] Created account on Vercel/Netlify
+### Vercel Setup
+- [ ] Created account on Vercel
 - [ ] Connected GitHub repository
 - [ ] Created new project
 - [ ] Set root directory to `frontend`

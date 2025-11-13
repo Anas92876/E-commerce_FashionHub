@@ -84,7 +84,7 @@ const getImageBaseUrl = () => {
   // Default fallback (only for local development)
   const defaultUrl = 'http://localhost:5000/';
   console.warn('[Image Config] WARNING: No REACT_APP_API_URL or REACT_APP_IMAGE_BASE_URL set! Using default:', defaultUrl);
-  console.warn('[Image Config] Please set REACT_APP_API_URL in Netlify environment variables!');
+  console.warn('[Image Config] Please set REACT_APP_API_URL in Vercel environment variables!');
   return defaultUrl;
 };
 
