@@ -57,35 +57,59 @@ export const API_URL = getApiUrl();
 // Image base URL - for serving uploaded images
 // In production, this should be your backend URL
 const getImageBaseUrl = () => {
+  // Check for explicit IMAGE_BASE_URL first
   if (process.env.REACT_APP_IMAGE_BASE_URL) {
-    const url = process.env.REACT_APP_IMAGE_BASE_URL.endsWith('/') 
-      ? process.env.REACT_APP_IMAGE_BASE_URL 
-      : `${process.env.REACT_APP_IMAGE_BASE_URL}/`;
-    return url;
+    let url = String(process.env.REACT_APP_IMAGE_BASE_URL).trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `https://${url}`;
+    }
+    const finalUrl = url.endsWith('/') ? url : `${url}/`;
+    console.log('[Image Config] Using REACT_APP_IMAGE_BASE_URL:', finalUrl);
+    return finalUrl;
   }
   
+  // Derive from API_URL
   const apiUrl = process.env.REACT_APP_API_URL;
   if (apiUrl) {
     // Remove /api if present and ensure it ends with /
-    let baseUrl = apiUrl.replace(/\/api\/?$/, '');
+    let baseUrl = String(apiUrl).trim().replace(/\/api\/?$/, '');
     if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
       baseUrl = `https://${baseUrl}`;
     }
-    return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+    const finalUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+    console.log('[Image Config] Derived from REACT_APP_API_URL:', finalUrl);
+    return finalUrl;
   }
   
-  return 'http://localhost:5000/';
+  // Default fallback (only for local development)
+  const defaultUrl = 'http://localhost:5000/';
+  console.warn('[Image Config] WARNING: No REACT_APP_API_URL or REACT_APP_IMAGE_BASE_URL set! Using default:', defaultUrl);
+  console.warn('[Image Config] Please set REACT_APP_API_URL in Netlify environment variables!');
+  return defaultUrl;
 };
 
 export const IMAGE_BASE_URL = getImageBaseUrl();
 
 // Helper function to get full image URL
 export const getImageUrl = (imagePath) => {
-  if (!imagePath) return null;
+  if (!imagePath) {
+    console.warn('[getImageUrl] No image path provided');
+    return null;
+  }
+  
   // If imagePath already includes http/https, return as is
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
-  // Otherwise, prepend the base URL
-  return `${IMAGE_BASE_URL}${imagePath.startsWith('/') ? imagePath : '/' + imagePath}`;
+  
+  // Ensure imagePath starts with / if it doesn't already
+  const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+  const fullUrl = `${IMAGE_BASE_URL}${normalizedPath}`;
+  
+  // Log in development to help debug
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[getImageUrl]', { imagePath, normalizedPath, IMAGE_BASE_URL, fullUrl });
+  }
+  
+  return fullUrl;
 };
