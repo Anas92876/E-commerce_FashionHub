@@ -683,15 +683,15 @@ const sendEmail = async (to, subject, templateName, data) => {
     }
 
   } catch (error) {
-    console.error('❌ Email sending failed:', error.message);
+    console.error('❌ Email sending failed:', error.message || error);
     if (error.response) {
       console.error('❌ Error details:', JSON.stringify(error.response.body || error.response, null, 2));
     }
-    if (error.message.includes('timeout')) {
+    if (error.message && error.message.includes('timeout')) {
       console.log('💡 SMTP timeout detected. Railway may be blocking SMTP ports.');
       console.log('💡 Solution: Use Brevo, SendGrid or Resend instead.');
     }
-    return { success: false, error: error.message };
+    return { success: false, error: error.message || 'Email sending failed' };
   }
 };
 
