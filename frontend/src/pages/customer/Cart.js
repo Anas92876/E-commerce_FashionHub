@@ -11,7 +11,6 @@ import LazyImage from '../../components/LazyImage';
 import { EmptyCart } from '../../components/EmptyState';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { useConfirm } from '../../hooks/useConfirm';
-import { getImageUrl } from '../../utils/api';
 
 const Cart = () => {
   const navigate = useNavigate();
