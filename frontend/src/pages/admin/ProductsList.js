@@ -13,7 +13,7 @@ import {
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { API_URL, IMAGE_BASE_URL } from '../../utils/api';
+import { API_URL, getImageUrl } from '../../utils/api';
 import { toast } from 'react-toastify';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -295,7 +295,7 @@ const ProductsList = () => {
                             <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
                               {product.image ? (
                                 <LazyImage
-                                  src={`${IMAGE_BASE_URL}${product.image}`}
+                                  src={getImageUrl(product.image)}
                                   alt={product.name}
                                   className="w-full h-full object-cover"
                                 />
