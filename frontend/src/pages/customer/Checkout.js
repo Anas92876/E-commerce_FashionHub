@@ -87,8 +87,13 @@ const Checkout = () => {
         size: item.selectedSize,
         image: item.image,
         ...(item.variant && {
-          variant: item.variant,
-          variantSku: item.variant.variantSku || item.variant.sizeSku
+          variantSku: item.variant.sku || item.variant.variantSku,
+          color: {
+            name: item.variant.color?.name || null,
+            hex: item.variant.color?.hex || null,
+            code: item.variant.color?.code || null
+          },
+          sizeSku: item.variant.sizeSku || null
         })
       }));
 
