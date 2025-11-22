@@ -424,7 +424,7 @@ const EditProduct = () => {
 
       const token = localStorage.getItem('token');
       await axios.put(
-        `${API_URL}/admin/products/${id}`,
+        `${API_URL}/products/${id}`,
         formData,
         {
           headers: {
