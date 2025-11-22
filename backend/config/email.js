@@ -2,18 +2,28 @@ const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const sgMail = require('@sendgrid/mail');
 const SibApiV3Sdk = require('@sendinblue/client');
+const Mailjet = require('node-mailjet');
 
 // ===============================
 // EMAIL SERVICE DETECTION
 // ===============================
-const EMAIL_SERVICE = process.env.EMAIL_SERVICE || 'smtp'; // 'brevo', 'sendgrid', 'resend', or 'smtp'
+const EMAIL_SERVICE = process.env.EMAIL_SERVICE || 'smtp'; // 'mailjet', 'brevo', 'sendgrid', 'resend', or 'smtp'
 let resendClient = null;
 let transporter = null;
 let sendgridConfigured = false;
 let brevoClient = null;
+let mailjetClient = null;
 
-// Initialize Brevo (formerly Sendinblue - BEST FREE TIER!)
-if (EMAIL_SERVICE === 'brevo' && process.env.BREVO_API_KEY) {
+// Initialize Mailjet (BEST - 200/day, 6000/month FREE, no domain required!)
+if (EMAIL_SERVICE === 'mailjet' && process.env.MAILJET_API_KEY && process.env.MAILJET_SECRET_KEY) {
+  mailjetClient = Mailjet.apiConnect(
+    process.env.MAILJET_API_KEY,
+    process.env.MAILJET_SECRET_KEY
+  );
+  console.log('📧 Email service: Mailjet (200/day, 6000/month FREE, no domain required)');
+}
+// Initialize Brevo (formerly Sendinblue)
+else if (EMAIL_SERVICE === 'brevo' && process.env.BREVO_API_KEY) {
   brevoClient = new SibApiV3Sdk.TransactionalEmailsApi();
   const apiKey = brevoClient.authentications['apiKey'];
   apiKey.apiKey = process.env.BREVO_API_KEY;
@@ -610,10 +620,10 @@ const emailTemplates = {
 const sendEmail = async (to, subject, templateName, data) => {
   try {
     // Check if any email service is configured
-    if (!brevoClient && !sendgridConfigured && !resendClient && !transporter) {
+    if (!mailjetClient && !brevoClient && !sendgridConfigured && !resendClient && !transporter) {
       console.log('⚠️  No email service configured. Skipping email send.');
       console.log(`📧 Would have sent: ${subject} to ${to}`);
-      console.log('💡 Set BREVO_API_KEY (recommended - 300/day free), SENDGRID_API_KEY, RESEND_API_KEY, or EMAIL_USER/EMAIL_PASSWORD');
+      console.log('💡 Set MAILJET_API_KEY (recommended), BREVO_API_KEY, SENDGRID_API_KEY, RESEND_API_KEY, or EMAIL_USER/EMAIL_PASSWORD');
       return { success: false, error: 'Email not configured' };
     }
 
@@ -626,8 +636,36 @@ const sendEmail = async (to, subject, templateName, data) => {
     const html = template(data);
     const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@cobramarket.com';
 
-    // BREVO (BEST - 300 emails/day, no domain required!)
-    if (brevoClient) {
+    // MAILJET (BEST - 200/day, 6000/month, no domain required!)
+    if (mailjetClient) {
+      const request = mailjetClient
+        .post('send', { version: 'v3.1' })
+        .request({
+          Messages: [
+            {
+              From: {
+                Email: fromEmail,
+                Name: 'Cobra Market'
+              },
+              To: [
+                {
+                  Email: to
+                }
+              ],
+              Subject: subject,
+              HTMLPart: html
+            }
+          ]
+        });
+
+      const result = await request;
+
+      console.log('📧 Mailjet API Response:', JSON.stringify(result.body, null, 2));
+      console.log(`✅ Email sent via Mailjet: ${result.body.Messages[0].To[0].MessageID || 'Sent'} - ${subject} to ${to}`);
+      return { success: true, messageId: result.body.Messages[0].To[0].MessageID };
+    }
+    // BREVO (300 emails/day, no domain required)
+    else if (brevoClient) {
       const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
       sendSmtpEmail.sender = { name: 'Cobra Market', email: fromEmail };
