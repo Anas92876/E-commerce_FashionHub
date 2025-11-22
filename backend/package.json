@@ -13,8 +13,6 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@sendgrid/mail": "^8.1.6",
-    "@sendinblue/client": "^3.3.1",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^1.41.3",
@@ -26,9 +24,7 @@
     "mongoose": "^8.19.2",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
-    "node-mailjet": "^6.0.11",
-    "nodemailer": "^7.0.10",
-    "resend": "^6.5.2"
+    "nodemailer": "^7.0.10"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
