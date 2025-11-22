@@ -108,16 +108,21 @@ exports.createOrder = async (req, res, next) => {
       }
     }
 
-    // Send order confirmation email
-    // Fetch full user data for email (with firstName, lastName, etc.)
-    const fullUser = await User.findById(req.user._id);
-    if (fullUser && fullUser.emailPreferences?.orderUpdates !== false) {
-      await sendEmail(
-        fullUser.email,
-        `Order Confirmation #${order._id}`,
-        'orderConfirmation',
-        { order, user: fullUser }
-      );
+    // Send order confirmation email (non-blocking - don't fail order if email fails)
+    try {
+      const fullUser = await User.findById(req.user._id);
+      if (fullUser && fullUser.emailPreferences?.orderUpdates !== false) {
+        await sendEmail(
+          fullUser.email,
+          `Order Confirmation #${order._id}`,
+          'orderConfirmation',
+          { order, user: fullUser }
+        );
+      }
+    } catch (emailError) {
+      // Log error but don't fail the order creation
+      console.error('Error sending order confirmation email:', emailError.message);
+      // Order is still created successfully, just email failed
     }
 
     res.status(201).json({

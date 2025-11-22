@@ -3,17 +3,10 @@
 const getApiUrl = () => {
   const envUrl = process.env.REACT_APP_API_URL;
   
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('REACT_APP_API_URL from env:', envUrl);
-  }
+  // Debug logging removed for production
   
   if (!envUrl) {
-    const defaultUrl = 'http://localhost:5000/api';
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Using default API_URL:', defaultUrl);
-    }
-    return defaultUrl;
+    return 'http://localhost:5000/api';
   }
   
   // Clean and normalize the URL
@@ -24,11 +17,7 @@ const getApiUrl = () => {
   
   // If it's empty after cleaning, use default
   if (!url) {
-    const defaultUrl = 'http://localhost:5000/api';
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Using default API_URL:', defaultUrl);
-    }
-    return defaultUrl;
+    return 'http://localhost:5000/api';
   }
   
   // Ensure it starts with http:// or https:// (CRITICAL for absolute URLs)
@@ -43,13 +32,7 @@ const getApiUrl = () => {
   url = url.replace(/\/$/, '');
   
   // Add /api at the end
-  const finalUrl = `${url}/api`;
-  
-  // Always log in production to help debug
-  console.log('[API Config] REACT_APP_API_URL:', envUrl);
-  console.log('[API Config] Final API_URL:', finalUrl);
-  
-  return finalUrl;
+  return `${url}/api`;
 };
 
 export const API_URL = getApiUrl();
@@ -63,9 +46,7 @@ const getImageBaseUrl = () => {
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = `https://${url}`;
     }
-    const finalUrl = url.endsWith('/') ? url : `${url}/`;
-    console.log('[Image Config] Using REACT_APP_IMAGE_BASE_URL:', finalUrl);
-    return finalUrl;
+    return url.endsWith('/') ? url : `${url}/`;
   }
   
   // Derive from API_URL
@@ -76,9 +57,7 @@ const getImageBaseUrl = () => {
     if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
       baseUrl = `https://${baseUrl}`;
     }
-    const finalUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-    console.log('[Image Config] Derived from REACT_APP_API_URL:', finalUrl);
-    return finalUrl;
+    return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
   }
   
   // Default fallback (only for local development)
@@ -99,22 +78,11 @@ export const getImageUrl = (imagePath) => {
 
   // If imagePath already includes http/https (Cloudinary URLs), return as is
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-    console.log('[getImageUrl] Using full URL (Cloudinary):', imagePath);
     return imagePath;
   }
 
   // For relative paths (legacy /uploads/... format)
   // Ensure imagePath starts with / if it doesn't already
   const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-  const fullUrl = `${IMAGE_BASE_URL}${normalizedPath}`;
-
-  // Always log to help debug
-  console.log('[getImageUrl] Converted relative path:', {
-    imagePath,
-    normalizedPath,
-    IMAGE_BASE_URL,
-    fullUrl
-  });
-
-  return fullUrl;
+  return `${IMAGE_BASE_URL}${normalizedPath}`;
 };
