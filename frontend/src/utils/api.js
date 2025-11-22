@@ -96,20 +96,25 @@ export const getImageUrl = (imagePath) => {
     console.warn('[getImageUrl] No image path provided');
     return null;
   }
-  
-  // If imagePath already includes http/https, return as is
+
+  // If imagePath already includes http/https (Cloudinary URLs), return as is
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    console.log('[getImageUrl] Using full URL (Cloudinary):', imagePath);
     return imagePath;
   }
-  
+
+  // For relative paths (legacy /uploads/... format)
   // Ensure imagePath starts with / if it doesn't already
   const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
   const fullUrl = `${IMAGE_BASE_URL}${normalizedPath}`;
-  
-  // Log in development to help debug
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[getImageUrl]', { imagePath, normalizedPath, IMAGE_BASE_URL, fullUrl });
-  }
-  
+
+  // Always log to help debug
+  console.log('[getImageUrl] Converted relative path:', {
+    imagePath,
+    normalizedPath,
+    IMAGE_BASE_URL,
+    fullUrl
+  });
+
   return fullUrl;
 };
