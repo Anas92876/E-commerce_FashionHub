@@ -80,7 +80,6 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/users', require('./routes/users'));
-app.use('/api/test', require('./routes/testEmail')); // Test email endpoint (REMOVE IN PRODUCTION)
 
 // Error handling middleware
 app.use((err, req, res, next) => {

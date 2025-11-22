@@ -1,7 +1,6 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
-const { sendEmail } = require('../config/email');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -114,23 +113,6 @@ exports.createOrder = async (req, res, next) => {
           message: `Error updating stock: ${stockError.message}`
         });
       }
-    }
-
-    // Send order confirmation email (non-blocking - don't fail order if email fails)
-    try {
-      const fullUser = await User.findById(req.user._id);
-      if (fullUser && fullUser.emailPreferences?.orderUpdates !== false) {
-        await sendEmail(
-          fullUser.email,
-          `Order Confirmation #${order._id}`,
-          'orderConfirmation',
-          { order, user: fullUser }
-        );
-      }
-    } catch (emailError) {
-      // Log error but don't fail the order creation
-      console.error('Error sending order confirmation email:', emailError.message);
-      // Order is still created successfully, just email failed
     }
 
     res.status(201).json({
@@ -291,25 +273,6 @@ exports.updateOrderStatus = async (req, res, next) => {
 
     await order.save();
 
-    // Send email notifications based on status change
-    if (order.user.emailPreferences?.orderUpdates !== false) {
-      if (status === 'Shipped') {
-        await sendEmail(
-          order.user.email,
-          'Your Order Has Been Shipped!',
-          'orderShipped',
-          { order, user: order.user, tracking: order.trackingNumber }
-        );
-      } else if (status === 'Delivered') {
-        await sendEmail(
-          order.user.email,
-          'Your Order Has Been Delivered!',
-          'orderDelivered',
-          { order, user: order.user }
-        );
-      }
-    }
-
     res.status(200).json({
       success: true,
       data: order
@@ -404,16 +367,6 @@ exports.cancelOrder = async (req, res, next) => {
 
     order.status = 'Cancelled';
     await order.save();
-
-    // Send order cancellation email
-    if (order.user.emailPreferences?.orderUpdates !== false) {
-      await sendEmail(
-        order.user.email,
-        'Order Cancellation Confirmation',
-        'orderCancelled',
-        { order, user: order.user, reason: req.body.reason || 'Cancelled by user request' }
-      );
-    }
 
     res.status(200).json({
       success: true,

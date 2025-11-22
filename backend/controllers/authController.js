@@ -1,6 +1,5 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const { sendEmail } = require('../config/email');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -32,14 +31,6 @@ exports.register = async (req, res) => {
       email,
       password,
     });
-
-    // Send welcome email
-    await sendEmail(
-      user.email,
-      'Welcome to Cobra Market!',
-      'welcomeEmail',
-      user
-    );
 
     // Generate token
     const token = generateToken(user._id);
