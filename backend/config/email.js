@@ -1,17 +1,26 @@
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const sgMail = require('@sendgrid/mail');
+const SibApiV3Sdk = require('@sendinblue/client');
 
 // ===============================
 // EMAIL SERVICE DETECTION
 // ===============================
-const EMAIL_SERVICE = process.env.EMAIL_SERVICE || 'smtp'; // 'resend', 'sendgrid', or 'smtp'
+const EMAIL_SERVICE = process.env.EMAIL_SERVICE || 'smtp'; // 'brevo', 'sendgrid', 'resend', or 'smtp'
 let resendClient = null;
 let transporter = null;
 let sendgridConfigured = false;
+let brevoClient = null;
 
+// Initialize Brevo (formerly Sendinblue - BEST FREE TIER!)
+if (EMAIL_SERVICE === 'brevo' && process.env.BREVO_API_KEY) {
+  brevoClient = new SibApiV3Sdk.TransactionalEmailsApi();
+  const apiKey = brevoClient.authentications['apiKey'];
+  apiKey.apiKey = process.env.BREVO_API_KEY;
+  console.log('📧 Email service: Brevo (300 emails/day FREE, no domain required)');
+}
 // Initialize SendGrid (no domain required!)
-if (EMAIL_SERVICE === 'sendgrid' && process.env.SENDGRID_API_KEY) {
+else if (EMAIL_SERVICE === 'sendgrid' && process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   sendgridConfigured = true;
   console.log('📧 Email service: SendGrid (no domain required)');
@@ -42,14 +51,14 @@ else if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
   transporter.verify(function (error, success) {
     if (error) {
       console.log('❌ SMTP Email error:', error.message);
-      console.log('💡 TIP: Railway may block SMTP. Consider using SendGrid or Resend instead.');
+      console.log('💡 TIP: Railway may block SMTP. Consider using Brevo or SendGrid instead.');
     } else {
       console.log('✅ SMTP Email server is ready');
     }
   });
   console.log('📧 Email service: SMTP');
 } else {
-  console.log('⚠️  No email service configured. Set SENDGRID_API_KEY, RESEND_API_KEY, or EMAIL_USER/EMAIL_PASSWORD');
+  console.log('⚠️  No email service configured. Set BREVO_API_KEY (recommended), SENDGRID_API_KEY, RESEND_API_KEY, or EMAIL_USER/EMAIL_PASSWORD');
 }
 
 // ===============================
@@ -601,10 +610,10 @@ const emailTemplates = {
 const sendEmail = async (to, subject, templateName, data) => {
   try {
     // Check if any email service is configured
-    if (!sendgridConfigured && !resendClient && !transporter) {
+    if (!brevoClient && !sendgridConfigured && !resendClient && !transporter) {
       console.log('⚠️  No email service configured. Skipping email send.');
       console.log(`📧 Would have sent: ${subject} to ${to}`);
-      console.log('💡 Set SENDGRID_API_KEY (easiest), RESEND_API_KEY, or EMAIL_USER/EMAIL_PASSWORD');
+      console.log('💡 Set BREVO_API_KEY (recommended - 300/day free), SENDGRID_API_KEY, RESEND_API_KEY, or EMAIL_USER/EMAIL_PASSWORD');
       return { success: false, error: 'Email not configured' };
     }
 
@@ -617,11 +626,26 @@ const sendEmail = async (to, subject, templateName, data) => {
     const html = template(data);
     const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@cobramarket.com';
 
-    // SENDGRID (Best for no domain)
-    if (sendgridConfigured) {
+    // BREVO (BEST - 300 emails/day, no domain required!)
+    if (brevoClient) {
+      const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+
+      sendSmtpEmail.sender = { name: 'Cobra Market', email: fromEmail };
+      sendSmtpEmail.to = [{ email: to }];
+      sendSmtpEmail.subject = subject;
+      sendSmtpEmail.htmlContent = html;
+
+      const result = await brevoClient.sendTransacEmail(sendSmtpEmail);
+
+      console.log('📧 Brevo API Response:', JSON.stringify(result, null, 2));
+      console.log(`✅ Email sent via Brevo: ${result.messageId || 'Sent'} - ${subject} to ${to}`);
+      return { success: true, messageId: result.messageId };
+    }
+    // SENDGRID
+    else if (sendgridConfigured) {
       const msg = {
         to: to,
-        from: fromEmail, // Must be verified in SendGrid or use sandbox
+        from: fromEmail,
         subject: subject,
         html: html,
       };
@@ -632,7 +656,7 @@ const sendEmail = async (to, subject, templateName, data) => {
       console.log(`✅ Email sent via SendGrid: ${result[0].headers['x-message-id'] || 'Sent'} - ${subject} to ${to}`);
       return { success: true, messageId: result[0].headers['x-message-id'], statusCode: result[0].statusCode };
     }
-    // RESEND (Recommended for Railway with domain)
+    // RESEND
     else if (resendClient) {
       const result = await resendClient.emails.send({
         from: `Cobra Market <${fromEmail}>`,
@@ -645,7 +669,7 @@ const sendEmail = async (to, subject, templateName, data) => {
       console.log(`✅ Email sent via Resend: ${result.id || result.data?.id || 'ID not available'} - ${subject} to ${to}`);
       return { success: true, messageId: result.id || result.data?.id, fullResponse: result };
     }
-    // SMTP (Gmail, etc.)
+    // SMTP
     else if (transporter) {
       const info = await transporter.sendMail({
         from: `"Cobra Market" <${fromEmail}>`,
@@ -661,11 +685,11 @@ const sendEmail = async (to, subject, templateName, data) => {
   } catch (error) {
     console.error('❌ Email sending failed:', error.message);
     if (error.response) {
-      console.error('❌ Error details:', JSON.stringify(error.response.body, null, 2));
+      console.error('❌ Error details:', JSON.stringify(error.response.body || error.response, null, 2));
     }
     if (error.message.includes('timeout')) {
       console.log('💡 SMTP timeout detected. Railway may be blocking SMTP ports.');
-      console.log('💡 Solution: Use SendGrid or Resend instead - see RAILWAY_EMAIL_FIX.md');
+      console.log('💡 Solution: Use Brevo, SendGrid or Resend instead.');
     }
     return { success: false, error: error.message };
   }
