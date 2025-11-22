@@ -1,26 +1,49 @@
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 // ===============================
-// TRANSPORTER CONFIGURATION
+// EMAIL SERVICE DETECTION
 // ===============================
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: process.env.EMAIL_PORT || 587,
-  secure: process.env.EMAIL_PORT == 465,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+const EMAIL_SERVICE = process.env.EMAIL_SERVICE || 'smtp'; // 'resend', 'sendgrid', or 'smtp'
+let resendClient = null;
+let transporter = null;
 
-// Verify transporter configuration
-transporter.verify(function (error, success) {
-  if (error) {
-    console.log('❌ Email transporter error:', error);
-  } else {
-    console.log('✅ Email server is ready to send messages');
-  }
-});
+// Initialize Resend (best for Railway)
+if (EMAIL_SERVICE === 'resend' && process.env.RESEND_API_KEY) {
+  resendClient = new Resend(process.env.RESEND_API_KEY);
+  console.log('📧 Email service: Resend (recommended for Railway)');
+}
+// Initialize SMTP (Gmail, SendGrid SMTP, etc.)
+else if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+  transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: parseInt(process.env.EMAIL_PORT) === 465, // true for 465, false for other ports
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+  });
+
+  // Verify transporter configuration
+  transporter.verify(function (error, success) {
+    if (error) {
+      console.log('❌ SMTP Email error:', error.message);
+      console.log('💡 TIP: Railway may block SMTP. Consider using Resend instead.');
+    } else {
+      console.log('✅ SMTP Email server is ready');
+    }
+  });
+  console.log('📧 Email service: SMTP');
+} else {
+  console.log('⚠️  No email service configured. Set RESEND_API_KEY or EMAIL_USER/EMAIL_PASSWORD');
+}
 
 // ===============================
 // EMAIL TEMPLATES (FIXED)
@@ -566,14 +589,15 @@ const emailTemplates = {
 };
 
 // ===============================
-// SEND EMAIL FUNCTION (FIXED)
+// SEND EMAIL FUNCTION (MULTI-SERVICE SUPPORT)
 // ===============================
 const sendEmail = async (to, subject, templateName, data) => {
   try {
-    // Check if email is configured
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.log('⚠️  Email not configured. Skipping email send.');
+    // Check if any email service is configured
+    if (!resendClient && !transporter) {
+      console.log('⚠️  No email service configured. Skipping email send.');
       console.log(`📧 Would have sent: ${subject} to ${to}`);
+      console.log('💡 Set RESEND_API_KEY (recommended) or EMAIL_USER/EMAIL_PASSWORD');
       return { success: false, error: 'Email not configured' };
     }
 
@@ -583,21 +607,40 @@ const sendEmail = async (to, subject, templateName, data) => {
       throw new Error(`Email template '${templateName}' not found`);
     }
 
-    // FIXED: Templates now accept single data object and destructure internally
     const html = template(data);
+    const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@cobramarket.com';
 
-    // Send email
-    const info = await transporter.sendMail({
-      from: `"Cobra Market" <${process.env.EMAIL_USER}>`,
-      to: to,
-      subject: subject,
-      html: html,
-    });
+    // RESEND (Recommended for Railway)
+    if (resendClient) {
+      const result = await resendClient.emails.send({
+        from: `Cobra Market <${fromEmail}>`,
+        to: [to],
+        subject: subject,
+        html: html,
+      });
 
-    console.log(`✅ Email sent: ${info.messageId} - ${subject} to ${to}`);
-    return { success: true, messageId: info.messageId };
+      console.log(`✅ Email sent via Resend: ${result.id} - ${subject} to ${to}`);
+      return { success: true, messageId: result.id };
+    }
+    // SMTP (Gmail, SendGrid SMTP, etc.)
+    else if (transporter) {
+      const info = await transporter.sendMail({
+        from: `"Cobra Market" <${fromEmail}>`,
+        to: to,
+        subject: subject,
+        html: html,
+      });
+
+      console.log(`✅ Email sent via SMTP: ${info.messageId} - ${subject} to ${to}`);
+      return { success: true, messageId: info.messageId };
+    }
+
   } catch (error) {
     console.error('❌ Email sending failed:', error.message);
+    if (error.message.includes('timeout')) {
+      console.log('💡 SMTP timeout detected. Railway may be blocking SMTP ports.');
+      console.log('💡 Solution: Use Resend instead - see RAILWAY_EMAIL_FIX.md');
+    }
     return { success: false, error: error.message };
   }
 };
