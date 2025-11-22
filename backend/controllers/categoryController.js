@@ -37,7 +37,9 @@ exports.createCategory = async (req, res, next) => {
 
     // Add image path if file was uploaded
     if (req.file) {
-      categoryData.image = '/' + req.file.path.replace(/\\/g, '/');
+      // With Cloudinary, req.file.path contains the full URL
+      // For local uploads, it would be a relative path
+      categoryData.image = req.file.path;
     }
 
     const category = await Category.create(categoryData);
@@ -86,7 +88,9 @@ exports.updateCategory = async (req, res, next) => {
 
     // Update image if a new file was uploaded
     if (req.file) {
-      category.image = '/' + req.file.path.replace(/\\/g, '/');
+      // With Cloudinary, req.file.path contains the full URL
+      // For local uploads, it would be a relative path
+      category.image = req.file.path;
     }
 
     await category.save();
