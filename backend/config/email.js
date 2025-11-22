@@ -619,8 +619,10 @@ const sendEmail = async (to, subject, templateName, data) => {
         html: html,
       });
 
-      console.log(`✅ Email sent via Resend: ${result.id} - ${subject} to ${to}`);
-      return { success: true, messageId: result.id };
+      // Log full response for debugging
+      console.log('📧 Resend API Response:', JSON.stringify(result, null, 2));
+      console.log(`✅ Email sent via Resend: ${result.id || result.data?.id || 'ID not available'} - ${subject} to ${to}`);
+      return { success: true, messageId: result.id || result.data?.id, fullResponse: result };
     }
     // SMTP (Gmail, SendGrid SMTP, etc.)
     else if (transporter) {
