@@ -18,8 +18,11 @@ exports.createOrder = async (req, res, next) => {
       notes
     } = req.body;
 
+    console.log('Creating order with data:', { itemsCount: items?.length, shippingAddress, paymentMethod });
+
     // Validation
     if (!items || items.length === 0) {
+      console.log('Validation failed: No items');
       return res.status(400).json({
         success: false,
         message: 'No order items provided'
@@ -27,6 +30,7 @@ exports.createOrder = async (req, res, next) => {
     }
 
     if (!shippingAddress) {
+      console.log('Validation failed: No shipping address');
       return res.status(400).json({
         success: false,
         message: 'Shipping address is required'
@@ -35,9 +39,11 @@ exports.createOrder = async (req, res, next) => {
 
     // Verify all products exist and have enough stock
     for (const item of items) {
+      console.log('Checking product:', item.product, 'variantSku:', item.variantSku, 'size:', item.size);
       const product = await Product.findById(item.product);
 
       if (!product) {
+        console.log('Product not found:', item.product);
         return res.status(404).json({
           success: false,
           message: `Product not found: ${item.name}`
@@ -72,6 +78,7 @@ exports.createOrder = async (req, res, next) => {
     }
 
     // Create order
+    console.log('Creating order in database...');
     const order = await Order.create({
       user: req.user._id,
       items,
@@ -82,6 +89,7 @@ exports.createOrder = async (req, res, next) => {
       totalPrice,
       notes
     });
+    console.log('Order created successfully:', order._id);
 
     // Reduce product stock
     for (const item of items) {
