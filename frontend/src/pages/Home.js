@@ -635,7 +635,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* About Cobra Market - Business Centers Section */}
+      {/* About FashionHub - Business Centers Section */}
       <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden transition-colors duration-300">
         {/* Background Decorations */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -652,7 +652,7 @@ const Home = () => {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 font-heading">
-              About <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600 dark:from-primary-400 dark:to-accent-400">Cobra Market</span>
+              About <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600 dark:from-primary-400 dark:to-accent-400">FashionHub</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Your premier destination for quality fashion and exceptional service across multiple locations
@@ -807,7 +807,7 @@ const Home = () => {
             transition={{ delay: 0.5 }}
           >
             <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-              Experience the Cobra Market difference at any of our centers
+              Experience the FashionHub difference at any of our centers
             </p>
             <Link
               to="/products"

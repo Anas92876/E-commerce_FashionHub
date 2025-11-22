@@ -56,8 +56,8 @@ app.use('/uploads', express.static('uploads'));
 
 // Basic route
 app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Welcome to Cobra API',
+  res.json({
+    message: 'Welcome to FashionHub API',
     status: 'running',
     timestamp: new Date().toISOString()
   });

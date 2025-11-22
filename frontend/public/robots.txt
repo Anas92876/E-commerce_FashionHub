@@ -1,3 +1,22 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /admin/*
+
+# Disallow auth pages
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+
+# Disallow user-specific pages
+Disallow: /profile
+Disallow: /my-orders
+Disallow: /checkout
+Disallow: /cart
+
+# Sitemap
+Sitemap: https://e-commerce-fashionhub-one.vercel.app/sitemap.xml

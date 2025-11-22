@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
+  <url>
+    <loc>https://e-commerce-fashionhub-one.vercel.app/</loc>
+    <lastmod>2025-11-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Products Page -->
+  <url>
+    <loc>https://e-commerce-fashionhub-one.vercel.app/products</loc>
+    <lastmod>2025-11-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Contact Page -->
+  <url>
+    <loc>https://e-commerce-fashionhub-one.vercel.app/contact</loc>
+    <lastmod>2025-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Note: Individual product pages should be dynamically added -->
+  <!-- This is a static sitemap. For a production app, consider generating -->
+  <!-- the sitemap dynamically from your database to include all products -->
+</urlset>

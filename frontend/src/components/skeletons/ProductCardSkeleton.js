@@ -10,27 +10,27 @@ export default function ProductCardSkeleton() {
   return (
     <div className="card overflow-hidden">
       {/* Image skeleton */}
-      <div className="aspect-square bg-gray-200 animate-pulse" />
+      <div className="aspect-square bg-gray-200 dark:bg-gray-700 animate-pulse" />
 
       {/* Content skeleton */}
       <div className="p-4 space-y-3">
         {/* Category */}
-        <div className="h-3 bg-gray-200 rounded w-1/3 animate-pulse" />
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3 animate-pulse" />
 
         {/* Product name */}
-        <div className="h-4 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
 
         {/* Rating */}
         <div className="flex gap-1">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+            <div key={i} className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           ))}
         </div>
 
         {/* Price and button */}
         <div className="flex justify-between items-center pt-2">
-          <div className="h-6 bg-gray-200 rounded w-20 animate-pulse" />
-          <div className="h-10 bg-gray-200 rounded w-28 animate-pulse" />
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse" />
+          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-28 animate-pulse" />
         </div>
       </div>
     </div>

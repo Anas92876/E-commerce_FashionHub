@@ -153,7 +153,7 @@ const getEmailTemplate = (contactData) => {
           </h2>
 
           <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 25px;">
-            You have received a new message from your Cobra website contact form.
+            You have received a new message from your FashionHub website contact form.
           </p>
 
           <!-- Contact Information -->
@@ -210,12 +210,12 @@ const getEmailTemplate = (contactData) => {
 
         <!-- Footer -->
         <div class="footer">
-          <p class="footer-text"><strong>Cobra</strong> - Fashion E-Commerce</p>
+          <p class="footer-text"><strong>FashionHub</strong> - Fashion E-Commerce</p>
           <p class="footer-text">
             This is an automated notification from your website contact form.
           </p>
           <p class="footer-text">
-            © ${new Date().getFullYear()} Cobra. All rights reserved.
+            © ${new Date().getFullYear()} FashionHub. All rights reserved.
           </p>
         </div>
       </div>
@@ -254,7 +254,7 @@ exports.submitContact = async (req, res) => {
       const transporter = createTransporter();
 
       const mailOptions = {
-        from: `"Cobra Contact Form" <${process.env.EMAIL_USER}>`,
+        from: `"FashionHub Contact Form" <${process.env.EMAIL_USER}>`,
         to: process.env.EMAIL_USER, // Your email to receive messages
         subject: `🐍 New Contact: ${subject}`,
         html: getEmailTemplate({ name, email, phone, subject, message }),
@@ -493,8 +493,8 @@ exports.replyToContact = async (req, res) => {
             <p class="message-text">${message}</p>
           </div>
           <div class="footer">
-            <p class="footer-text"><strong>Cobra</strong> - Fashion E-Commerce</p>
-            <p class="footer-text">© ${new Date().getFullYear()} Cobra. All rights reserved.</p>
+            <p class="footer-text"><strong>FashionHub</strong> - Fashion E-Commerce</p>
+            <p class="footer-text">© ${new Date().getFullYear()} FashionHub. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -502,7 +502,7 @@ exports.replyToContact = async (req, res) => {
     `;
 
     const mailOptions = {
-      from: `"Cobra Support" <${process.env.EMAIL_USER}>`,
+      from: `"FashionHub Support" <${process.env.EMAIL_USER}>`,
       to: to,
       subject: subject,
       html: replyTemplate,

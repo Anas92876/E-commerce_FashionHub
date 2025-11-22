@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -38,11 +39,12 @@ import Settings from './pages/admin/Settings';
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <CartProvider>
-          <Router>
-            <div className="App bg-white dark:bg-gray-900 min-h-screen transition-colors duration-300">
+    <HelmetProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Router>
+              <div className="App bg-white dark:bg-gray-900 min-h-screen transition-colors duration-300">
             <Routes>
               {/* ============================================
                   PUBLIC ROUTES - Anyone can access these
@@ -187,11 +189,12 @@ function App() {
                   },
                 }}
               />
-            </div>
-          </Router>
-        </CartProvider>
-      </AuthProvider>
-    </ThemeProvider>
+              </div>
+            </Router>
+          </CartProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </HelmetProvider>
   );
 }
 

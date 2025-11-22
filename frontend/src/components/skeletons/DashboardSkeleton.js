@@ -10,11 +10,11 @@ export function StatCardSkeleton() {
     <div className="card p-6">
       <div className="flex justify-between items-start">
         <div className="space-y-3 flex-1">
-          <div className="h-3 bg-gray-200 rounded w-24 animate-pulse" />
-          <div className="h-8 bg-gray-200 rounded w-32 animate-pulse" />
-          <div className="h-4 bg-gray-200 rounded w-28 animate-pulse" />
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse" />
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse" />
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28 animate-pulse" />
         </div>
-        <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
+        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
       </div>
     </div>
   );
@@ -29,21 +29,21 @@ export function TableSkeleton({ rows = 5, columns = 5 }) {
   return (
     <div className="card overflow-hidden">
       <table className="w-full">
-        <thead className="bg-gray-50">
+        <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
             {[...Array(columns)].map((_, i) => (
               <th key={i} className="px-6 py-3">
-                <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200">
+        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
           {[...Array(rows)].map((_, rowIndex) => (
             <tr key={rowIndex}>
               {[...Array(columns)].map((_, colIndex) => (
                 <td key={colIndex} className="px-6 py-4">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                 </td>
               ))}
             </tr>
@@ -71,13 +71,13 @@ export default function DashboardSkeleton() {
 
       {/* Chart Skeleton */}
       <div className="card p-6">
-        <div className="h-6 bg-gray-200 rounded w-48 mb-6 animate-pulse" />
-        <div className="h-64 bg-gray-200 rounded animate-pulse" />
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-6 animate-pulse" />
+        <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
       </div>
 
       {/* Table Skeleton */}
       <div>
-        <div className="h-6 bg-gray-200 rounded w-32 mb-4 animate-pulse" />
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-4 animate-pulse" />
         <TableSkeleton />
       </div>
     </div>

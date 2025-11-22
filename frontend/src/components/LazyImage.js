@@ -55,7 +55,7 @@ export default function LazyImage({
     <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
       {/* Skeleton Placeholder */}
       {!isLoaded && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse" />
       )}
 
       {/* Actual Image */}
@@ -99,7 +99,7 @@ export function ResponsiveImage({ src, alt, className }) {
   return (
     <div className={`relative overflow-hidden ${className}`}>
       {!isLoaded && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse" />
       )}
       <img
         src={`${src}?w=800&q=80&fm=webp`}
@@ -166,7 +166,7 @@ export function ImageWithFallback({
   return (
     <div className={`relative overflow-hidden ${className}`}>
       {!isLoaded && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse" />
       )}
       <img
         src={imgSrc}

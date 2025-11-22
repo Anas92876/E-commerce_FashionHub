@@ -165,7 +165,7 @@ exports.forgotPassword = async (req, res) => {
     try {
       await sendEmail(
         user.email,
-        'Password Reset Request - Cobra Market',
+        'Password Reset Request - FashionHub',
         'passwordReset',
         { user, resetLink: resetUrl }
       );
