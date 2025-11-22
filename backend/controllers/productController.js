@@ -141,7 +141,8 @@ exports.createProduct = async (req, res, next) => {
 
         // Assign images for this variant
         for (let i = 0; i < imageCount && fileIndex < uploadedFiles.length; i++) {
-          variantImages.push(`/uploads/${uploadedFiles[fileIndex].filename}`);
+          // Use Cloudinary URL (file.path) instead of local path
+          variantImages.push(uploadedFiles[fileIndex].path);
           fileIndex++;
         }
 
@@ -181,7 +182,8 @@ exports.createProduct = async (req, res, next) => {
       // Legacy simple product creation
       let imagePath = '';
       if (req.files && req.files.length > 0) {
-        imagePath = `/uploads/${req.files[0].filename}`;
+        // Use Cloudinary URL (file.path) instead of local path
+        imagePath = req.files[0].path;
       }
 
       const product = await Product.create({
@@ -257,7 +259,8 @@ exports.updateProduct = async (req, res, next) => {
 
         // Add new images for this variant
         for (let i = 0; i < imageCount && fileIndex < uploadedFiles.length; i++) {
-          variantImages.push(`/uploads/${uploadedFiles[fileIndex].filename}`);
+          // Use Cloudinary URL (file.path) instead of local path
+          variantImages.push(uploadedFiles[fileIndex].path);
           fileIndex++;
         }
 
@@ -301,9 +304,11 @@ exports.updateProduct = async (req, res, next) => {
 
       // Handle image upload if new image is provided
       if (req.files && req.files.length > 0) {
-        product.image = `/uploads/${req.files[0].filename}`;
+        // Use Cloudinary URL (file.path) instead of local path
+        product.image = req.files[0].path;
       } else if (req.file) {
-        product.image = `/uploads/${req.file.filename}`;
+        // Use Cloudinary URL (file.path) instead of local path
+        product.image = req.file.path;
       }
     }
 
