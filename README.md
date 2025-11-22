@@ -124,6 +124,28 @@ npm start
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
 
+## 🚀 Deployment
+
+This application is configured for deployment on:
+- **Frontend**: Vercel
+- **Backend**: Railway
+- **Database**: MongoDB Atlas
+
+### Quick Deployment
+
+See the comprehensive deployment guide:
+📖 **[VERCEL_RAILWAY_DEPLOYMENT.md](./VERCEL_RAILWAY_DEPLOYMENT.md)**
+
+Or use the quick checklist:
+✅ **[DEPLOYMENT_CHECKLIST_VERCEL_RAILWAY.md](./DEPLOYMENT_CHECKLIST_VERCEL_RAILWAY.md)**
+
+**Configuration files included:**
+- `frontend/vercel.json` - Vercel configuration
+- `backend/railway.json` - Railway configuration
+- `backend/nixpacks.toml` - Railway build configuration
+
+**Deployment time:** ~15-20 minutes
+
 ## API Endpoints
 
 ### Authentication
