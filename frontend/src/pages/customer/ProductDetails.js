@@ -215,7 +215,8 @@ const ProductDetails = () => {
           image: product.image,
           category: product.category,
           quantity: quantity,
-          stock: product.stock || 0
+          stock: product.stock || 0,
+          selectedSize: product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'One Size'
         };
       }
 

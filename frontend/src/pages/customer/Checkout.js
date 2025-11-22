@@ -84,7 +84,7 @@ const Checkout = () => {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
-        size: item.selectedSize,
+        size: item.selectedSize || item.variant?.size || 'One Size',
         image: item.image,
         ...(item.variant && {
           variantSku: item.variant.sku || item.variant.variantSku,
