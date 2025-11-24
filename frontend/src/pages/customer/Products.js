@@ -138,11 +138,11 @@ const Products = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-24 transition-colors duration-300">
+    <div className="min-h-screen  overflow-x-hidden flex flex-col bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-24 transition-colors duration-300">
       <Navbar />
 
       {/* Header (clean transparent, no background or ring) */}
-      <div className="relative pt-1">
+      <div className="relative pt-1 w-screen overflow-x-hidden">
         {/* Decorative gradient lights */}
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-blue-500/10 dark:bg-blue-500/5 blur-3xl" />

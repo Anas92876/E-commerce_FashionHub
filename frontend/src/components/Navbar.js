@@ -106,7 +106,7 @@ const Navbar = () => {
             <div className="flex items-center gap-3">
               {/* Theme Toggle */}
               <ThemeToggle />
-              
+
               {/* Cart */}
               <Link
                 to="/cart"
