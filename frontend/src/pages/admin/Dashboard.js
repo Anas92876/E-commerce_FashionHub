@@ -212,45 +212,45 @@ const Dashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 transition-colors duration-300">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <h1 className="text-3xl font-display font-bold text-gray-900 dark:text-white mb-2">Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-300">Welcome back! Here's what's happening with your store.</p>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white mb-2">Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Welcome back! Here's what's happening with your store.</p>
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {statsCards.map((card, index) => (
             <motion.div
               key={card.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${card.bgGradient} dark:from-gray-800 dark:to-gray-700 p-6 shadow-lg dark:shadow-gray-900/50 hover:shadow-xl transition-all duration-300`}
+              className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${card.bgGradient} dark:from-gray-800 dark:to-gray-700 p-4 sm:p-6 shadow-lg dark:shadow-gray-900/50 hover:shadow-xl transition-all duration-300`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">{card.title}</p>
-                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{card.value}</h3>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">{card.title}</p>
+                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">{card.value}</h3>
                   <div className="flex items-center gap-1">
                     {card.trendUp ? (
-                      <ArrowTrendingUpIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      <ArrowTrendingUpIcon className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
                     ) : (
-                      <ArrowTrendingDownIcon className="w-4 h-4 text-red-600 dark:text-red-400" />
+                      <ArrowTrendingDownIcon className="w-3 h-3 sm:w-4 sm:h-4 text-red-600 dark:text-red-400" />
                     )}
-                    <span className={`text-sm font-semibold ${card.trendUp ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <span className={`text-xs sm:text-sm font-semibold ${card.trendUp ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {card.trend}
                     </span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">vs last month</span>
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 ml-1 hidden sm:inline">vs last month</span>
                   </div>
                 </div>
-                <div className={`p-3 rounded-lg bg-gradient-to-br ${card.gradient} shadow-lg`}>
-                  <card.icon className="w-6 h-6 text-white" />
+                <div className={`p-2 sm:p-3 rounded-lg bg-gradient-to-br ${card.gradient} shadow-lg`}>
+                  <card.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
               </div>
             </motion.div>
@@ -262,25 +262,25 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="card p-6 mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50"
+          className="card p-4 sm:p-6 mb-6 sm:mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50"
         >
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {quickActions.map((action, index) => (
               <Link
                 key={action.title}
                 to={action.link}
-                className="group p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 hover:shadow-md dark:hover:shadow-gray-900/70 transition-all duration-300 bg-white dark:bg-gray-800"
+                className="group p-3 sm:p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 hover:shadow-md dark:hover:shadow-gray-900/70 transition-all duration-300 bg-white dark:bg-gray-800"
               >
                 <div className="flex items-start gap-3">
                   <div className={`p-2 rounded-lg bg-${action.color}-100 dark:bg-${action.color}-900/30 group-hover:bg-${action.color}-200 dark:group-hover:bg-${action.color}-900/50 transition-colors`}>
                     <action.icon className={`w-5 h-5 text-${action.color}-600 dark:text-${action.color}-400`} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mb-1">
+                    <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mb-1">
                       {action.title}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{action.description}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{action.description}</p>
                   </div>
                 </div>
               </Link>
@@ -293,15 +293,16 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50"
+          className="card p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Orders</h2>
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Recent Orders</h2>
             <Link
               to="/admin/orders"
-              className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold text-sm flex items-center gap-1"
+              className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold text-xs sm:text-sm flex items-center gap-1"
             >
-              View All
+              <span className="hidden sm:inline">View All</span>
+              <span className="sm:hidden">View</span>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -309,67 +310,73 @@ const Dashboard = () => {
           </div>
 
           {recentOrders.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Order ID
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Total
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {recentOrders.map((order) => (
-                    <tr key={order._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="font-mono text-sm font-semibold text-gray-900 dark:text-white">
-                          #{order._id.slice(-8).toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900 dark:text-white">
-                          {order.user?.firstName} {order.user?.lastName}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                          ${order.totalPrice?.toFixed(2) || '0.00'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusColor(order.status)}`}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(order.createdAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </td>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                        Order ID
+                      </th>
+                      <th className="hidden md:table-cell px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                        Customer
+                      </th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                        Total
+                      </th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                        Status
+                      </th>
+                      <th className="hidden lg:table-cell px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                        Date
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {recentOrders.map((order) => (
+                      <tr key={order._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+                          <span className="font-mono text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
+                            #{order._id.slice(-8).toUpperCase()}
+                          </span>
+                          {/* Show customer name on mobile */}
+                          <span className="md:hidden block text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {order.user?.firstName} {order.user?.lastName}
+                          </span>
+                        </td>
+                        <td className="hidden md:table-cell px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-900 dark:text-white">
+                            {order.user?.firstName} {order.user?.lastName}
+                          </span>
+                        </td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+                          <span className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
+                            ${order.totalPrice?.toFixed(2) || '0.00'}
+                          </span>
+                        </td>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+                          <span className={`px-2 sm:px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="hidden lg:table-cell px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                          {new Date(order.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
             <div className="text-center py-12">
-              <ShoppingCartIcon className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400 text-lg">No orders yet</p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Orders will appear here once customers start purchasing</p>
+              <ShoppingCartIcon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg">No orders yet</p>
+              <p className="text-gray-400 dark:text-gray-500 text-xs sm:text-sm mt-2">Orders will appear here once customers start purchasing</p>
             </div>
           )}
         </motion.div>

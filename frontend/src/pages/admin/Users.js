@@ -125,15 +125,15 @@ const Users = () => {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 transition-colors duration-300">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <h1 className="text-3xl font-display font-bold text-gray-900 dark:text-white mb-2">Users Management</h1>
-          <p className="text-gray-600 dark:text-gray-300">Manage registered users and their permissions</p>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white mb-2">Users Management</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Manage registered users and their permissions</p>
         </motion.div>
 
         {/* Stats Cards */}
@@ -141,7 +141,7 @@ const Users = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6"
         >
           {stats.map((stat, index) => (
             <motion.div
@@ -149,10 +149,10 @@ const Users = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + index * 0.1 }}
-              className={`card p-6 bg-gradient-to-br ${stat.color} text-white shadow-lg`}
+              className={`card p-4 sm:p-6 bg-gradient-to-br ${stat.color} text-white shadow-lg rounded-xl`}
             >
-              <div className="text-4xl font-bold mb-1">{stat.value}</div>
-              <div className="text-sm opacity-90">{stat.label}</div>
+              <div className="text-3xl sm:text-4xl font-bold mb-1">{stat.value}</div>
+              <div className="text-xs sm:text-sm opacity-90">{stat.label}</div>
             </motion.div>
           ))}
         </motion.div>
@@ -162,14 +162,14 @@ const Users = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="card p-6 mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50"
+          className="card p-4 sm:p-6 mb-4 sm:mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50"
         >
           <div className="flex items-center gap-2 mb-4">
             <FunnelIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Search */}
             <div>
               <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -217,7 +217,7 @@ const Users = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50"
+          className="card p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/50"
         >
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -225,112 +225,118 @@ const Users = () => {
             </div>
           ) : currentUsers.length === 0 ? (
             <div className="text-center py-12">
-              <UserGroupIcon className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400 text-lg">No users found</p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Try adjusting your filters</p>
+              <UserGroupIcon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg">No users found</p>
+              <p className="text-gray-400 dark:text-gray-500 text-xs sm:text-sm mt-2">Try adjusting your filters</p>
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                        User
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                        Role
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                        Joined
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    <AnimatePresence>
-                      {currentUsers.map((user, index) => (
-                        <motion.tr
-                          key={user._id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ delay: index * 0.05 }}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                        >
-                          <td className="px-4 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 dark:from-primary-500 dark:to-primary-600 flex items-center justify-center text-white font-semibold">
-                                {user.firstName?.[0]}{user.lastName?.[0]}
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="inline-block min-w-full align-middle">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                          User
+                        </th>
+                        <th className="hidden md:table-cell px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                          Email
+                        </th>
+                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                          Role
+                        </th>
+                        <th className="hidden lg:table-cell px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                          Joined
+                        </th>
+                        <th className="px-3 sm:px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                      <AnimatePresence>
+                        {currentUsers.map((user, index) => (
+                          <motion.tr
+                            key={user._id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                          >
+                            <td className="px-3 sm:px-4 py-3 sm:py-4">
+                              <div className="flex items-center gap-2 sm:gap-3">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 dark:from-primary-500 dark:to-primary-600 flex items-center justify-center text-white text-xs sm:text-sm font-semibold flex-shrink-0">
+                                  {user.firstName?.[0]}{user.lastName?.[0]}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white truncate">
+                                    {user.firstName} {user.lastName}
+                                  </p>
+                                  {/* Show email on mobile */}
+                                  <p className="md:hidden text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-semibold text-gray-900 dark:text-white">
-                                  {user.firstName} {user.lastName}
-                                </p>
+                            </td>
+                            <td className="hidden md:table-cell px-3 sm:px-4 py-3 sm:py-4">
+                              <span className="text-sm text-gray-900 dark:text-white">{user.email}</span>
+                            </td>
+                            <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+                              <span className={`px-2 sm:px-3 py-1 inline-flex items-center gap-1 sm:gap-1.5 text-xs font-semibold rounded-full border ${getRoleBadgeColor(user.role)}`}>
+                                {user.role === 'admin' && <ShieldCheckIcon className="w-3 h-3 sm:w-4 sm:h-4" />}
+                                {user.role === 'customer' && <UserIcon className="w-3 h-3 sm:w-4 sm:h-4" />}
+                                <span className="hidden sm:inline">{user.role}</span>
+                                <span className="sm:hidden">{user.role === 'admin' ? 'A' : 'C'}</span>
+                              </span>
+                            </td>
+                            <td className="hidden lg:table-cell px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                              {new Date(user.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </td>
+                            <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-right">
+                              <div className="flex items-center justify-end gap-1 sm:gap-2">
+                                <select
+                                  value={user.role}
+                                  onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                                  className="px-2 sm:px-3 py-1 sm:py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                >
+                                  <option value="customer">Customer</option>
+                                  <option value="admin">Admin</option>
+                                </select>
+                                <button
+                                  onClick={() => handleDeleteUser(user._id, `${user.firstName} ${user.lastName}`)}
+                                  className="p-1.5 sm:p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                  title="Delete User"
+                                >
+                                  <TrashIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                                </button>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4">
-                            <span className="text-sm text-gray-900 dark:text-white">{user.email}</span>
-                          </td>
-                          <td className="px-4 py-4">
-                            <span className={`px-3 py-1 inline-flex items-center gap-1.5 text-xs font-semibold rounded-full border ${getRoleBadgeColor(user.role)}`}>
-                              {user.role === 'admin' && <ShieldCheckIcon className="w-4 h-4" />}
-                              {user.role === 'customer' && <UserIcon className="w-4 h-4" />}
-                              {user.role}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
-                            {new Date(user.createdAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </td>
-                          <td className="px-4 py-4">
-                            <div className="flex items-center gap-2">
-                              <select
-                                value={user.role}
-                                onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                                className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                              >
-                                <option value="customer">Customer</option>
-                                <option value="admin">Admin</option>
-                              </select>
-                              <button
-                                onClick={() => handleDeleteUser(user._id, `${user.firstName} ${user.lastName}`)}
-                                className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                                title="Delete User"
-                              >
-                                <TrashIcon className="w-5 h-5" />
-                              </button>
-                            </div>
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </AnimatePresence>
-                  </tbody>
-                </table>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </AnimatePresence>
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <ChevronLeftIcon className="w-5 h-5" />
-                    Previous
+                    <span className="hidden sm:inline">Previous</span>
+                    <span className="sm:hidden">Prev</span>
                   </button>
 
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     Page <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> of{' '}
                     <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
                   </span>
@@ -338,7 +344,7 @@ const Users = () => {
                   <button
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Next
                     <ChevronRightIcon className="w-5 h-5" />

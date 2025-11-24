@@ -14,7 +14,6 @@ import {
   UserIcon,
   ArrowRightOnRectangleIcon,
   ChevronRightIcon,
-  Cog6ToothIcon,
   ChartBarIcon,
   UsersIcon
 } from '@heroicons/react/24/outline';
@@ -55,7 +54,6 @@ const AdminLayout = ({ children }) => {
     { name: 'Orders', path: '/admin/orders', icon: ShoppingCartIcon },
     { name: 'Users', path: '/admin/users', icon: UsersIcon },
     { name: 'Messages', path: '/admin/messages', icon: EnvelopeIcon },
-    { name: 'Settings', path: '/admin/settings', icon: Cog6ToothIcon },
   ];
 
   // Generate breadcrumbs from current path
@@ -166,19 +164,6 @@ const AdminLayout = ({ children }) => {
                     <Menu.Item>
                       {({ active }) => (
                         <button
-                          onClick={() => navigate('/admin/settings')}
-                          className={`${
-                            active ? 'bg-gray-50 dark:bg-gray-700' : ''
-                          } w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2`}
-                        >
-                          <Cog6ToothIcon className="w-4 h-4" />
-                          Settings
-                        </button>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <button
                           onClick={handleLogout}
                           className={`${
                             active ? 'bg-red-50 dark:bg-red-900/30' : ''
@@ -203,7 +188,7 @@ const AdminLayout = ({ children }) => {
           initial={false}
           animate={{
             width: sidebarOpen ? 256 : 72,
-            transition: { duration: 0.3, ease: 'easeInOut' }
+            transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }
           }}
           className="hidden lg:block fixed left-0 top-16 bottom-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-20 overflow-hidden transition-colors duration-300"
         >
@@ -226,7 +211,7 @@ const AdminLayout = ({ children }) => {
                         initial={{ opacity: 0, width: 0 }}
                         animate={{ opacity: 1, width: 'auto' }}
                         exit={{ opacity: 0, width: 0 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: 0.1 }}
                         className="font-medium text-sm whitespace-nowrap overflow-hidden"
                       >
                         {item.name}
@@ -304,7 +289,7 @@ const AdminLayout = ({ children }) => {
 
       {/* Main Content */}
       <main
-        className={`pt-16 transition-all duration-300 ${
+        className={`pt-16 transition-all duration-[800ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
           sidebarOpen ? 'lg:pl-64' : 'lg:pl-[72px]'
         }`}
       >

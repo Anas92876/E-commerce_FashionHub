@@ -35,7 +35,6 @@ import Categories from './pages/admin/Categories';
 import Orders from './pages/admin/Orders';
 import Users from './pages/admin/Users';
 import Messages from './pages/admin/Messages';
-import Settings from './pages/admin/Settings';
 
 function App() {
   return (
@@ -147,16 +146,6 @@ function App() {
               element={
                 <AdminRoute>
                   <Users />
-                </AdminRoute>
-              }
-            />
-
-            {/* Settings - Application settings and configuration */}
-            <Route
-              path="/admin/settings"
-              element={
-                <AdminRoute>
-                  <Settings />
                 </AdminRoute>
               }
             />
