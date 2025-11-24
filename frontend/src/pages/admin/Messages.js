@@ -285,8 +285,6 @@ const Messages = () => {
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ delay: index * 0.05 }}
                         onClick={() => handleViewMessage(message)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
                         className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${selectedMessage?._id === message._id
                             ? 'border-purple-500 dark:border-purple-400 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 shadow-lg'
                             : !message.isRead
@@ -310,7 +308,7 @@ const Messages = () => {
                           <StatusIcon className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                         </div>
                         <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate mb-1">{message.subject}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">{message.message}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-2 break-words overflow-wrap-anywhere">{message.message}</p>
                         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                           <span className="truncate">{message.email}</span>
                           <span className="flex-shrink-0 ml-2">
@@ -402,7 +400,7 @@ const Messages = () => {
                 {/* Message Body */}
                 <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-750 rounded-xl border border-gray-200 dark:border-gray-600">
                   <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Message:</h3>
-                  <p className="text-sm sm:text-base text-gray-900 dark:text-white whitespace-pre-wrap">{selectedMessage.message}</p>
+                  <p className="text-sm sm:text-base text-gray-900 dark:text-white whitespace-pre-wrap break-words overflow-wrap-anywhere" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere' }}>{selectedMessage.message}</p>
                 </div>
 
                 {/* Actions */}
@@ -505,8 +503,9 @@ const Messages = () => {
                           value={replyData.message}
                           onChange={(e) => setReplyData({ ...replyData, message: e.target.value })}
                           rows="8"
-                          className="w-full px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent resize-none bg-white dark:bg-gray-700 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                          className="w-full px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent resize-none bg-white dark:bg-gray-700 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 whitespace-pre-wrap break-words overflow-wrap-anywhere"
                           placeholder="Type your reply here..."
+                          style={{ wordWrap: 'break-word', overflowWrap: 'anywhere' }}
                         />
                       </div>
                     </div>
