@@ -483,79 +483,81 @@ const AddProduct = () => {
             <div className="form-section">
               <h2 className="form-section-title">Basic Information</h2>
 
-              <div className="form-group">
-                <label htmlFor="name">Product Name *</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={productInfo.name}
-                  onChange={handleProductInfoChange}
-                  placeholder="e.g., Classic Cotton T-Shirt"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="description">Description *</label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={productInfo.description}
-                  onChange={handleProductInfoChange}
-                  placeholder="Describe the product in detail..."
-                  rows="4"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="category">Category *</label>
-                <select
-                  id="category"
-                  name="category"
-                  value={productInfo.category}
-                  onChange={handleProductInfoChange}
-                  required
-                >
-                  <option value="">-- Select Category --</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat.name}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Size Type - Only for Variants Mode */}
-              {productMode === 'variants' && (
-                <div className="form-group">
-                  <label htmlFor="sizeType">Size Type *</label>
-                  <select
-                    id="sizeType"
-                    value={sizeType}
-                    onChange={(e) => setSizeType(e.target.value)}
-                    className="form-control"
-                  >
-                    <option value="clothing">Clothing Sizes (XS, S, M, L, XL, XXL)</option>
-                    <option value="jeans">Jeans Sizes (26, 28, 30, 32, ...)</option>
-                    <option value="shoes">Shoe Sizes (6, 7, 8, 9, ...)</option>
-                    <option value="kids">Kids Sizes (2T, 3T, 4T, ...)</option>
-                  </select>
-                  <p className="form-hint">Selected sizes: {availableSizes.join(', ')}</p>
-                </div>
-              )}
-
-              <div className="form-group">
-                <label className="checkbox-label">
+              <div className="basic-info-grid">
+                <div className="form-group form-group-full">
+                  <label htmlFor="name">Product Name *</label>
                   <input
-                    type="checkbox"
-                    name="isActive"
-                    checked={productInfo.isActive}
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={productInfo.name}
                     onChange={handleProductInfoChange}
+                    placeholder="e.g., Classic Cotton T-Shirt"
+                    required
                   />
-                  <span>Active (visible to customers)</span>
-                </label>
+                </div>
+
+                <div className="form-group form-group-full">
+                  <label htmlFor="description">Description *</label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={productInfo.description}
+                    onChange={handleProductInfoChange}
+                    placeholder="Describe the product in detail..."
+                    rows="4"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="category">Category *</label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={productInfo.category}
+                    onChange={handleProductInfoChange}
+                    required
+                  >
+                    <option value="">-- Select Category --</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Size Type - Only for Variants Mode */}
+                {productMode === 'variants' && (
+                  <div className="form-group">
+                    <label htmlFor="sizeType">Size Type *</label>
+                    <select
+                      id="sizeType"
+                      value={sizeType}
+                      onChange={(e) => setSizeType(e.target.value)}
+                      className="form-control"
+                    >
+                      <option value="clothing">Clothing Sizes (XS, S, M, L, XL, XXL)</option>
+                      <option value="jeans">Jeans Sizes (26, 28, 30, 32, ...)</option>
+                      <option value="shoes">Shoe Sizes (6, 7, 8, 9, ...)</option>
+                      <option value="kids">Kids Sizes (2T, 3T, 4T, ...)</option>
+                    </select>
+                    <p className="form-hint">Selected sizes: {availableSizes.join(', ')}</p>
+                  </div>
+                )}
+
+                <div className="form-group form-group-full">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      name="isActive"
+                      checked={productInfo.isActive}
+                      onChange={handleProductInfoChange}
+                    />
+                    <span>Active (visible to customers)</span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -567,53 +569,55 @@ const AddProduct = () => {
                 <div className="form-section">
                   <h2 className="form-section-title">Product Details</h2>
 
-                  {/* Price */}
-                  <div className="form-group">
-                    <label htmlFor="price">Price *</label>
-                    <input
-                      type="number"
-                      id="price"
-                      name="price"
-                      value={simpleProduct.price}
-                      onChange={handleSimpleProductChange}
-                      placeholder="e.g., 29.99"
-                      step="1"
-                      min="0"
-                      required
-                    />
-                  </div>
+                  <div className="basic-info-grid">
+                    {/* Price */}
+                    <div className="form-group">
+                      <label htmlFor="price">Price *</label>
+                      <input
+                        type="number"
+                        id="price"
+                        name="price"
+                        value={simpleProduct.price}
+                        onChange={handleSimpleProductChange}
+                        placeholder="e.g., 29.99"
+                        step="1"
+                        min="0"
+                        required
+                      />
+                    </div>
 
-                  {/* Stock */}
-                  <div className="form-group">
-                    <label htmlFor="stock">Stock Quantity *</label>
-                    <input
-                      type="number"
-                      id="stock"
-                      name="stock"
-                      value={simpleProduct.stock}
-                      onChange={handleSimpleProductChange}
-                      placeholder="e.g., 100"
-                      min="0"
-                      required
-                    />
-                    <p className="form-hint">Total available quantity for this product</p>
-                  </div>
+                    {/* Stock */}
+                    <div className="form-group">
+                      <label htmlFor="stock">Stock Quantity *</label>
+                      <input
+                        type="number"
+                        id="stock"
+                        name="stock"
+                        value={simpleProduct.stock}
+                        onChange={handleSimpleProductChange}
+                        placeholder="e.g., 100"
+                        min="0"
+                        required
+                      />
+                      <p className="form-hint">Total available quantity for this product</p>
+                    </div>
 
-                  {/* Image Upload */}
-                  <div className="form-group">
-                    <label htmlFor="image">Product Image *</label>
-                    <input
-                      type="file"
-                      id="image"
-                      accept="image/*"
-                      onChange={handleSimpleProductImageChange}
-                      required
-                    />
-                    {simpleProduct.imagePreview && (
-                      <div className="image-preview">
-                        <img src={simpleProduct.imagePreview} alt="Product preview" />
-                      </div>
-                    )}
+                    {/* Image Upload */}
+                    <div className="form-group form-group-full">
+                      <label htmlFor="image">Product Image *</label>
+                      <input
+                        type="file"
+                        id="image"
+                        accept="image/*"
+                        onChange={handleSimpleProductImageChange}
+                        required
+                      />
+                      {simpleProduct.imagePreview && (
+                        <div className="image-preview">
+                          <img src={simpleProduct.imagePreview} alt="Product preview" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </>
@@ -675,7 +679,7 @@ const AddProduct = () => {
                           <div className="variant-card-body">
 
                             {/* Color Information */}
-                            <div className="variant-section">
+                            <div className="variant-section variant-grid-full">
                               <h4 className="variant-section-title">Color Information</h4>
 
                               {/* Predefined Colors */}
@@ -742,62 +746,64 @@ const AddProduct = () => {
                               </div>
                             </div>
 
-                            {/* Images */}
-                            <div className="variant-section">
-                              <h4 className="variant-section-title">Images (1-5 required)</h4>
+                            <div className="variant-grid-layout">
+                              {/* Images */}
+                              <div className="variant-section">
+                                <h4 className="variant-section-title">Images (1-5 required)</h4>
 
-                              <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                onChange={(e) => handleVariantImageChange(variant.id, e)}
-                                className="file-input"
-                                disabled={variant.images?.length >= 5}
-                              />
-                              <p className="form-hint">
-                                {variant.images?.length || 0} / 5 images added. Max size: 5MB each.
-                              </p>
-
-                              {variant.imagePreviews && variant.imagePreviews.length > 0 && (
-                                <div className="image-preview-grid">
-                                  {variant.imagePreviews.map((preview, idx) => (
-                                    <div key={idx} className="image-preview-item">
-                                      <img src={preview} alt={`Preview ${idx + 1}`} />
-                                      <button
-                                        type="button"
-                                        className="remove-image-btn-small"
-                                        onClick={() => handleRemoveVariantImage(variant.id, idx)}
-                                      >
-                                        ✕
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Price */}
-                            <div className="variant-section">
-                              <h4 className="variant-section-title">Pricing</h4>
-                              <div className="form-group">
-                                <label>Price ($) *</label>
                                 <input
-                                  type="number"
-                                  value={variant.priceOverride}
-                                  onChange={(e) => handleVariantPriceChange(variant.id, e.target.value)}
-                                  placeholder="Enter price for this color"
-                                  min="0"
-                                  step="1"
-                                  required
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  onChange={(e) => handleVariantImageChange(variant.id, e)}
+                                  className="file-input"
+                                  disabled={variant.images?.length >= 5}
                                 />
                                 <p className="form-hint">
-                                  Set the selling price for this color variant
+                                  {variant.images?.length || 0} / 5 images added. Max size: 5MB each.
                                 </p>
+
+                                {variant.imagePreviews && variant.imagePreviews.length > 0 && (
+                                  <div className="image-preview-grid">
+                                    {variant.imagePreviews.map((preview, idx) => (
+                                      <div key={idx} className="image-preview-item">
+                                        <img src={preview} alt={`Preview ${idx + 1}`} />
+                                        <button
+                                          type="button"
+                                          className="remove-image-btn-small"
+                                          onClick={() => handleRemoveVariantImage(variant.id, idx)}
+                                        >
+                                          ✕
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Price */}
+                              <div className="variant-section">
+                                <h4 className="variant-section-title">Pricing</h4>
+                                <div className="form-group">
+                                  <label>Price ($) *</label>
+                                  <input
+                                    type="number"
+                                    value={variant.priceOverride}
+                                    onChange={(e) => handleVariantPriceChange(variant.id, e.target.value)}
+                                    placeholder="Enter price for this color"
+                                    min="0"
+                                    step="1"
+                                    required
+                                  />
+                                  <p className="form-hint">
+                                    Set the selling price for this color variant
+                                  </p>
+                                </div>
                               </div>
                             </div>
 
                             {/* Stock per Size */}
-                            <div className="variant-section">
+                            <div className="variant-section variant-grid-full">
                               <div className="variant-section-header-inline">
                                 <h4 className="variant-section-title">Stock by Size</h4>
                                 <div className="quick-fill-group">

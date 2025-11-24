@@ -118,6 +118,8 @@ const NotFound = () => {
               transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
               className="space-y-6 sm:space-y-8 order-1 lg:order-2 text-center lg:text-left"
             >
+              <div class="my-4"></div>
+
               {/* Badge */}
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -129,6 +131,8 @@ const NotFound = () => {
                   Error 404
                 </span>
               </motion.div>
+
+
 
               {/* Heading */}
               <motion.div
@@ -200,12 +204,19 @@ const NotFound = () => {
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-500 mt-2">
                   Suggestion: Use the navigation menu above
                 </p>
+
+                <div class="my-12"></div>
+
               </motion.div>
+
             </motion.div>
 
           </div>
         </div>
+        <div class="my-12"></div>
       </main>
+
+
 
       <Footer />
     </div>
