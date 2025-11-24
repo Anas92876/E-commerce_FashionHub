@@ -187,7 +187,7 @@ const Messages = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 sm:mb-8"
         >
-          <h1 className="text-2xl sm:text-3xl font-display font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-purple-400 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2">
             Contact Messages
           </h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Manage customer inquiries and feedback</p>
@@ -210,27 +210,23 @@ const Messages = () => {
                 transition={{ delay: 0.1 + index * 0.05 }}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className={`relative overflow-hidden cursor-pointer rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${
-                  statusFilter === option.value
+                className={`relative overflow-hidden cursor-pointer rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${statusFilter === option.value
                     ? `bg-gradient-to-r ${option.gradient} text-white`
                     : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750'
-                }`}
+                  }`}
                 onClick={() => setStatusFilter(option.value)}
               >
                 <div className="relative z-10 p-3 sm:p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <div className={`text-2xl sm:text-3xl font-bold ${
-                      statusFilter === option.value ? 'text-white' : 'text-gray-900 dark:text-white'
-                    }`}>
+                    <div className={`text-2xl sm:text-3xl font-bold ${statusFilter === option.value ? 'text-white' : 'text-gray-900 dark:text-white'
+                      }`}>
                       {option.count}
                     </div>
-                    <OptionIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${
-                      statusFilter === option.value ? 'text-white/80' : 'text-gray-400 dark:text-gray-500'
-                    }`} />
+                    <OptionIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${statusFilter === option.value ? 'text-white/80' : 'text-gray-400 dark:text-gray-500'
+                      }`} />
                   </div>
-                  <div className={`text-xs sm:text-sm font-medium ${
-                    statusFilter === option.value ? 'text-white/90' : 'text-gray-600 dark:text-gray-400'
-                  }`}>
+                  <div className={`text-xs sm:text-sm font-medium ${statusFilter === option.value ? 'text-white/90' : 'text-gray-600 dark:text-gray-400'
+                    }`}>
                     {option.label}
                   </div>
                 </div>
@@ -291,13 +287,12 @@ const Messages = () => {
                         onClick={() => handleViewMessage(message)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                          selectedMessage?._id === message._id
+                        className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${selectedMessage?._id === message._id
                             ? 'border-purple-500 dark:border-purple-400 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 shadow-lg'
                             : !message.isRead
-                            ? 'border-rose-200 dark:border-rose-700 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 hover:border-rose-300 dark:hover:border-rose-600'
-                            : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-gray-800'
-                        }`}
+                              ? 'border-rose-200 dark:border-rose-700 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 hover:border-rose-300 dark:hover:border-rose-600'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-gray-800'
+                          }`}
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
