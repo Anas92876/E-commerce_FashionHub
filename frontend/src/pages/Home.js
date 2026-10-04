@@ -33,7 +33,7 @@ const Home = () => {
     Promise.all([
       get('/products', { sort: 'newest', limit: 8 }),
       get('/categories', { stats: 'true' }),
-      get('/reviews/recent', { limit: 12 }),
+      get('/reviews/recent', { limit: 30 }),
       get('/products/summary'),
       get('/coupons/featured'),
       get('/products/suggest', { q: HERO_PRODUCT_NAME }),

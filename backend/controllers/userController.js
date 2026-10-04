@@ -1,3 +1,4 @@
+const { forgetUser } = require('../middleware/auth');
 const { supabase } = require('../config/supabase');
 const { check, normalizeId } = require('../utils/db');
 const { USER_PUBLIC_COLUMNS, toUser } = require('../utils/user');
@@ -70,6 +71,7 @@ exports.updateUserRole = async (req, res) => {
     const row = check(
       await supabase.from('users').update({ role }).eq('id', user.id).select(USER_PUBLIC_COLUMNS).single()
     );
+    forgetUser(user.id);
 
     res.status(200).json({
       success: true,
@@ -109,6 +111,7 @@ exports.deleteUser = async (req, res) => {
 
     // Delete user (their reviews are removed; their orders are kept with user = null)
     check(await supabase.from('users').delete().eq('id', user.id));
+    forgetUser(user.id);
 
     res.status(200).json({
       success: true,

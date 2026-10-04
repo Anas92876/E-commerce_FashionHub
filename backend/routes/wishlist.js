@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 const { supabase } = require('../config/supabase');
-const { check, normalizeId } = require('../utils/db');
+const { check, normalizeId, FOREIGN_KEY_VIOLATION } = require('../utils/db');
 const { toProduct } = require('../utils/product');
 
 router.use(protect);
@@ -40,19 +40,16 @@ router.get('/', async (req, res, next) => {
 router.post('/:productId', async (req, res, next) => {
   try {
     const productId = normalizeId(req.params.productId);
-    const product = productId &&
-      check(await supabase.from('products').select('id').eq('id', productId).maybeSingle());
+    const notFound = () => res.status(404).json({ success: false, message: 'Product not found' });
+    if (!productId) return notFound();
 
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-
-    // Saving twice is fine (no duplicate rows)
-    check(
-      await supabase
-        .from('wishlists')
-        .upsert({ user_id: req.user.id, product_id: productId }, { onConflict: 'user_id,product_id', ignoreDuplicates: true })
-    );
+    // Saving twice is fine (no duplicate rows). A single round trip: the
+    // foreign key rejects products that don't exist.
+    const { error } = await supabase
+      .from('wishlists')
+      .upsert({ user_id: req.user.id, product_id: productId }, { onConflict: 'user_id,product_id', ignoreDuplicates: true });
+    if (error?.code === FOREIGN_KEY_VIOLATION) return notFound();
+    if (error) throw error;
 
     res.status(201).json({ success: true, message: 'Added to wishlist' });
   } catch (error) {

@@ -73,6 +73,8 @@ create table if not exists public.products (
 
 create index if not exists products_category_active_idx on public.products (category, is_active);
 create index if not exists products_created_at_idx on public.products (created_at desc);
+-- one product per name (case/space-insensitive): a double-clicked "Create" can't add it twice
+create unique index if not exists products_name_unique_idx on public.products (lower(btrim(name)));
 
 -- ---------------------------------------------------------------------
 -- ORDERS

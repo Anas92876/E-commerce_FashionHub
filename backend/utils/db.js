@@ -65,6 +65,7 @@ const normalizeId = (value) => {
 };
 
 const UNIQUE_VIOLATION = '23505';
+const FOREIGN_KEY_VIOLATION = '23503';
 
 module.exports = {
   toApi,
@@ -75,4 +76,5 @@ module.exports = {
   normalizeId,
   check,
   UNIQUE_VIOLATION,
+  FOREIGN_KEY_VIOLATION,
 };

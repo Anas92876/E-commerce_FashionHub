@@ -1,3 +1,4 @@
+const { forgetUser } = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 const { supabase } = require('../config/supabase');
 const { check, UNIQUE_VIOLATION } = require('../utils/db');
@@ -206,6 +207,7 @@ exports.updateProfile = async (req, res) => {
         .select(USER_PUBLIC_COLUMNS)
         .single()
     );
+    forgetUser(req.user.id);
 
     res.status(200).json({
       success: true,

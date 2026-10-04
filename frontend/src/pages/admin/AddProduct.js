@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useSubmitOnce from '../../hooks/useSubmitOnce';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdminLayout from '../../components/AdminLayout';
@@ -286,7 +287,7 @@ const AddProduct = () => {
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const saveForm = async (e) => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
@@ -427,6 +428,9 @@ const AddProduct = () => {
       setLoading(false);
     }
   };
+
+  // ignores extra clicks while a save is in flight (no duplicate creates)
+  const [handleSubmit, submitting] = useSubmitOnce(saveForm);
 
   return (
     <AdminLayout>
@@ -859,9 +863,9 @@ const AddProduct = () => {
               <button
                 type="submit"
                 className="btn-primary"
-                disabled={loading}
+                disabled={loading || submitting}
               >
-                {loading ? 'Creating Product...' : '✓ Create Product'}
+                {loading || submitting ? 'Creating Product...' : '✓ Create Product'}
               </button>
               <button
                 type="button"

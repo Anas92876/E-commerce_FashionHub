@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import useSubmitOnce from '../../hooks/useSubmitOnce';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
@@ -86,7 +87,7 @@ const Coupons = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSubmit = async (e) => {
+  const saveForm = async (e) => {
     e.preventDefault();
     setSaving(true);
     const payload = {
@@ -143,6 +144,9 @@ const Coupons = () => {
       toast.error(error.response?.data?.message || 'Failed to delete coupon');
     }
   };
+
+  // ignores extra clicks while a save is in flight (no duplicate creates)
+  const [handleSubmit, submitting] = useSubmitOnce(saveForm);
 
   return (
     <AdminLayout>
@@ -225,9 +229,9 @@ const Coupons = () => {
             </label>
 
             <div className="flex gap-2 pt-2">
-              <button type="submit" disabled={saving}
+              <button type="submit" disabled={saving || submitting}
                 className="flex-1 px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold disabled:opacity-50 transition-colors">
-                {saving ? 'Saving…' : editingId ? 'Save changes' : 'Create coupon'}
+                {saving || submitting ? 'Saving…' : editingId ? 'Save changes' : 'Create coupon'}
               </button>
               {editingId && (
                 <button type="button" onClick={resetForm}

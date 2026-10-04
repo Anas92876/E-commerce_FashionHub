@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useSubmitOnce from '../../hooks/useSubmitOnce';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   TagIcon,
@@ -73,7 +74,7 @@ const Categories = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const saveForm = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -184,6 +185,9 @@ const Categories = () => {
     }
   };
 
+  // ignores extra clicks while a save is in flight (no duplicate creates)
+  const [handleSubmit, submitting] = useSubmitOnce(saveForm);
+
   return (
     <AdminLayout>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
@@ -288,9 +292,12 @@ const Categories = () => {
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 dark:bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors shadow-lg hover:shadow-xl"
+                    disabled={submitting}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 dark:bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors shadow-lg hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {isEditing ? (
+                    {submitting ? (
+                      'Saving…'
+                    ) : isEditing ? (
                       <>
                         <CheckIcon className="w-5 h-5" />
                         Update

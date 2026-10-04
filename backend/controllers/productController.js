@@ -1,5 +1,5 @@
 const { supabase } = require('../config/supabase');
-const { check, normalizeId } = require('../utils/db');
+const { check, normalizeId, UNIQUE_VIOLATION } = require('../utils/db');
 const { toProduct, prepareVariants } = require('../utils/product');
 
 // Multipart form fields arrive as strings ("true"/"false")
@@ -316,6 +316,9 @@ exports.createProduct = async (req, res, next) => {
     }
 
   } catch (error) {
+    if (error.code === UNIQUE_VIOLATION) {
+      return res.status(409).json({ success: false, message: 'A product with this name already exists' });
+    }
     console.error('Error creating product:', error);
     next(error);
   }
@@ -433,6 +436,9 @@ exports.updateProduct = async (req, res, next) => {
       data: toProduct(row),
     });
   } catch (error) {
+    if (error.code === UNIQUE_VIOLATION) {
+      return res.status(409).json({ success: false, message: 'A product with this name already exists' });
+    }
     console.error('Error updating product:', error);
     next(error);
   }

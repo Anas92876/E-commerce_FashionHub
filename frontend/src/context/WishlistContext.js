@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
@@ -20,6 +20,7 @@ export const useWishlist = () => {
 export const WishlistProvider = ({ children }) => {
   const { user } = useAuth();
   const [ids, setIds] = useState(() => new Set());
+  const pending = useRef(new Set()); // products with a request in flight
 
   useEffect(() => {
     if (!user) {
@@ -42,13 +43,17 @@ export const WishlistProvider = ({ children }) => {
 
   const isSaved = useCallback((productId) => ids.has(productId), [ids]);
 
-  // Optimistic toggle: update the heart right away, undo if the request fails
+  // Optimistic toggle: the heart and the message change right away; the
+  // request runs in the background and is undone if it fails. Clicks on the
+  // same product are ignored until its request finishes (no racing requests).
   const toggle = useCallback(
     async (productId) => {
       if (!user) {
         toast.error('Please log in to save products');
         return false;
       }
+      if (pending.current.has(productId)) return false;
+      pending.current.add(productId);
 
       const wasSaved = ids.has(productId);
       const update = (save) =>
@@ -60,19 +65,19 @@ export const WishlistProvider = ({ children }) => {
         });
 
       update(!wasSaved);
+      const toastId = `wishlist-${productId}`;
+      toast.success(wasSaved ? 'Removed from wishlist' : 'Saved to wishlist', { id: toastId });
       try {
-        if (wasSaved) {
-          await axios.delete(`${API_URL}/wishlist/${productId}`);
-          toast.success('Removed from wishlist');
-        } else {
-          await axios.post(`${API_URL}/wishlist/${productId}`);
-          toast.success('Saved to wishlist');
-        }
+        if (wasSaved) await axios.delete(`${API_URL}/wishlist/${productId}`);
+        else await axios.post(`${API_URL}/wishlist/${productId}`);
         return true;
       } catch (error) {
         update(wasSaved);
-        toast.error(error.response?.data?.message || 'Could not update wishlist');
+        // replaces the success message
+        toast.error(error.response?.data?.message || 'Could not update wishlist', { id: toastId });
         return false;
+      } finally {
+        pending.current.delete(productId);
       }
     },
     [ids, user]
