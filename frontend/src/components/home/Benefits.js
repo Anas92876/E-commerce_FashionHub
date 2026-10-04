@@ -15,7 +15,7 @@ const BENEFITS = [
 ];
 
 const Benefits = () => (
-  <section aria-label="Shopping with FashionHub" className="border-y border-stone-200 bg-canvas dark:border-gray-800 dark:bg-gray-950">
+  <section aria-label="Shopping with ZAYRO" className="border-y border-stone-200 bg-canvas dark:border-gray-800 dark:bg-gray-950">
     <ul className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-8 px-4 py-10 sm:px-6 lg:grid-cols-4 lg:px-8">
       {BENEFITS.map(({ icon: Icon, title, text, to }) => {
         const body = (

@@ -1,5 +1,5 @@
 -- =====================================================================
--- FashionHub - Supabase schema
+-- ZAYRO - Supabase schema
 -- Run this once in the Supabase dashboard: SQL Editor -> New query -> Run
 -- Safe to re-run (uses IF NOT EXISTS / CREATE OR REPLACE).
 -- =====================================================================

@@ -46,7 +46,7 @@ app.get('/api/health', health);
 // Basic route
 app.get(['/', '/api'], (req, res) => {
   res.json({
-    message: 'Welcome to FashionHub API',
+    message: 'Welcome to ZAYRO API',
     status: 'running',
     timestamp: new Date().toISOString()
   });

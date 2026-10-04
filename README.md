@@ -1,4 +1,4 @@
-# 🛍️ FashionHub - Premium E-Commerce Platform
+# 🛍️ ZAYRO - Premium E-Commerce Platform
 
 A modern, full-stack e-commerce platform for selling premium fashion online, built with the MERN stack and optimized for performance, SEO, and user experience.
 
@@ -290,7 +290,7 @@ Steps:
 
 ## 🎨 Theme System
 
-FashionHub features a sophisticated theme system with three modes:
+ZAYRO features a sophisticated theme system with three modes:
 
 - **Light Mode** - Clean, bright interface
 - **Dark Mode** - Easy on the eyes

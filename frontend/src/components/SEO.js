@@ -15,8 +15,8 @@ import { Helmet } from 'react-helmet-async';
  * @param {object} structuredData - JSON-LD structured data
  */
 export default function SEO({
-  title = 'FashionHub - Your Premium Fashion Destination',
-  description = 'Discover the latest fashion trends at FashionHub. Shop premium clothing, accessories, and more with fast shipping and easy returns.',
+  title = 'ZAYRO - Your Premium Fashion Destination',
+  description = 'Discover the latest fashion trends at ZAYRO. Shop clothing and accessories with free shipping on every order and cash on delivery.',
   keywords = 'fashion, clothing, online shopping, apparel, fashion trends, premium fashion',
   ogImage = '/og-image.jpg',
   ogType = 'website',
@@ -26,6 +26,8 @@ export default function SEO({
   const siteUrl = process.env.REACT_APP_SITE_URL || 'https://e-commerce-fashionhub-one.vercel.app';
   const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
   const fullCanonicalUrl = canonicalUrl || window.location.href;
+  // every page title carries the brand: "Contact us | ZAYRO"
+  title = title.includes('ZAYRO') ? title : `${title} | ZAYRO`;
 
   return (
     <Helmet>
@@ -42,7 +44,7 @@ export default function SEO({
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={fullOgImage} />
-      <meta property="og:site_name" content="FashionHub" />
+      <meta property="og:site_name" content="ZAYRO" />
 
       {/* Twitter */}
       <meta property="twitter:card" content="summary_large_image" />
@@ -76,7 +78,7 @@ export function generateProductSchema(product) {
     sku: product.sku || product._id,
     brand: {
       '@type': 'Brand',
-      name: 'FashionHub'
+      name: 'ZAYRO'
     },
     offers: {
       '@type': 'Offer',
@@ -102,7 +104,7 @@ export function generateOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'FashionHub',
+    name: 'ZAYRO',
     url: process.env.REACT_APP_SITE_URL || 'https://e-commerce-fashionhub-one.vercel.app',
     logo: `${process.env.REACT_APP_SITE_URL || 'https://e-commerce-fashionhub-one.vercel.app'}/logo192.png`,
     description: 'Your premium fashion destination for the latest trends and styles',

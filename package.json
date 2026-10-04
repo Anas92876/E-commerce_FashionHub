@@ -1,7 +1,7 @@
 {
-  "name": "fashionhub",
+  "name": "zayro",
   "private": true,
-  "description": "FashionHub - React frontend + Express API (Vercel serverless) + Supabase",
+  "description": "ZAYRO - React frontend + Express API (Vercel serverless) + Supabase",
   "engines": {
     "node": "22.x"
   },

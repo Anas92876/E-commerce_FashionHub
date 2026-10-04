@@ -3,21 +3,24 @@ import { Disclosure } from '@headlessui/react';
 import { ChevronUpIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 const optionClass = (selected) =>
-  `w-full text-left px-3 py-2 rounded-lg transition-colors ${
+  `block w-full py-1.5 text-left text-sm transition-colors ${
     selected
-      ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-semibold'
-      : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+      ? 'font-semibold text-ink underline underline-offset-4 dark:text-white'
+      : 'text-stone-600 hover:text-ink dark:text-gray-400 dark:hover:text-white'
   }`;
 
+const inputClass =
+  'h-10 w-full rounded-md border border-stone-300 bg-white px-3 text-sm text-ink focus:border-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-600/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white';
+
 const Section = ({ title, children }) => (
-  <Disclosure defaultOpen>
+  <Disclosure as="div" defaultOpen className="border-b border-stone-200 dark:border-gray-800">
     {({ open }) => (
       <>
-        <Disclosure.Button className="flex justify-between w-full py-3 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-          <span className="font-semibold text-gray-900 dark:text-white">{title}</span>
-          <ChevronUpIcon className={`w-5 h-5 transition-transform text-gray-700 dark:text-gray-300 ${open ? '' : 'rotate-180'}`} />
+        <Disclosure.Button className="flex w-full items-center justify-between py-4 text-left focus:outline-none focus-visible:underline">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink dark:text-white">{title}</span>
+          <ChevronUpIcon className={`h-4 w-4 text-stone-500 transition-transform motion-reduce:transition-none dark:text-gray-400 ${open ? '' : 'rotate-180'}`} aria-hidden="true" />
         </Disclosure.Button>
-        <Disclosure.Panel className="px-4 pt-4 pb-2">{children}</Disclosure.Panel>
+        <Disclosure.Panel className="pb-5">{children}</Disclosure.Panel>
       </>
     )}
   </Disclosure>
@@ -27,7 +30,7 @@ const Section = ({ title, children }) => (
  * Sidebar filters. `filters` holds the current values (strings, from the URL);
  * `onChange(patch)` updates some of them; `options` comes from /products/filters.
  */
-const ProductFilters = ({ filters, options, categories, onChange, onClear, hasActiveFilters }) => {
+const ProductFilters = ({ filters, options, categories, onChange, onClear, hasActiveFilters, showCategories = true }) => {
   // Price inputs apply on "Apply"/Enter so typing doesn't refetch every keystroke
   const [minPrice, setMinPrice] = useState(filters.minPrice || '');
   const [maxPrice, setMaxPrice] = useState(filters.maxPrice || '');
@@ -43,9 +46,10 @@ const ProductFilters = ({ filters, options, categories, onChange, onClear, hasAc
   };
 
   return (
-    <div className="space-y-6">
+    <div className="border-t border-stone-200 dark:border-gray-800">
+      {showCategories && (
       <Section title="Category">
-        <div className="space-y-2">
+        <div>
           <button onClick={() => onChange({ category: '' })} className={optionClass(!filters.category)}>
             All Products
           </button>
@@ -56,6 +60,7 @@ const ProductFilters = ({ filters, options, categories, onChange, onClear, hasAc
           ))}
         </div>
       </Section>
+      )}
 
       <Section title="Price">
         <form onSubmit={applyPrice} className="space-y-3">
@@ -70,7 +75,7 @@ const ProductFilters = ({ filters, options, categories, onChange, onClear, hasAc
               value={minPrice}
               onChange={(e) => setMinPrice(e.target.value)}
               placeholder={options?.minPrice ? `$${Math.floor(options.minPrice)}` : 'Min'}
-              className="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-700 ring-1 ring-gray-200 dark:ring-gray-600 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
             />
             <span className="text-gray-400">–</span>
             <label className="sr-only" htmlFor="max-price">Maximum price</label>
@@ -83,12 +88,12 @@ const ProductFilters = ({ filters, options, categories, onChange, onClear, hasAc
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
               placeholder={options?.maxPrice ? `$${Math.ceil(options.maxPrice)}` : 'Max'}
-              className="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-700 ring-1 ring-gray-200 dark:ring-gray-600 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
             />
           </div>
           <button
             type="submit"
-            className="w-full px-3 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors"
+            className="h-10 w-full rounded-md border border-ink text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-ink"
           >
             Apply price
           </button>
@@ -105,10 +110,10 @@ const ProductFilters = ({ filters, options, categories, onChange, onClear, hasAc
                   key={size}
                   onClick={() => onChange({ size: selected ? '' : size })}
                   aria-pressed={selected}
-                  className={`min-w-[2.75rem] px-3 py-2 rounded-lg text-sm font-medium ring-1 transition-colors ${
+                  className={`h-10 min-w-[2.75rem] rounded-md border px-3 text-sm font-medium transition-colors ${
                     selected
-                      ? 'bg-primary-600 text-white ring-primary-600'
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 ring-gray-200 dark:ring-gray-600 hover:ring-primary-400'
+                      ? 'border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-ink'
+                      : 'border-stone-300 bg-white text-ink hover:border-ink dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:border-white'
                   }`}
                 >
                   {size}
@@ -131,8 +136,8 @@ const ProductFilters = ({ filters, options, categories, onChange, onClear, hasAc
                   aria-pressed={selected}
                   aria-label={color.name}
                   title={color.name}
-                  className={`relative w-9 h-9 rounded-full ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800 transition ${
-                    selected ? 'ring-primary-600' : 'ring-gray-200 dark:ring-gray-600 hover:ring-primary-300'
+                  className={`relative w-9 h-9 rounded-full ring-2 ring-offset-2 ring-offset-canvas dark:ring-offset-gray-950 transition ${
+                    selected ? 'ring-ink dark:ring-white' : 'ring-stone-200 hover:ring-stone-400 dark:ring-gray-700'
                   }`}
                   style={{ backgroundColor: color.hex }}
                 >
@@ -146,22 +151,23 @@ const ProductFilters = ({ filters, options, categories, onChange, onClear, hasAc
         </Section>
       )}
 
-      <label className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer">
+      <label className="flex cursor-pointer items-center gap-3 border-b border-stone-200 py-4 dark:border-gray-800">
         <input
           type="checkbox"
           checked={filters.inStock === 'true'}
           onChange={(e) => onChange({ inStock: e.target.checked ? 'true' : '' })}
-          className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
+          className="h-4 w-4 rounded border-stone-400 text-ink focus:ring-primary-600 dark:border-gray-600"
         />
-        <span className="font-semibold text-gray-900 dark:text-white">In stock only</span>
+        <span className="text-sm font-medium text-ink dark:text-white">In stock only</span>
       </label>
 
       {hasActiveFilters && (
         <button
           onClick={onClear}
-          className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          type="button"
+          className="mt-5 text-sm font-medium text-stone-600 underline underline-offset-4 hover:text-ink dark:text-gray-400 dark:hover:text-white"
         >
-          Clear All Filters
+          Clear all filters
         </button>
       )}
     </div>

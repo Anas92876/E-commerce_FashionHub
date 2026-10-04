@@ -100,7 +100,7 @@ test('only promises the store keeps', async () => {
   mockApi();
   renderHome();
   await screen.findByText(/20 styles across 6 categories/);
-  const benefits = screen.getByRole('region', { name: 'Shopping with FashionHub' });
+  const benefits = screen.getByRole('region', { name: 'Shopping with ZAYRO' });
   expect(within(benefits).getAllByRole('listitem').map((li) => li.querySelector('span span').textContent)).toEqual([
     'Free shipping',
     'Cash on delivery',

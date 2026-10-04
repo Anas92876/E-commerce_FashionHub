@@ -11,7 +11,7 @@
   display: block;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #1F2937;
+  color: #1C1917;
   margin-bottom: 0.75rem;
 }
 
@@ -42,13 +42,13 @@
 
 .color-swatch:hover:not(:disabled) {
   transform: scale(1.05);
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #1C1917;
+  box-shadow: none;
 }
 
 .color-swatch.selected {
-  border: 3px solid #3B82F6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border: 2px solid #FAF8F5;
+  box-shadow: 0 0 0 2px #1C1917;
 }
 
 .color-swatch:disabled {
@@ -129,10 +129,10 @@
   min-width: 60px;
   height: 40px;
   padding: 0 1rem;
-  border: 2px solid #E5E7EB;
-  border-radius: 8px;
+  border: 1px solid #D6D3D1;
+  border-radius: 6px;
   background: white;
-  color: #1F2937;
+  color: #1C1917;
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
@@ -144,13 +144,12 @@
 }
 
 .size-button:hover:not(:disabled) {
-  border-color: #3B82F6;
-  transform: scale(1.02);
+  border-color: #1C1917;
 }
 
 .size-button.selected {
-  background: #3B82F6;
-  border-color: #3B82F6;
+  background: #1C1917;
+  border-color: #1C1917;
   color: white;
   font-weight: 700;
 }
@@ -272,3 +271,17 @@
 .h-4 { height: 1rem; }
 .w-5 { width: 1.25rem; }
 .h-5 { height: 1.25rem; }
+
+/* ===== DARK MODE (the site toggles a .dark class on <html>) ===== */
+.dark .selector-label { color: #fff; }
+.dark .color-swatch.selected { border-color: #030712; box-shadow: 0 0 0 2px #fff; }
+.dark .color-swatch:hover:not(:disabled) { border-color: #fff; }
+.dark .size-button { background: #111827; border-color: #374151; color: #fff; }
+.dark .size-button:hover:not(:disabled) { border-color: #fff; }
+.dark .size-button.selected { background: #fff; border-color: #fff; color: #1C1917; }
+.dark .size-button:disabled { background: #1f2937; color: #6b7280; }
+
+@media (prefers-reduced-motion: reduce) {
+  .color-swatch, .size-button { transition: none; }
+  .color-swatch:hover:not(:disabled) { transform: none; }
+}

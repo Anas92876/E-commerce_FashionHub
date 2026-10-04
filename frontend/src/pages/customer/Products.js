@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { AdjustmentsHorizontalIcon, ChevronLeftIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -10,7 +10,7 @@ import { ProductGridSkeleton } from '../../components/skeletons';
 import { EmptySearch } from '../../components/EmptyState';
 import ProductCard from '../../components/ProductCard';
 import ProductFilters from '../../components/ProductFilters';
-import SearchBox from '../../components/SearchBox';
+import PageHeader from '../../components/PageHeader';
 import { API_URL } from '../../utils/api';
 
 // All filters live in the URL (?search=&category=&size=...), so links like
@@ -129,11 +129,28 @@ const Products = () => {
       onChange={updateFilters}
       onClear={clearFilters}
       hasActiveFilters={hasActiveFilters}
+      showCategories={false}
     />
   );
 
+  const heading = filters.search
+    ? { eyebrow: 'Search', title: 'Results for', accent: `“${filters.search}”` }
+    : filters.category
+      ? { eyebrow: 'Category', title: filters.category, accent: '' }
+      : { eyebrow: 'Shop', title: 'The', accent: 'collection.' };
+
+  const categoryTabClass = (selected) =>
+    `whitespace-nowrap border-b-2 pb-3 text-sm font-medium transition-colors focus:outline-none focus-visible:text-ink ${
+      selected
+        ? 'border-ink text-ink dark:border-white dark:text-white'
+        : 'border-transparent text-stone-500 hover:text-ink dark:text-gray-400 dark:hover:text-white'
+    }`;
+
+  const pageButtonClass =
+    'flex h-11 w-11 items-center justify-center rounded-full border border-stone-300 text-ink transition-colors hover:border-ink hover:bg-ink hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-stone-300 disabled:hover:bg-transparent disabled:hover:text-ink dark:border-gray-700 dark:text-white dark:hover:border-white dark:hover:bg-white dark:hover:text-ink dark:disabled:hover:bg-transparent dark:disabled:hover:text-white';
+
   return (
-    <div className="min-h-screen overflow-x-hidden flex flex-col bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-24 transition-colors duration-300">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-canvas pt-16 dark:bg-gray-950">
       <SEO
         title={filters.search ? `Search: ${filters.search}` : filters.category || 'Shop All Products'}
         description="Browse our collection of premium fashion. Filter by size, color and price."
@@ -141,109 +158,124 @@ const Products = () => {
       <Navbar />
 
       {/* Header */}
-      <div className="relative pt-1 w-screen overflow-x-hidden">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-blue-500/10 dark:bg-blue-500/5 blur-3xl" />
-          <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-indigo-500/10 dark:bg-indigo-500/5 blur-3xl" />
+      <header className="mx-auto w-full max-w-7xl px-4 pt-12 sm:px-6 sm:pt-16 lg:px-8">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <PageHeader
+            eyebrow={heading.eyebrow}
+            title={heading.title}
+            accent={heading.accent}
+            intro={
+              loading && !totalProducts
+                ? 'Everyday staples and considered statement pieces.'
+                : `${totalProducts} ${totalProducts === 1 ? 'style' : 'styles'} — everyday staples and considered statement pieces, delivered free.`
+            }
+          />
         </div>
 
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb */}
-          <div className="mb-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <Link to="/" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              Home
-            </Link>
-            <span>/</span>
-            <span className="text-gray-700 dark:text-gray-300 font-medium">Products</span>
-          </div>
-
-          <motion.h1
-            className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-3"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            Our{' '}
-            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-              Collection
-            </span>
-          </motion.h1>
-
-          <motion.p
-            className="text-base sm:text-lg text-gray-600 dark:text-gray-300"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            Discover <span className="font-semibold text-gray-900 dark:text-white">{totalProducts}</span> amazing products curated just for you.
-          </motion.p>
-
-          <SearchBox initialValue={filters.search} className="mt-6 max-w-xl" />
-        </div>
-      </div>
+        {/* Category tabs */}
+        <nav aria-label="Categories" className="mt-10 border-b border-stone-200 dark:border-gray-800">
+          <ul className="-mb-px flex gap-7 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <li>
+              <button
+                type="button"
+                onClick={() => updateFilters({ category: '' })}
+                aria-current={!filters.category ? 'page' : undefined}
+                className={categoryTabClass(!filters.category)}
+              >
+                All
+              </button>
+            </li>
+            {categories.map((cat) => (
+              <li key={cat._id}>
+                <button
+                  type="button"
+                  onClick={() => updateFilters({ category: cat.name })}
+                  aria-current={filters.category === cat.name ? 'page' : undefined}
+                  className={categoryTabClass(filters.category === cat.name)}
+                >
+                  {cat.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </header>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-6xl w-full px-4 sm:px-6 lg:px-8 py-10 flex-1">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-10 lg:flex-row">
           {/* Sidebar Filters - Desktop */}
-          <aside className="hidden lg:block w-72 flex-shrink-0">
-            <div className="sticky top-28 rounded-2xl bg-white/90 dark:bg-gray-800/90 backdrop-blur shadow-sm dark:shadow-gray-900/50 ring-1 ring-gray-200 dark:ring-gray-700 p-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-              <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Filters</h2>
-              {filtersPanel}
+          <aside className="hidden w-64 flex-shrink-0 lg:block" aria-label="Filters">
+            <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-2">
+              <h2 className="text-2xl font-medium text-ink dark:text-white">Filters</h2>
+              <div className="mt-4">{filtersPanel}</div>
             </div>
           </aside>
 
-          {/* Mobile Filters Button */}
-          <div className="lg:hidden -mt-2">
-            <button
-              onClick={() => setMobileFiltersOpen(true)}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/90 dark:bg-gray-800/90 ring-1 ring-gray-200 dark:ring-gray-700 font-medium hover:bg-white dark:hover:bg-gray-800 transition-all shadow-sm text-gray-900 dark:text-white"
-            >
-              <FunnelIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
-            </button>
-          </div>
-
           {/* Main Products Area */}
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-4">
-              <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
-                Showing <span className="font-semibold">{products.length}</span> of{' '}
-                <span className="font-semibold">{totalProducts}</span> products
-              </p>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMobileFiltersOpen(true)}
+                  className="inline-flex h-11 items-center gap-2 rounded-md border border-stone-300 px-4 text-sm font-semibold text-ink transition-colors hover:border-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 dark:border-gray-700 dark:text-white dark:hover:border-white lg:hidden"
+                >
+                  <AdjustmentsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+                  Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+                </button>
+                <p className="text-sm text-stone-600 dark:text-gray-400" aria-live="polite">
+                  {loading ? 'Loading…' : (
+                    <>
+                      Showing <span className="font-semibold text-ink dark:text-white">{products.length}</span> of{' '}
+                      <span className="font-semibold text-ink dark:text-white">{totalProducts}</span>
+                    </>
+                  )}
+                </p>
+              </div>
 
-              <label className="sr-only" htmlFor="sort-by">Sort by</label>
-              <select
-                id="sort-by"
-                value={filters.sort}
-                onChange={(e) => updateFilters({ sort: e.target.value })}
-                className="px-4 py-2.5 rounded-xl bg-white/90 dark:bg-gray-800/90 ring-1 ring-gray-200 dark:ring-gray-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none transition text-sm font-medium shadow-sm text-gray-900 dark:text-white"
-              >
-                <option value="">Sort By: Default</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="rating-desc">Best Rating</option>
-                <option value="name-asc">Name: A to Z</option>
-                <option value="name-desc">Name: Z to A</option>
-                <option value="newest">Newest First</option>
-              </select>
+              <div className="flex items-center gap-2">
+                <label htmlFor="sort-by" className="text-sm text-stone-600 dark:text-gray-400">
+                  Sort by
+                </label>
+                <select
+                  id="sort-by"
+                  value={filters.sort}
+                  onChange={(e) => updateFilters({ sort: e.target.value })}
+                  className="h-11 rounded-md border border-stone-300 bg-white pl-3 pr-9 text-sm font-medium text-ink focus:border-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-600/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                >
+                  <option value="">Featured</option>
+                  <option value="newest">Newest first</option>
+                  <option value="price-asc">Price: low to high</option>
+                  <option value="price-desc">Price: high to low</option>
+                  <option value="rating-desc">Best rating</option>
+                  <option value="name-asc">Name: A to Z</option>
+                  <option value="name-desc">Name: Z to A</option>
+                </select>
+              </div>
             </div>
 
             {/* Active filter chips */}
             {chips.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 mb-6">
+              <div className="mb-8 flex flex-wrap items-center gap-2">
                 {chips.map((chip) => (
                   <button
                     key={chip.key}
+                    type="button"
                     onClick={() => removeChip(chip.key)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/50"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-ink dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:border-white"
                     aria-label={`Remove filter ${chip.label}`}
                   >
                     {chip.label}
-                    <XMarkIcon className="w-4 h-4" />
+                    <XMarkIcon className="h-4 w-4" aria-hidden="true" />
                   </button>
                 ))}
-                <button onClick={clearFilters} className="text-sm text-gray-500 dark:text-gray-400 underline hover:text-gray-700 dark:hover:text-gray-200">
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="ml-1 text-sm font-medium text-stone-600 underline underline-offset-4 hover:text-ink dark:text-gray-400 dark:hover:text-white"
+                >
                   Clear all
                 </button>
               </div>
@@ -256,82 +288,86 @@ const Products = () => {
               <EmptySearch query={filters.search || 'your filters'} />
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {products.map((product, index) => (
-                    <motion.div
-                      key={product._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <ProductCard product={product} />
-                    </motion.div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-3">
+                  {products.map((product) => (
+                    <ProductCard key={product._id} product={product} />
                   ))}
                 </div>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-6 mt-14">
+                  <nav aria-label="Pagination" className="mt-16 flex items-center justify-center gap-6">
                     <button
+                      type="button"
                       onClick={() => goToPage(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="px-6 py-3 rounded-xl bg-white/90 dark:bg-gray-800/90 ring-1 ring-gray-200 dark:ring-gray-700 font-medium text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                      aria-label="Previous page"
+                      className={pageButtonClass}
                     >
-                      ← Previous
+                      <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
                     </button>
-
-                    <span className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
-                      Page <span className="font-semibold">{currentPage}</span> of{' '}
-                      <span className="font-semibold">{totalPages}</span>
+                    <span className="text-sm text-stone-600 dark:text-gray-400">
+                      Page <span className="font-semibold text-ink dark:text-white">{currentPage}</span> of{' '}
+                      <span className="font-semibold text-ink dark:text-white">{totalPages}</span>
                     </span>
-
                     <button
+                      type="button"
                       onClick={() => goToPage(currentPage + 1)}
                       disabled={currentPage >= totalPages}
-                      className="px-6 py-3 rounded-xl bg-white/90 dark:bg-gray-800/90 ring-1 ring-gray-200 dark:ring-gray-700 font-medium text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                      aria-label="Next page"
+                      className={pageButtonClass}
                     >
-                      Next →
+                      <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
                     </button>
-                  </div>
+                  </nav>
                 )}
               </>
             )}
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Mobile Filters Drawer */}
       <AnimatePresence>
         {mobileFiltersOpen && (
           <>
             <motion.div
-              className="fixed inset-0 bg-black/50 dark:bg-black/70 z-40 lg:hidden"
+              className="fixed inset-0 z-40 bg-black/50 lg:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileFiltersOpen(false)}
             />
             <motion.div
-              className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-gray-800 rounded-r-2xl shadow-2xl dark:shadow-gray-900/50 z-50 lg:hidden overflow-y-auto"
+              className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] overflow-y-auto bg-canvas shadow-2xl dark:bg-gray-950 lg:hidden"
               initial={{ x: -320 }}
               animate={{ x: 0 }}
               exit={{ x: -320 }}
               transition={{ type: 'tween' }}
               role="dialog"
+              aria-modal="true"
               aria-label="Filters"
             >
               <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Filters</h2>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-2xl font-medium text-ink dark:text-white">Filters</h2>
                   <button
+                    type="button"
                     onClick={() => setMobileFiltersOpen(false)}
                     aria-label="Close filters"
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="rounded-full p-2 text-ink transition-colors hover:bg-sand dark:text-white dark:hover:bg-gray-800"
                   >
-                    <XMarkIcon className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>
                 {filtersPanel}
+                <button
+                  type="button"
+                  onClick={() => setMobileFiltersOpen(false)}
+                  className="mt-8 h-12 w-full rounded-md bg-primary-600 text-sm font-semibold text-white hover:bg-primary-700"
+                >
+                  Show {totalProducts} {totalProducts === 1 ? 'style' : 'styles'}
+                </button>
               </div>
             </motion.div>
           </>

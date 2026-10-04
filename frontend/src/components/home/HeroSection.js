@@ -62,7 +62,7 @@ const HeroSection = ({ summary }) => (
           aria-hidden="true"
           className="pointer-events-none absolute right-4 top-5 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/85 [writing-mode:vertical-rl] sm:right-6 sm:top-8"
         >
-          FashionHub — {seasonLabel()}
+          ZAYRO — {seasonLabel()}
         </p>
 
         {/* detail crop: inside the photo on tablet, straddling its edge on desktop */}

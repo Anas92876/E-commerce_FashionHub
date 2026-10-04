@@ -130,7 +130,7 @@ const Register = () => {
     setLoading(false);
 
     if (result.success) {
-      toast.success('Welcome to FashionHub!');
+      toast.success('Welcome to ZAYRO!');
       navigate('/');
     } else {
       if (result.message?.toLowerCase().includes('already exists')) {
@@ -158,7 +158,7 @@ const Register = () => {
     <AuthLayout
       eyebrow="Create account"
       title="Join"
-      accent="FashionHub."
+      accent="ZAYRO."
       intro="Save the pieces you love, follow every order and check out with cash on delivery."
       image="/images/auth/shopping-bags"
       imageAlt=""

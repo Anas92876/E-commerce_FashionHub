@@ -80,7 +80,7 @@ const Login = () => {
       tagline="Wardrobe essentials, made to last."
       footer={
         <p>
-          New to FashionHub?{' '}
+          New to ZAYRO?{' '}
           <Link to="/register" className="font-semibold text-ink underline underline-offset-4 hover:text-primary-700 dark:text-white dark:hover:text-primary-300">
             Create an account
           </Link>

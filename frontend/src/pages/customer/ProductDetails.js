@@ -3,11 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Tab } from '@headlessui/react';
 import {
-  ShoppingCartIcon,
-  ChevronRightIcon,
+  ShoppingBagIcon,
   MagnifyingGlassPlusIcon,
   ShareIcon,
-  CheckCircleIcon
+  TruckIcon,
+  BanknotesIcon,
+  MapIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { useCart } from '../../context/CartContext';
@@ -227,7 +228,7 @@ const ProductDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300">
+      <div className="flex min-h-screen flex-col bg-canvas pt-16 dark:bg-gray-950">
         <Navbar />
         <ProductDetailsSkeleton />
         <Footer />
@@ -237,15 +238,15 @@ const ProductDetails = () => {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300">
+      <div className="flex min-h-screen flex-col bg-canvas pt-16 dark:bg-gray-950">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Product Not Found</h2>
+            <h1 className="mb-2 text-4xl font-medium text-ink dark:text-white">Product <span className="font-serif italic">not found</span></h1>
             <p className="text-gray-600 dark:text-gray-400 mb-6">The product you're looking for doesn't exist</p>
             <Link
               to="/products"
-              className="inline-block px-6 py-3 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+              className="inline-flex h-12 items-center rounded-md bg-primary-600 px-7 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
             >
               Browse Products
             </Link>
@@ -279,31 +280,53 @@ const ProductDetails = () => {
 
   const isOutOfStock = displayStock === 0;
 
+  // Real product facts for the Details tab
+  const colorNames = (availabilityMatrix?.colors || []).map((c) => c.name).filter(Boolean);
+  const sizeNames = [
+    ...new Set(
+      (availabilityMatrix?.colors || []).flatMap((c) => (c.sizes || []).map((sz) => sz.size || sz.name)).filter(Boolean)
+    ),
+  ];
+  const facts = [
+    { label: 'Category', value: product.category },
+    colorNames.length > 0 && { label: colorNames.length === 1 ? 'Colour' : 'Colours', value: colorNames.join(', ') },
+    sizeNames.length > 0 && { label: 'Sizes', value: sizeNames.join(', ') },
+    product.numReviews > 0 && { label: 'Rating', value: `${Number(product.rating).toFixed(1)} out of 5 (${product.numReviews} ${product.numReviews === 1 ? 'review' : 'reviews'})` },
+  ].filter(Boolean);
+
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div className="flex min-h-screen flex-col bg-canvas pt-16 dark:bg-gray-950">
       <SEO title={product.name} description={product.description?.slice(0, 160)} />
       <Navbar />
 
       {/* Breadcrumb */}
-      <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <nav className="flex items-center space-x-2 text-sm">
-            <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-              Home
-            </Link>
-            <ChevronRightIcon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-            <Link to="/products" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-              Products
-            </Link>
-            <ChevronRightIcon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-            <span className="text-gray-900 dark:text-white font-medium truncate">{product.name}</span>
-          </nav>
-        </div>
-      </div>
+      <nav aria-label="Breadcrumb" className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+        <ol className="flex flex-wrap items-center gap-2 text-xs text-stone-500 dark:text-gray-400">
+          <li>
+            <Link to="/" className="hover:text-ink dark:hover:text-white">Home</Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li>
+            <Link to="/products" className="hover:text-ink dark:hover:text-white">Shop</Link>
+          </li>
+          {product.category && (
+            <>
+              <li aria-hidden="true">/</li>
+              <li>
+                <Link to={`/products?category=${encodeURIComponent(product.category)}`} className="hover:text-ink dark:hover:text-white">
+                  {product.category}
+                </Link>
+              </li>
+            </>
+          )}
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" className="truncate font-medium text-ink dark:text-white">{product.name}</li>
+        </ol>
+      </nav>
 
       {/* Product Details */}
       <div className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
           <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
 
             {/* Image Gallery - Left Side */}
@@ -313,9 +336,9 @@ const ProductDetails = () => {
               transition={{ duration: 0.5 }}
               className="mb-10 lg:mb-0"
             >
-              <div className="sticky top-20">
+              <div className="lg:sticky lg:top-24">
                 {/* Main Image */}
-                <div className="relative aspect-[4/5] bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-2 group">
+                <div className="group relative mb-3 aspect-[4/5] overflow-hidden bg-sand dark:bg-gray-800">
                   {currentImages.length > 0 ? (
                     <>
                       <LazyImage
@@ -325,10 +348,12 @@ const ProductDetails = () => {
                       />
                       {/* Zoom Button */}
                       <button
+                        type="button"
                         onClick={() => setShowImageZoom(true)}
-                        className="absolute top-4 right-4 p-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-gray-700"
+                        aria-label="Zoom image"
+                        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-sm transition-opacity hover:bg-white focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 dark:bg-gray-900/90 dark:text-white sm:opacity-0 sm:group-hover:opacity-100"
                       >
-                        <MagnifyingGlassPlusIcon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                        <MagnifyingGlassPlusIcon className="h-5 w-5" aria-hidden="true" />
                       </button>
                     </>
                   ) : product.image ? (
@@ -351,14 +376,14 @@ const ProductDetails = () => {
                   {/* Stock Badge */}
                   {isOutOfStock && (
                     <div className="absolute top-4 left-4">
-                      <span className="inline-block px-3 py-1.5 bg-red-600 dark:bg-red-700 text-white text-xs font-semibold rounded-full">
+                      <span className="inline-block bg-ink px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-white">
                         Out of Stock
                       </span>
                     </div>
                   )}
                   {!isOutOfStock && displayStock > 0 && displayStock < 10 && (
                     <div className="absolute top-4 left-4">
-                      <span className="inline-block px-3 py-1.5 bg-amber-500 dark:bg-amber-600 text-white text-xs font-semibold rounded-full">
+                      <span className="inline-block bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-ink">
                         Only {displayStock} left
                       </span>
                     </div>
@@ -367,20 +392,23 @@ const ProductDetails = () => {
 
                 {/* Thumbnail Gallery */}
                 {currentImages.length > 1 && (
-                  <div className="grid grid-cols-4 gap-1.5">
+                  <div className="grid grid-cols-4 gap-3">
                     {currentImages.slice(0, 4).map((img, index) => (
                       <button
                         key={index}
+                        type="button"
                         onClick={() => setSelectedImageIndex(index)}
-                        className={`relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border-2 transition-all ${
+                        aria-label={`Show image ${index + 1}`}
+                        aria-pressed={selectedImageIndex === index}
+                        className={`relative aspect-[4/5] overflow-hidden bg-sand transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 dark:bg-gray-800 ${
                           selectedImageIndex === index
-                            ? 'border-primary-600 dark:border-primary-500 ring-2 ring-primary-600 dark:ring-primary-500 ring-offset-2 dark:ring-offset-gray-900'
-                            : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
+                            ? 'ring-1 ring-ink dark:ring-white'
+                            : 'opacity-70 hover:opacity-100'
                         }`}
                       >
                         <img
                           src={getImageUrl(img)}
-                          alt={`${product.name} - ${index + 1}`}
+                          alt=""
                           className="w-full h-full object-cover"
                         />
                       </button>
@@ -396,34 +424,38 @@ const ProductDetails = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              {/* Category & Share */}
-              <div className="flex items-center justify-between mb-4">
-                <span className="inline-block px-3 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-semibold rounded-full uppercase tracking-wide">
+              {/* Category & actions */}
+              <div className="flex items-start justify-between gap-4">
+                <Link
+                  to={`/products?category=${encodeURIComponent(product.category)}`}
+                  className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-stone-500 hover:text-ink dark:text-gray-400 dark:hover:text-white"
+                >
+                  <span aria-hidden="true" className="h-px w-8 bg-stone-400 dark:bg-gray-600" />
                   {product.category}
-                </span>
-                <div className="flex items-center gap-2">
-                  <WishlistButton productId={product._id} />
+                </Link>
+                <div className="flex items-center gap-1">
+                  <WishlistButton productId={product._id} className="shadow-none ring-1 ring-stone-200 dark:ring-gray-800" />
                   <button
+                    type="button"
                     onClick={handleShare}
                     aria-label="Share product"
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-ink transition-colors hover:bg-sand focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 dark:text-white dark:hover:bg-gray-800"
                   >
-                    <ShareIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    <ShareIcon className="h-5 w-5" aria-hidden="true" />
                   </button>
                 </div>
               </div>
 
-              {/* Product Title */}
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+              <h1 className="mt-5 text-4xl font-medium leading-[1.05] tracking-[-0.02em] text-ink dark:text-white lg:text-5xl">
                 {product.name}
               </h1>
 
               {/* Rating & Review Button */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="mt-4 mb-6 flex flex-wrap items-center justify-between gap-3">
                 {product.numReviews > 0 ? (
                   <div className="flex items-center gap-3">
                     <StarRating rating={product.rating} />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span className="text-sm font-semibold text-ink dark:text-white">
                       {Number(product.rating).toFixed(1)}
                     </span>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -436,7 +468,7 @@ const ProductDetails = () => {
                 {canReview && (
                   <button
                     onClick={openReviewForm}
-                    className="px-4 py-2 border border-primary-600 dark:border-primary-500 text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors text-sm font-medium"
+                    className="text-sm font-semibold text-ink underline underline-offset-4 hover:text-primary-700 dark:text-white"
                   >
                     Write Review
                   </button>
@@ -446,7 +478,7 @@ const ProductDetails = () => {
               {/* Price */}
               {displayPrice && displayPrice > 0 && (
                 <div className="mb-8">
-                  <p className="text-4xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-2xl font-semibold text-ink dark:text-white">
                     ${displayPrice.toFixed(2)}
                   </p>
                   {availabilityMatrix?.hasVariablePricing && !variantSelection.color && (
@@ -457,7 +489,7 @@ const ProductDetails = () => {
 
               {/* Description */}
               <div className="mb-8">
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="leading-relaxed text-stone-600 dark:text-gray-300">
                   {product.description}
                 </p>
               </div>
@@ -477,7 +509,8 @@ const ProductDetails = () => {
                 <div className="mb-6">
                   <button
                     onClick={() => setShowSizeGuide(true)}
-                    className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium underline"
+                    type="button"
+                    className="text-sm font-medium text-ink underline underline-offset-4 hover:text-primary-700 dark:text-white"
                   >
                     View Size Guide
                   </button>
@@ -486,66 +519,82 @@ const ProductDetails = () => {
 
               {/* Quantity Selector */}
               <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+                <label htmlFor="quantity" className="mb-3 block text-sm font-semibold text-ink dark:text-white">
                   Quantity
                 </label>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                    type="button"
+                    aria-label="Decrease quantity"
+                    className="flex h-11 w-11 items-center justify-center rounded-md border border-stone-300 text-ink transition-colors hover:border-ink disabled:opacity-40 dark:border-gray-700 dark:text-white"
                     disabled={quantity <= 1}
                   >
-                    <span className="text-lg font-medium text-gray-700 dark:text-gray-300">−</span>
+                    <span aria-hidden="true" className="text-lg">−</span>
                   </button>
                   <input
+                    id="quantity"
                     type="number"
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-16 h-10 text-center border border-gray-300 dark:border-gray-600 rounded-lg font-medium bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="h-11 w-16 rounded-md border border-stone-300 bg-white text-center font-medium text-ink focus:border-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-600/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                     min="1"
                   />
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                    type="button"
+                    aria-label="Increase quantity"
+                    className="flex h-11 w-11 items-center justify-center rounded-md border border-stone-300 text-ink transition-colors hover:border-ink disabled:opacity-40 dark:border-gray-700 dark:text-white"
                     disabled={isOutOfStock || quantity >= displayStock}
                   >
-                    <span className="text-lg font-medium text-gray-700 dark:text-gray-300">+</span>
+                    <span aria-hidden="true" className="text-lg">+</span>
                   </button>
-                  <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                  <span className="ml-2 text-sm text-stone-600 dark:text-gray-400">
                     {displayStock} available
                   </span>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="space-y-3 mb-8">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={isOutOfStock || isAddingToCart}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary-600 dark:bg-primary-500 text-white font-semibold rounded-xl hover:bg-primary-700 dark:hover:bg-primary-600 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors shadow-sm"
-                >
-                  <ShoppingCartIcon className="w-5 h-5" />
-                  {isOutOfStock ? 'Out of Stock' : isAddingToCart ? 'Adding...' : 'Add to Cart'}
-                </button>
-              </div>
+              {/* Add to cart */}
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                disabled={isOutOfStock || isAddingToCart}
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-md bg-primary-600 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:bg-stone-300 dark:disabled:bg-gray-800"
+              >
+                <ShoppingBagIcon className="h-5 w-5" aria-hidden="true" />
+                {isOutOfStock ? 'Out of stock' : isAddingToCart ? 'Adding…' : 'Add to bag'}
+              </button>
 
-              {/* Features */}
-             
-            </motion.div>
+              {/* What the store really offers (same as the home page) */}
+              <ul className="mt-8 divide-y divide-stone-200 border-y border-stone-200 text-sm dark:divide-gray-800 dark:border-gray-800">
+                {[
+                  { icon: TruckIcon, text: 'Free shipping on every order' },
+                  { icon: BanknotesIcon, text: 'Pay cash on delivery' },
+                  { icon: MapIcon, text: 'Track your order step by step in My Orders' },
+                ].map(({ icon: Icon, text }) => (
+                  <li key={text} className="flex items-center gap-3 py-3.5 text-stone-700 dark:text-gray-300">
+                    <Icon className="h-5 w-5 flex-shrink-0 text-ink dark:text-white" aria-hidden="true" />
+                    {text}
+                  </li>
+                ))}
+              </ul>
+
+                         </motion.div>
           </div>
 
           {/* Product Details Tabs */}
-          <div className="mt-16 lg:mt-20">
+          <div className="mt-20 lg:mt-24">
             <Tab.Group selectedIndex={selectedTab} onChange={setSelectedTab}>
-              <Tab.List className="flex gap-8 border-b border-gray-200 dark:border-gray-700">
-                {['Description', 'Reviews', 'Shipping Info'].map((tab) => (
+              <Tab.List className="flex gap-8 overflow-x-auto border-b border-stone-200 dark:border-gray-800">
+                {['Details', `Reviews${product.numReviews ? ` (${product.numReviews})` : ''}`, 'Delivery & payment'].map((tab) => (
                   <Tab
                     key={tab}
                     className={({ selected }) =>
-                      `py-4 px-1 text-sm font-medium border-b-2 transition-colors outline-none ${
+                      `-mb-px whitespace-nowrap border-b-2 py-4 text-sm font-semibold transition-colors outline-none focus-visible:text-ink ${
                         selected
-                          ? 'border-primary-600 dark:border-primary-500 text-primary-600 dark:text-primary-400'
-                          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                          ? 'border-ink text-ink dark:border-white dark:text-white'
+                          : 'border-transparent text-stone-500 hover:text-ink dark:text-gray-400 dark:hover:text-white'
                       }`
                     }
                   >
@@ -553,31 +602,18 @@ const ProductDetails = () => {
                   </Tab>
                 ))}
               </Tab.List>
-              <Tab.Panels className="mt-8">
-                {/* Description Panel */}
-                <Tab.Panel className="prose max-w-none">
-                  <div className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                    <p className="text-lg mb-4">{product.description}</p>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">Product Features</h3>
-                    <ul className="space-y-2">
-                      <li className="flex items-start gap-2">
-                        <CheckCircleIcon className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0 mt-0.5" />
-                        <span>High-quality materials for lasting durability</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircleIcon className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0 mt-0.5" />
-                        <span>Comfortable fit for all-day wear</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircleIcon className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0 mt-0.5" />
-                        <span>Easy care and maintenance</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircleIcon className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0 mt-0.5" />
-                        <span>Available in multiple colors and sizes</span>
-                      </li>
-                    </ul>
-                  </div>
+              <Tab.Panels className="mt-10">
+                {/* Details Panel: the description and real facts from the product */}
+                <Tab.Panel className="grid gap-10 focus:outline-none lg:grid-cols-[1.4fr_1fr] lg:gap-16">
+                  <p className="font-serif text-xl leading-relaxed text-ink dark:text-white sm:text-2xl">{product.description}</p>
+                  <dl className="divide-y divide-stone-200 border-y border-stone-200 text-sm dark:divide-gray-800 dark:border-gray-800">
+                    {facts.map((fact) => (
+                      <div key={fact.label} className="flex justify-between gap-6 py-3.5">
+                        <dt className="text-stone-500 dark:text-gray-400">{fact.label}</dt>
+                        <dd className="text-right font-medium text-ink dark:text-white">{fact.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
                 </Tab.Panel>
 
                 {/* Reviews Panel */}
@@ -593,31 +629,26 @@ const ProductDetails = () => {
                   />
                 </Tab.Panel>
 
-                {/* Shipping Info Panel */}
-                <Tab.Panel>
-                  <div className="max-w-3xl space-y-6">
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Shipping Information</h3>
-                      <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                        We offer free standard shipping on all orders over $50. Orders are typically processed
-                        within 1-2 business days and delivered within 3-5 business days.
-                      </p>
+                {/* Delivery & payment: only what the store really does */}
+                <Tab.Panel className="grid max-w-4xl gap-8 focus:outline-none sm:grid-cols-3">
+                  {[
+                    { icon: TruckIcon, title: 'Free shipping', text: 'Shipping costs nothing on every order, with no minimum.' },
+                    { icon: BanknotesIcon, title: 'Cash on delivery', text: 'No card needed: you pay when your order arrives.' },
+                    { icon: MapIcon, title: 'Order tracking', text: 'Every order has a timeline in My Orders, from placed to delivered.' },
+                  ].map(({ icon: Icon, title, text }) => (
+                    <div key={title}>
+                      <Icon className="h-6 w-6 text-ink dark:text-white" aria-hidden="true" />
+                      <h3 className="mt-3 text-sm font-semibold text-ink dark:text-white">{title}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-stone-600 dark:text-gray-400">{text}</p>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Returns & Exchanges</h3>
-                      <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                        Not satisfied? We offer easy 30-day returns and exchanges. Items must be in original
-                        condition with tags attached. Return shipping is free for exchanges.
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">International Shipping</h3>
-                      <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                        We ship worldwide! International shipping rates and delivery times vary by location.
-                        Customs fees and import taxes may apply.
-                      </p>
-                    </div>
-                  </div>
+                  ))}
+                  <p className="text-sm text-stone-600 dark:text-gray-400 sm:col-span-3">
+                    Questions about an order?{' '}
+                    <Link to="/contact" className="font-semibold text-ink underline underline-offset-4 dark:text-white">
+                      Send us a message
+                    </Link>
+                    .
+                  </p>
                 </Tab.Panel>
               </Tab.Panels>
             </Tab.Group>
@@ -625,14 +656,16 @@ const ProductDetails = () => {
 
           {/* Related Products */}
           {relatedProducts.length > 0 && (
-            <div className="mt-20">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">You May Also Like</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <section aria-labelledby="related-heading" className="mt-24">
+              <h2 id="related-heading" className="mb-8 text-2xl font-medium text-ink dark:text-white sm:text-3xl">
+                You may also <span className="font-serif italic">like</span>
+              </h2>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
                 {relatedProducts.map((relatedProduct) => (
                   <ProductCard key={relatedProduct._id} product={relatedProduct} />
                 ))}
               </div>
-            </div>
+            </section>
           )}
         </div>
       </div>

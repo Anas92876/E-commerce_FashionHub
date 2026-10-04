@@ -110,15 +110,7 @@ const VariantSelector = ({
         </div>
       )}
 
-      {/* Price Display (if variable pricing) */}
-      {availabilityMatrix.hasVariablePricing && selectedColor && (
-        <div className="variant-price">
-          <span className="text-gray-600">Price:</span>
-          <span className="font-bold text-2xl text-primary-600">
-            ${selectedColor.price.toFixed(2)}
-          </span>
-        </div>
-      )}
+      {/* the price itself is shown (and updated) by the product page */}
     </div>
   );
 };
