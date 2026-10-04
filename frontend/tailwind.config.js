@@ -37,11 +37,14 @@ module.exports = {
           900: '#78350f',
         },
       },
+      // Two typefaces across the whole site:
+      //  - Manrope: body text, UI, forms, buttons, logo wordmark (default)
+      //  - Playfair Display: page & section headings and editorial accents
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],        // Body text
-        heading: ['Poppins', 'system-ui', 'sans-serif'],                      // Headings
-        display: ['Montserrat', 'system-ui', 'sans-serif'],                   // Logo & Accent
-        serif: ['"Playfair Display"', 'Georgia', 'serif'],                    // Editorial accent (home hero)
+        sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
+        heading: ['"Playfair Display"', 'Georgia', 'serif'],
+        display: ['Manrope', 'system-ui', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
       },
       animation: {
         // Home hero: one-time image reveal + gentle settle (disabled with motion-reduce)

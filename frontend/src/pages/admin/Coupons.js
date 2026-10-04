@@ -148,7 +148,7 @@ const Coupons = () => {
     <AdminLayout>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 transition-colors duration-300">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white mb-2">Coupons</h1>
+          <h1 className="text-2xl sm:text-3xl font-heading font-semibold text-gray-900 dark:text-white mb-2">Coupons</h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             Create discount codes customers can enter at checkout.
           </p>

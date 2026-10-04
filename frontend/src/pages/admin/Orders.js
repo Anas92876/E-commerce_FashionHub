@@ -129,7 +129,7 @@ const Orders = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 sm:mb-8"
         >
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white mb-2">Orders Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-heading font-semibold text-gray-900 dark:text-white mb-2">Orders Management</h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Track and manage customer orders</p>
         </motion.div>
 

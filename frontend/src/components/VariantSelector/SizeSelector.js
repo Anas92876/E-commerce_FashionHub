@@ -8,7 +8,7 @@ const SizeSelector = ({ sizes, selectedSize, onSizeSelect, disabled }) => {
 
   return (
     <div className="size-selector">
-      <label className="selector-label font-heading">
+      <label className="selector-label">
         Size: {selectedSize ? <span className="font-semibold">{selectedSize}</span> : <span className="text-gray-500">Select a size</span>}
       </label>
 

@@ -4,17 +4,17 @@
 
 @layer base {
   /*
-   * Typography System:
-   * - Body Text: Inter (font-sans)
-   * - Headings: Poppins (font-heading)
-   * - Logo/Accent: Montserrat (font-display)
+   * Typography system (two typefaces):
+   * - Manrope (font-sans): body, UI, forms, buttons, small headings (h3-h6)
+   * - Playfair Display (font-heading / font-serif): page & section titles (h1, h2)
    */
   body {
     @apply font-sans antialiased bg-gray-50 text-gray-900;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2 {
     @apply font-heading;
+    letter-spacing: -0.01em;
   }
 }
 

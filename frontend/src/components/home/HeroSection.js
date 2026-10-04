@@ -82,7 +82,7 @@ const HeroSection = ({ summary, featured }) => (
           </p>
 
           <h1 id="hero-heading" className="mt-6 text-ink dark:text-white">
-            <span className="block font-heading text-[2.75rem] font-semibold leading-[0.98] tracking-[-0.04em] sm:text-6xl lg:text-[clamp(3.25rem,5.2vw,4.75rem)]">
+            <span className="block font-heading text-[2.75rem] font-medium leading-[0.98] tracking-[-0.025em] sm:text-6xl lg:text-[clamp(3.25rem,5.2vw,4.75rem)]">
               Wardrobe
               <br />
               essentials,

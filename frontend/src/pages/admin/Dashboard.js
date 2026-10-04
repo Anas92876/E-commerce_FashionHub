@@ -128,7 +128,7 @@ const Dashboard = () => {
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
           className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-white mb-2">Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-heading font-semibold text-gray-900 dark:text-white mb-2">Dashboard</h1>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Welcome back! Here's what's happening with your store.</p>
           </div>
           <div className="inline-flex rounded-lg bg-white dark:bg-gray-800 p-1 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700" role="group" aria-label="Time period">

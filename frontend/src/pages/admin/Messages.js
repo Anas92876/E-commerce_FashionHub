@@ -184,7 +184,7 @@ const Messages = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 sm:mb-8"
         >
-          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2">
+          <h1 className="text-2xl sm:text-3xl font-heading font-semibold mb-2">
             Contact Messages
           </h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Manage customer inquiries and feedback</p>

@@ -193,7 +193,7 @@ const Categories = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-display font-bold text-gray-900 dark:text-white mb-2">Categories Management</h1>
+          <h1 className="text-3xl font-heading font-semibold text-gray-900 dark:text-white mb-2">Categories Management</h1>
           <p className="text-gray-600 dark:text-gray-300">Organize your products with categories</p>
         </motion.div>
 

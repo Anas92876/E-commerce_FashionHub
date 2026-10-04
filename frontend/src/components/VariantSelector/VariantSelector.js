@@ -114,7 +114,7 @@ const VariantSelector = ({
       {availabilityMatrix.hasVariablePricing && selectedColor && (
         <div className="variant-price">
           <span className="text-gray-600">Price:</span>
-          <span className="font-heading font-bold text-2xl text-primary-600">
+          <span className="font-bold text-2xl text-primary-600">
             ${selectedColor.price.toFixed(2)}
           </span>
         </div>

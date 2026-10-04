@@ -9,7 +9,7 @@ const ColorSelector = ({ colors, selectedColor, onColorSelect, disabled }) => {
 
   return (
     <div className="color-selector">
-      <label className="selector-label font-heading">
+      <label className="selector-label">
         Color: {selectedColor ? <span className="font-semibold">{selectedColor.name}</span> : <span className="text-gray-500">Select a color</span>}
       </label>
 
