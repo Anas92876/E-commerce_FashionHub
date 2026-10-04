@@ -22,9 +22,9 @@ const WishlistButton = ({ productId, className = '', size = 'md' }) => {
       aria-pressed={saved}
       aria-label={saved ? 'Remove from wishlist' : 'Save to wishlist'}
       title={saved ? 'Remove from wishlist' : 'Save to wishlist'}
-      className={`inline-flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 p-2 shadow-md ring-1 ring-gray-200 dark:ring-gray-700 hover:scale-110 transition-transform ${className}`}
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-sm transition-colors hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 ${className}`}
     >
-      <Icon className={`${iconSize} ${saved ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'}`} />
+      <Icon className={`${iconSize} ${saved ? 'text-red-600' : 'text-ink dark:text-white'}`} />
     </button>
   );
 };

@@ -104,7 +104,7 @@ const SearchBox = ({ initialValue = '', onDone, className = '', autoFocus = fals
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
-          className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/90 dark:bg-gray-800/90 ring-1 ring-gray-200 dark:ring-gray-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:outline-none text-sm text-gray-900 dark:text-white placeholder-gray-400 [&::-webkit-search-cancel-button]:hidden"
+          className="h-10 w-full rounded-md border border-stone-300 bg-white pl-10 pr-9 text-sm text-ink placeholder-stone-400 transition focus:border-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-600/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white [&::-webkit-search-cancel-button]:hidden"
         />
         {query && (
           <button
@@ -125,7 +125,7 @@ const SearchBox = ({ initialValue = '', onDone, className = '', autoFocus = fals
         <ul
           id={listId}
           role="listbox"
-          className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-xl ring-1 ring-gray-200 dark:ring-gray-700"
+          className="absolute z-50 mt-2 w-full min-w-[18rem] overflow-hidden rounded-lg border border-stone-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
         >
           {suggestions.map((item, i) => (
             <li
@@ -136,10 +136,10 @@ const SearchBox = ({ initialValue = '', onDone, className = '', autoFocus = fals
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => finish(`/products/${item._id}`)}
               onMouseEnter={() => setActive(i)}
-              className={`flex items-center gap-3 px-3 py-2 cursor-pointer ${i === active ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+              className={`flex items-center gap-3 px-3 py-2 cursor-pointer ${i === active ? 'bg-stone-100 dark:bg-gray-700' : ''}`}
             >
               {item.image ? (
-                <img src={getImageUrl(item.image)} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                <img src={getImageUrl(item.image)} alt="" className="h-12 w-10 flex-shrink-0 rounded object-cover" />
               ) : (
                 <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
               )}
@@ -155,7 +155,7 @@ const SearchBox = ({ initialValue = '', onDone, className = '', autoFocus = fals
             aria-selected={false}
             onMouseDown={(e) => e.preventDefault()}
             onClick={submit}
-            className="px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border-t border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="cursor-pointer border-t border-stone-100 px-3 py-2.5 text-sm font-medium text-primary-700 hover:bg-stone-50 dark:border-gray-700 dark:text-primary-400 dark:hover:bg-gray-700"
           >
             {suggestions.length ? `See all results for "${query.trim()}"` : `No quick matches - search for "${query.trim()}"`}
           </li>

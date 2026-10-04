@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { StarIcon } from '@heroicons/react/24/solid';
-import LazyImage from './LazyImage';
 import WishlistButton from './WishlistButton';
 import { getImageUrl } from '../utils/api';
 
@@ -15,122 +14,90 @@ export const productImage = (product) =>
 export const productPrice = (product) =>
   Number(product.displayPrice ?? product.basePrice ?? product.price ?? 0);
 
-// Size labels: from active variants, else legacy sizes
-const productSizes = (product) => {
-  const fromVariants = (product.variants || [])
-    .filter((v) => v.isActive !== false)
-    .flatMap((v) => (v.sizes || []).map((s) => s.size));
-  return [...new Set(fromVariants.length ? fromVariants : product.sizes || [])];
-};
-
-const ProductCard = ({ product }) => {
+/**
+ * Product tile used on the home page, product listing and wishlist.
+ * The whole card links to the product (stretched link); the heart button sits
+ * above that link so it can be pressed on its own.
+ */
+const ProductCard = ({ product, eager = false }) => {
   const image = productImage(product);
   const stock = product.totalStock ?? product.stock ?? 0;
-  const sizes = productSizes(product);
   const colors = (product.variants || []).filter((v) => v.isActive !== false && v.color?.hex);
+  const status = stock === 0 ? 'Sold out' : stock < 10 ? 'Low stock' : null;
 
   return (
-    <Link
-      to={`/products/${product._id}`}
-      className="group block h-full rounded-2xl bg-white/95 dark:bg-gray-800/95 shadow-sm dark:shadow-gray-900/50 ring-1 ring-gray-200 dark:ring-gray-700 overflow-hidden hover:shadow-xl hover:ring-gray-300 dark:hover:ring-gray-600 transition-all"
-    >
-      {/* Image */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-gray-100 dark:bg-gray-700">
+    <article className="group relative">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-stone-100 dark:bg-gray-800">
         {image ? (
-          <LazyImage
+          // native lazy loading; the 4:5 frame reserves the space so nothing jumps
+          <img
             src={getImageUrl(image)}
             alt={product.name}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading={eager ? 'eager' : 'lazy'}
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-500 dark:text-gray-400 font-semibold">
-            No Image
-          </div>
+          <div className="absolute inset-0 flex items-center justify-center text-sm font-medium text-stone-400">No image</div>
         )}
 
-        <WishlistButton productId={product._id} className="absolute top-3 right-3" />
+        {status && (
+          <span
+            className={`absolute left-3 top-3 rounded px-2 py-1 text-[11px] font-semibold uppercase tracking-wider ${
+              stock === 0 ? 'bg-ink text-white dark:bg-white dark:text-ink' : 'bg-white/90 text-ink dark:bg-gray-900/90 dark:text-white'
+            }`}
+          >
+            {status}
+          </span>
+        )}
 
-        {stock === 0 && (
-          <div className="absolute top-4 left-4 bg-red-500 dark:bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
-            Out of Stock
-          </div>
-        )}
-        {stock > 0 && stock < 10 && (
-          <div className="absolute top-4 left-4 bg-yellow-500 dark:bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
-            Low Stock
-          </div>
-        )}
+        <WishlistButton productId={product._id} className="absolute right-3 top-3 z-10" />
       </div>
 
-      {/* Product Info */}
-      <div className="p-5">
-        <div className="flex items-center justify-between mb-1">
-          <p className="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-400 font-semibold">
-            {product.category}
-          </p>
+      <h3 className="mt-3 line-clamp-2 text-sm font-medium text-ink dark:text-white">
+        <Link
+          to={`/products/${product._id}`}
+          className="focus:outline-none after:absolute after:inset-0 after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-primary-600 focus-visible:after:ring-offset-2"
+        >
+          {product.name}
+        </Link>
+      </h3>
+      <div className="mt-1 flex items-baseline justify-between gap-3">
+        <p className="truncate text-sm text-stone-500 dark:text-gray-400">{product.category}</p>
+        <p className="flex-shrink-0 text-sm font-semibold text-ink dark:text-white">
+          {product.hasVariablePricing && <span className="mr-1 font-normal text-stone-500 dark:text-gray-400">from</span>}
+          ${productPrice(product).toFixed(2)}
+        </p>
+      </div>
+
+      {(colors.length > 0 || product.numReviews > 0) && (
+        <div className="mt-2 flex items-center justify-between gap-3">
+          {colors.length > 0 ? (
+            <ul className="flex items-center gap-1.5" aria-label={`Colors: ${colors.map((c) => c.color.name).join(', ')}`}>
+              {colors.slice(0, 5).map((v) => (
+                <li
+                  key={v.sku}
+                  title={v.color.name}
+                  className="h-3 w-3 rounded-full ring-1 ring-inset ring-black/15 dark:ring-white/20"
+                  style={{ backgroundColor: v.color.hex }}
+                />
+              ))}
+              {colors.length > 5 && <li className="text-xs text-stone-500">+{colors.length - 5}</li>}
+            </ul>
+          ) : (
+            <span />
+          )}
           {product.numReviews > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
-              <StarIcon className="w-4 h-4 text-yellow-400" aria-hidden="true" />
+            <span className="inline-flex items-center gap-1 text-xs text-stone-600 dark:text-gray-400">
+              <StarIcon className="h-3.5 w-3.5 text-ink dark:text-white" aria-hidden="true" />
               {Number(product.rating).toFixed(1)}
-              <span className="text-gray-400">({product.numReviews})</span>
+              <span className="text-stone-400">({product.numReviews})</span>
+              <span className="sr-only">out of 5 stars, {product.numReviews} reviews</span>
             </span>
           )}
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-          {product.name}
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
-          {product.description}
-        </p>
-
-        {/* Colors */}
-        {colors.length > 0 && (
-          <div className="flex items-center gap-1.5 mb-3" aria-label={`Colors: ${colors.map((c) => c.color.name).join(', ')}`}>
-            {colors.slice(0, 6).map((v) => (
-              <span
-                key={v.sku}
-                title={v.color.name}
-                className="w-4 h-4 rounded-full ring-1 ring-gray-300 dark:ring-gray-600"
-                style={{ backgroundColor: v.color.hex }}
-              />
-            ))}
-            {colors.length > 6 && <span className="text-xs text-gray-500">+{colors.length - 6}</span>}
-          </div>
-        )}
-
-        {/* Sizes */}
-        {sizes.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {sizes.slice(0, 4).map((size) => (
-              <span
-                key={size}
-                className="px-2.5 py-1 text-xs bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 font-medium"
-              >
-                {size}
-              </span>
-            ))}
-            {sizes.length > 4 && (
-              <span className="px-2.5 py-1 text-xs bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 font-medium">
-                +{sizes.length - 4}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {product.hasVariablePricing && <span className="text-sm font-medium mr-1">from</span>}
-            ${productPrice(product).toFixed(2)}
-          </span>
-          <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:gap-2 transition-all">
-            View
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </span>
-        </div>
-      </div>
-    </Link>
+      )}
+    </article>
   );
 };
 

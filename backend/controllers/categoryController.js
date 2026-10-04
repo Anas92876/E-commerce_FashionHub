@@ -44,7 +44,12 @@ exports.getCategories = async (req, res, next) => {
         const cover = inCategory
           .map((p) => p.image || p.variants?.find((v) => v.images?.length)?.images?.[0])
           .find(Boolean);
-        return { ...category, productCount: inCategory.length, coverImage: category.image || cover || '' };
+        return {
+          ...category,
+          productCount: inCategory.length,
+          coverImage: category.image || cover || '',
+          productImage: cover || '', // best-rated product photo (fallback for low-res category images)
+        };
       });
     }
 

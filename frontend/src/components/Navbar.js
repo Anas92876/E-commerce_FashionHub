@@ -1,14 +1,13 @@
 import React, { useState, useEffect, Fragment } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link, NavLink } from 'react-router-dom';
 import { Dialog, Transition, Menu } from '@headlessui/react';
-import { motion } from 'framer-motion';
 import {
   Bars3Icon,
   XMarkIcon,
   ShoppingBagIcon,
   UserIcon,
   HomeIcon,
-  ShoppingCartIcon,
+  Squares2X2Icon,
   EnvelopeIcon,
   ClipboardDocumentListIcon,
   Cog6ToothIcon,
@@ -20,25 +19,40 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import SearchBox from './SearchBox';
-import { CountBadge } from './Badge';
 import ThemeToggle from './ThemeToggle';
+
+// Shared look for the icon buttons on the right of the header
+const iconButton =
+  'relative inline-flex h-10 w-10 items-center justify-center rounded-md text-stone-700 transition-colors hover:bg-stone-100 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white';
+
+// Small count bubble on the wishlist / cart icons
+const Count = ({ value }) =>
+  value > 0 ? (
+    <span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-semibold leading-none text-white" aria-hidden="true">
+      {value > 99 ? '99+' : value}
+    </span>
+  ) : null;
+
+const Logo = () => (
+  <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 2C10 2 8.5 3 7.5 4.5C6.5 6 6 8 6 10C6 11 6.2 11.8 6.5 12.5C5.8 12.8 5.2 13.2 4.7 13.7C4 14.4 3.5 15.3 3.2 16.3C3 17 2.9 17.7 2.9 18.5C2.9 19.3 3 20 3.3 20.7C3.6 21.4 4 22 4.6 22.4C5.2 22.8 5.9 23 6.7 23C7.5 23 8.2 22.8 8.8 22.4C9.4 22 9.8 21.4 10.1 20.7C10.4 20 10.5 19.3 10.5 18.5C10.5 17.7 10.4 17 10.1 16.3C9.8 15.6 9.4 15 8.8 14.6C8.2 14.2 7.5 14 6.7 14C6.5 14 6.3 14 6.1 14.1C6 13.5 5.9 12.8 5.9 12C5.9 10.3 6.3 8.6 7.1 7.2C7.9 5.8 9 4.8 10.5 4.3C11 4.1 11.5 4 12 4C12.5 4 13 4.1 13.5 4.3C15 4.8 16.1 5.8 16.9 7.2C17.7 8.6 18.1 10.3 18.1 12C18.1 12.8 18 13.5 17.9 14.1C17.7 14 17.5 14 17.3 14C16.5 14 15.8 14.2 15.2 14.6C14.6 15 14.2 15.6 13.9 16.3C13.6 17 13.5 17.7 13.5 18.5C13.5 19.3 13.6 20 13.9 20.7C14.2 21.4 14.6 22 15.2 22.4C15.8 22.8 16.5 23 17.3 23C18.1 23 18.8 22.8 19.4 22.4C20 22 20.4 21.4 20.7 20.7C21 20 21.1 19.3 21.1 18.5C21.1 17.7 21 17 20.8 16.3C20.5 15.3 20 14.4 19.3 13.7C18.8 13.2 18.2 12.8 17.5 12.5C17.8 11.8 18 11 18 10C18 8 17.5 6 16.5 4.5C15.5 3 14 2 12 2Z" />
+  </svg>
+);
 
 const Navbar = () => {
   const { user, isAdmin, logout } = useAuth();
   const { cartItems } = useCart();
   const { count: wishlistCount } = useWishlist();
   const navigate = useNavigate();
-  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const cartItemsCount = (cartItems || []).reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 8);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -49,328 +63,261 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { name: 'Home', path: '/', icon: HomeIcon },
-    { name: 'Products', path: '/products', icon: ShoppingCartIcon },
+    { name: 'Home', path: '/', icon: HomeIcon, end: true },
+    { name: 'Shop', path: '/products', icon: Squares2X2Icon },
     { name: 'Contact', path: '/contact', icon: EnvelopeIcon },
-    ...(user
-      ? [
-          { name: 'My Orders', path: '/my-orders', icon: ClipboardDocumentListIcon },
-          { name: 'Wishlist', path: '/wishlist', icon: HeartIcon, mobileOnly: true },
-        ]
-      : []),
+    ...(user ? [{ name: 'My Orders', path: '/my-orders', icon: ClipboardDocumentListIcon }] : []),
   ];
 
   return (
     <>
-      <motion.nav
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+      <header
+        className={`fixed inset-x-0 top-0 z-40 border-b transition-colors duration-200 ${
           isScrolled
-            ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-lg dark:shadow-gray-900/50'
-            : 'bg-white/60 dark:bg-gray-900/60 backdrop-blur-md'
+            ? 'border-stone-200 bg-canvas/95 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95'
+            : 'border-transparent bg-canvas dark:bg-gray-950'
         }`}
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.3 }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 group">
-              <motion.div
-                className="text-primary-600"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-              >
-                <svg
-                  className="w-8 h-8"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M12 2C10 2 8.5 3 7.5 4.5C6.5 6 6 8 6 10C6 11 6.2 11.8 6.5 12.5C5.8 12.8 5.2 13.2 4.7 13.7C4 14.4 3.5 15.3 3.2 16.3C3 17 2.9 17.7 2.9 18.5C2.9 19.3 3 20 3.3 20.7C3.6 21.4 4 22 4.6 22.4C5.2 22.8 5.9 23 6.7 23C7.5 23 8.2 22.8 8.8 22.4C9.4 22 9.8 21.4 10.1 20.7C10.4 20 10.5 19.3 10.5 18.5C10.5 17.7 10.4 17 10.1 16.3C9.8 15.6 9.4 15 8.8 14.6C8.2 14.2 7.5 14 6.7 14C6.5 14 6.3 14 6.1 14.1C6 13.5 5.9 12.8 5.9 12C5.9 10.3 6.3 8.6 7.1 7.2C7.9 5.8 9 4.8 10.5 4.3C11 4.1 11.5 4 12 4C12.5 4 13 4.1 13.5 4.3C15 4.8 16.1 5.8 16.9 7.2C17.7 8.6 18.1 10.3 18.1 12C18.1 12.8 18 13.5 17.9 14.1C17.7 14 17.5 14 17.3 14C16.5 14 15.8 14.2 15.2 14.6C14.6 15 14.2 15.6 13.9 16.3C13.6 17 13.5 17.7 13.5 18.5C13.5 19.3 13.6 20 13.9 20.7C14.2 21.4 14.6 22 15.2 22.4C15.8 22.8 16.5 23 17.3 23C18.1 23 18.8 22.8 19.4 22.4C20 22 20.4 21.4 20.7 20.7C21 20 21.1 19.3 21.1 18.5C21.1 17.7 21 17 20.8 16.3C20.5 15.3 20 14.4 19.3 13.7C18.8 13.2 18.2 12.8 17.5 12.5C17.8 11.8 18 11 18 10C18 8 17.5 6 16.5 4.5C15.5 3 14 2 12 2Z" />
-                </svg>
-              </motion.div>
-              <span className="font-display text-2xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                FashionHub
-              </span>
-            </Link>
+        <nav aria-label="Main" className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:gap-8 lg:px-8">
+          {/* Logo */}
+          <Link
+            to="/"
+            className="flex flex-shrink-0 items-center gap-2 rounded-md text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 dark:text-white"
+          >
+            <span className="text-primary-600 dark:text-primary-400">
+              <Logo />
+            </span>
+            <span className="font-display text-xl font-bold tracking-tight">FashionHub</span>
+          </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-1">
-              {navLinks.filter((link) => !link.mobileOnly).map((link) => (
-                <Link
-                  key={link.path}
+          {/* Primary links (desktop) */}
+          <ul className="hidden items-center gap-6 lg:flex">
+            {navLinks.map((link) => (
+              <li key={link.path}>
+                <NavLink
                   to={link.path}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    location.pathname === link.path
-                      ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
+                  end={link.end}
+                  className={({ isActive }) =>
+                    `relative py-5 text-sm font-medium transition-colors focus:outline-none focus-visible:text-primary-700 ${
+                      isActive
+                        ? 'text-ink after:absolute after:inset-x-0 after:bottom-3 after:h-0.5 after:rounded-full after:bg-ink dark:text-white dark:after:bg-white'
+                        : 'text-stone-500 hover:text-ink dark:text-gray-400 dark:hover:text-white'
+                    }`
+                  }
                 >
                   {link.name}
-                </Link>
-              ))}
-            </div>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
 
-            {/* Search: full box on wide screens, icon linking to the products page otherwise */}
-            <SearchBox className="hidden xl:block w-64" />
+          {/* Search (wide screens) */}
+          <SearchBox className="ml-auto hidden w-full max-w-xs xl:block" />
 
-            {/* Right Actions */}
-            <div className="flex items-center gap-3">
-              <Link
-                to="/products"
-                aria-label="Search products"
-                className="xl:hidden p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                <MagnifyingGlassIcon className="w-6 h-6" />
-              </Link>
+          {/* Actions */}
+          <div className="ml-auto flex items-center gap-1 xl:ml-0">
+            <Link to="/products" aria-label="Search products" className={`${iconButton} xl:hidden`}>
+              <MagnifyingGlassIcon className="h-5 w-5" />
+            </Link>
 
-              {/* Theme Toggle */}
+            <span className="hidden sm:inline-flex">
               <ThemeToggle />
+            </span>
 
-              {/* Wishlist */}
-              {user && (
-                <Link
-                  to="/wishlist"
-                  aria-label={`Wishlist (${wishlistCount} saved)`}
-                  className="relative hidden sm:block p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            <Link
+              to="/wishlist"
+              aria-label={user ? `Wishlist, ${wishlistCount} saved` : 'Wishlist'}
+              className={`${iconButton} hidden sm:inline-flex`}
+            >
+              <HeartIcon className="h-5 w-5" />
+              <Count value={user ? wishlistCount : 0} />
+            </Link>
+
+            <Link to="/cart" aria-label={`Shopping bag, ${cartItemsCount} items`} className={iconButton}>
+              <ShoppingBagIcon className="h-5 w-5" />
+              <Count value={cartItemsCount} />
+            </Link>
+
+            {/* Account */}
+            {user ? (
+              <Menu as="div" className="relative hidden lg:block">
+                <Menu.Button className={iconButton} aria-label="Account menu">
+                  <UserIcon className="h-5 w-5" />
+                </Menu.Button>
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
                 >
-                  <HeartIcon className="w-6 h-6" />
-                  {wishlistCount > 0 && (
-                    <div className="absolute -top-1 -right-1">
-                      <CountBadge count={wishlistCount} />
+                  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right overflow-hidden rounded-lg border border-stone-200 bg-white py-1 shadow-lg focus:outline-none dark:border-gray-700 dark:bg-gray-800">
+                    <div className="border-b border-stone-100 px-4 py-3 dark:border-gray-700">
+                      <p className="truncate text-sm font-medium text-ink dark:text-white">{user.firstName} {user.lastName}</p>
+                      <p className="truncate text-xs text-stone-500 dark:text-gray-400">{user.email}</p>
                     </div>
-                  )}
-                </Link>
-              )}
-
-              {/* Cart */}
-              <Link
-                to="/cart"
-                aria-label={`Cart (${cartItemsCount} items)`}
-                className="relative p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                <ShoppingBagIcon className="w-6 h-6" />
-                {cartItemsCount > 0 && (
-                  <div className="absolute -top-1 -right-1">
-                    <CountBadge count={cartItemsCount} />
-                  </div>
-                )}
-              </Link>
-
-              {/* User Menu */}
-              {user ? (
-                <Menu as="div" className="relative hidden lg:block">
-                  <Menu.Button className="flex items-center gap-2 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                    <UserIcon className="w-6 h-6" />
-                  </Menu.Button>
-                  <Transition
-                    as={Fragment}
-                    enter="transition ease-out duration-100"
-                    enterFrom="transform opacity-0 scale-95"
-                    enterTo="transform opacity-100 scale-100"
-                    leave="transition ease-in duration-75"
-                    leaveFrom="transform opacity-100 scale-100"
-                    leaveTo="transform opacity-0 scale-95"
-                  >
-                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-900/50 ring-1 ring-black dark:ring-gray-700 ring-opacity-5 dark:ring-opacity-50 focus:outline-none overflow-hidden">
-                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b dark:border-gray-700">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{user.firstName} {user.lastName}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                      </div>
-                      <div className="py-1">
-                        <Menu.Item>
-                          {({ active }) => (
-                            <button
-                              onClick={() => navigate('/profile')}
-                              className={`${
-                                active ? 'bg-gray-50 dark:bg-gray-700' : ''
-                              } w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2`}
-                            >
-                              <UserIcon className="w-4 h-4" />
-                              Profile
-                            </button>
-                          )}
-                        </Menu.Item>
-                        {isAdmin() && (
-                          <Menu.Item>
-                            {({ active }) => (
-                              <button
-                                onClick={() => navigate('/admin/dashboard')}
-                                className={`${
-                                  active ? 'bg-gray-50 dark:bg-gray-700' : ''
-                                } w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2`}
-                              >
-                                <Cog6ToothIcon className="w-4 h-4" />
-                                Admin Panel
-                              </button>
-                            )}
-                          </Menu.Item>
+                    {[
+                      { label: 'Profile', icon: UserIcon, to: '/profile' },
+                      { label: 'My Orders', icon: ClipboardDocumentListIcon, to: '/my-orders' },
+                      { label: 'Wishlist', icon: HeartIcon, to: '/wishlist' },
+                      ...(isAdmin() ? [{ label: 'Admin Panel', icon: Cog6ToothIcon, to: '/admin/dashboard' }] : []),
+                    ].map(({ label, icon: Icon, to }) => (
+                      <Menu.Item key={label}>
+                        {({ active }) => (
+                          <Link
+                            to={to}
+                            className={`flex items-center gap-2 px-4 py-2 text-sm text-stone-700 dark:text-gray-300 ${active ? 'bg-stone-50 dark:bg-gray-700' : ''}`}
+                          >
+                            <Icon className="h-4 w-4" />
+                            {label}
+                          </Link>
                         )}
-                        <Menu.Item>
-                          {({ active }) => (
-                            <button
-                              onClick={handleLogout}
-                              className={`${
-                                active ? 'bg-red-50 dark:bg-red-900/20' : ''
-                              } w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-2`}
-                            >
-                              <ArrowRightOnRectangleIcon className="w-4 h-4" />
-                              Logout
-                            </button>
-                          )}
-                        </Menu.Item>
-                      </div>
-                    </Menu.Items>
-                  </Transition>
-                </Menu>
-              ) : (
-                <div className="hidden lg:flex items-center gap-2">
-                  <button
-                    onClick={() => navigate('/login')}
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => navigate('/register')}
-                    className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white font-medium hover:bg-primary-700 dark:hover:bg-primary-600 rounded-lg transition-colors"
-                  >
-                    Register
-                  </button>
-                </div>
-              )}
-
-              {/* Mobile Menu */}
-              <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                      </Menu.Item>
+                    ))}
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          onClick={handleLogout}
+                          className={`flex w-full items-center gap-2 border-t border-stone-100 px-4 py-2 text-left text-sm text-red-600 dark:border-gray-700 dark:text-red-400 ${active ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
+                        >
+                          <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                          Log out
+                        </button>
+                      )}
+                    </Menu.Item>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
+            ) : (
+              <Link
+                to="/login"
+                className="ml-1 hidden items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 dark:text-white dark:hover:bg-gray-800 lg:inline-flex"
               >
-                <Bars3Icon className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </motion.nav>
+                <UserIcon className="h-5 w-5" />
+                Sign in
+              </Link>
+            )}
 
-      {/* Mobile Menu Dialog */}
+            <button type="button" onClick={() => setMobileMenuOpen(true)} aria-label="Open menu" className={`${iconButton} lg:hidden`}>
+              <Bars3Icon className="h-6 w-6" />
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      {/* Mobile menu */}
       <Transition appear show={mobileMenuOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50 lg:hidden" onClose={setMobileMenuOpen}>
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-300"
+            enter="ease-out duration-200"
             enterFrom="opacity-0"
             enterTo="opacity-100"
-            leave="ease-in duration-200"
+            leave="ease-in duration-150"
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/25 dark:bg-black/50 backdrop-blur-sm" />
+            <div className="fixed inset-0 bg-black/30" />
           </Transition.Child>
 
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-start justify-end">
-              <Transition.Child
-                as={Fragment}
-                enter="transform transition ease-in-out duration-300"
-                enterFrom="translate-x-full"
-                enterTo="translate-x-0"
-                leave="transform transition ease-in-out duration-300"
-                leaveFrom="translate-x-0"
-                leaveTo="translate-x-full"
-              >
-                <Dialog.Panel className="w-full max-w-sm bg-white dark:bg-gray-900 h-screen shadow-xl">
-                  <div className="flex flex-col h-full">
-                    <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-                      <span className="font-display text-xl font-bold text-gray-900 dark:text-white">Menu</span>
-                      <div className="flex items-center gap-2">
-                        <ThemeToggle />
-                        <button
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                        >
-                        <XMarkIcon className="w-6 h-6" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto py-4">
-                      {navLinks.map((link) => (
-                        <Link
-                          key={link.path}
-                          to={link.path}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
-                            location.pathname === link.path
-                              ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400'
-                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                          }`}
-                        >
-                          <link.icon className="w-5 h-5" />
-                          <span className="font-medium">{link.name}</span>
-                        </Link>
-                      ))}
-
-                      {user && isAdmin() && (
-                        <Link
-                          to="/admin/dashboard"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                        >
-                          <Cog6ToothIcon className="w-5 h-5" />
-                          <span className="font-medium">Admin Panel</span>
-                        </Link>
-                      )}
-                    </div>
-
-                    <div className="p-4 border-t dark:border-gray-700 space-y-2">
-                      {user ? (
-                        <>
-                          <button
-                            onClick={() => {
-                              navigate('/profile');
-                              setMobileMenuOpen(false);
-                            }}
-                            className="w-full flex items-center gap-2 px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300"
-                          >
-                            <UserIcon className="w-5 h-5" />
-                            <span className="font-medium">Profile</span>
-                          </button>
-                          <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                          >
-                            <ArrowRightOnRectangleIcon className="w-5 h-5" />
-                            <span className="font-medium">Logout</span>
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => {
-                              navigate('/login');
-                              setMobileMenuOpen(false);
-                            }}
-                            className="w-full px-4 py-3 text-gray-700 dark:text-gray-300 font-medium bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                          >
-                            Login
-                          </button>
-                          <button
-                            onClick={() => {
-                              navigate('/register');
-                              setMobileMenuOpen(false);
-                            }}
-                            className="w-full px-4 py-3 bg-primary-600 dark:bg-primary-500 text-white font-medium hover:bg-primary-700 dark:hover:bg-primary-600 rounded-lg transition-colors"
-                          >
-                            Register
-                          </button>
-                        </>
-                      )}
-                    </div>
+          <div className="fixed inset-0 flex justify-end">
+            <Transition.Child
+              as={Fragment}
+              enter="transform transition ease-out duration-200"
+              enterFrom="translate-x-full"
+              enterTo="translate-x-0"
+              leave="transform transition ease-in duration-150"
+              leaveFrom="translate-x-0"
+              leaveTo="translate-x-full"
+            >
+              <Dialog.Panel className="flex h-full w-full max-w-sm flex-col bg-canvas shadow-xl dark:bg-gray-950">
+                <div className="flex h-16 items-center justify-between border-b border-stone-200 px-4 dark:border-gray-800">
+                  <Dialog.Title className="font-display text-lg font-bold text-ink dark:text-white">Menu</Dialog.Title>
+                  <div className="flex items-center gap-1">
+                    <ThemeToggle />
+                    <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu" className={iconButton}>
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
                   </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
+                </div>
+
+                <div className="px-4 py-4">
+                  <SearchBox onDone={() => setMobileMenuOpen(false)} />
+                </div>
+
+                <ul className="flex-1 overflow-y-auto px-2">
+                  {[
+                    ...navLinks,
+                    { name: 'Wishlist', path: '/wishlist', icon: HeartIcon },
+                    { name: 'Shopping Bag', path: '/cart', icon: ShoppingBagIcon },
+                    ...(user && isAdmin() ? [{ name: 'Admin Panel', path: '/admin/dashboard', icon: Cog6ToothIcon }] : []),
+                  ].map((link) => (
+                    <li key={link.path}>
+                      <NavLink
+                        to={link.path}
+                        end={link.end}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 rounded-md px-3 py-3 text-base font-medium transition-colors ${
+                            isActive
+                              ? 'bg-white text-ink shadow-sm dark:bg-gray-900 dark:text-white'
+                              : 'text-stone-700 hover:bg-white dark:text-gray-300 dark:hover:bg-gray-900'
+                          }`
+                        }
+                      >
+                        <link.icon className="h-5 w-5 text-stone-500 dark:text-gray-400" />
+                        {link.name}
+                        {link.path === '/cart' && cartItemsCount > 0 && (
+                          <span className="ml-auto text-sm text-stone-500">{cartItemsCount}</span>
+                        )}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="space-y-2 border-t border-stone-200 p-4 dark:border-gray-800">
+                  {user ? (
+                    <>
+                      <Link
+                        to="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex w-full items-center gap-2 rounded-md border border-stone-300 px-4 py-3 font-medium text-ink dark:border-gray-700 dark:text-white"
+                      >
+                        <UserIcon className="h-5 w-5" />
+                        {user.firstName} · Profile
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2 rounded-md px-4 py-3 font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                      >
+                        <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                        Log out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        to="/login"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block w-full rounded-md bg-ink px-4 py-3 text-center font-medium text-white dark:bg-white dark:text-ink"
+                      >
+                        Sign in
+                      </Link>
+                      <Link
+                        to="/register"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block w-full rounded-md border border-stone-300 px-4 py-3 text-center font-medium text-ink dark:border-gray-700 dark:text-white"
+                      >
+                        Create account
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
           </div>
         </Dialog>
       </Transition>

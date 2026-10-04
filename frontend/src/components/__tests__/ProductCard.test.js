@@ -42,22 +42,29 @@ beforeEach(() => {
   mockSaved = false;
 });
 
-test('shows name, "from" price, rating, colors and sizes', () => {
+test('shows name, category, "from" price, rating and active colors', () => {
   renderCard(variantProduct);
 
   expect(screen.getByText('Classic Tee')).toBeInTheDocument();
+  expect(screen.getByText('T-Shirts')).toBeInTheDocument();
   expect(screen.getByText('from')).toBeInTheDocument();
   expect(screen.getByText('$20.00')).toBeInTheDocument();
   expect(screen.getByText('4.5')).toBeInTheDocument();
   expect(screen.getByLabelText('Colors: Red, Blue')).toBeInTheDocument(); // inactive variant hidden
-  expect(screen.getByText('M')).toBeInTheDocument();
-  expect(screen.getByText('L')).toBeInTheDocument();
-  expect(screen.getByRole('link')).toHaveAttribute('href', '/products/p1');
+  expect(screen.getByText(/out of 5 stars, 3 reviews/)).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Classic Tee' })).toHaveAttribute('href', '/products/p1');
 });
 
-test('shows Out of Stock when total stock is 0', () => {
-  renderCard(variantProduct);
-  expect(screen.getByText('Out of Stock')).toBeInTheDocument();
+test('labels stock: sold out at 0, low stock under 10, nothing otherwise', () => {
+  const { rerender } = renderCard(variantProduct);
+  expect(screen.getByText('Sold out')).toBeInTheDocument();
+
+  rerender(<MemoryRouter><ProductCard product={{ ...variantProduct, totalStock: 4 }} /></MemoryRouter>);
+  expect(screen.getByText('Low stock')).toBeInTheDocument();
+
+  rerender(<MemoryRouter><ProductCard product={{ ...variantProduct, totalStock: 40 }} /></MemoryRouter>);
+  expect(screen.queryByText('Low stock')).not.toBeInTheDocument();
+  expect(screen.queryByText('Sold out')).not.toBeInTheDocument();
 });
 
 test('heart button toggles the wishlist without following the link', async () => {

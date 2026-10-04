@@ -7,6 +7,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Design tokens (home page + shared shell): warm neutral surfaces,
+        // near-black ink for text, the brand blue (primary) for actions only
+        canvas: '#FAF8F5', // warm white page background
+        ink: '#1C1917',    // main text on light surfaces
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',
