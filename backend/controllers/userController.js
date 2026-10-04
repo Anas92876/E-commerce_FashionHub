@@ -1,16 +1,29 @@
-const User = require('../models/User');
+const { supabase } = require('../config/supabase');
+const { check, normalizeId } = require('../utils/db');
+const { USER_PUBLIC_COLUMNS, toUser } = require('../utils/user');
+
+const findUser = async (id) => {
+  const userId = normalizeId(id);
+  if (!userId) return null;
+  return check(await supabase.from('users').select('id').eq('id', userId).maybeSingle());
+};
 
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Private/Admin
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    const rows = check(
+      await supabase
+        .from('users')
+        .select(USER_PUBLIC_COLUMNS)
+        .order('created_at', { ascending: false })
+    );
 
     res.status(200).json({
       success: true,
-      count: users.length,
-      data: users,
+      count: rows.length,
+      data: rows.map(toUser),
     });
   } catch (error) {
     console.error('Get all users error:', error);
@@ -37,7 +50,7 @@ exports.updateUserRole = async (req, res) => {
     }
 
     // Check if user exists
-    const user = await User.findById(req.params.id);
+    const user = await findUser(req.params.id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -46,7 +59,7 @@ exports.updateUserRole = async (req, res) => {
     }
 
     // Prevent admin from changing their own role
-    if (user._id.toString() === req.user._id.toString()) {
+    if (user.id === req.user.id) {
       return res.status(400).json({
         success: false,
         message: 'You cannot change your own role',
@@ -54,13 +67,14 @@ exports.updateUserRole = async (req, res) => {
     }
 
     // Update role
-    user.role = role;
-    await user.save();
+    const row = check(
+      await supabase.from('users').update({ role }).eq('id', user.id).select(USER_PUBLIC_COLUMNS).single()
+    );
 
     res.status(200).json({
       success: true,
       message: 'User role updated successfully',
-      data: user,
+      data: toUser(row),
     });
   } catch (error) {
     console.error('Update user role error:', error);
@@ -77,7 +91,7 @@ exports.updateUserRole = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     // Check if user exists
-    const user = await User.findById(req.params.id);
+    const user = await findUser(req.params.id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -86,15 +100,15 @@ exports.deleteUser = async (req, res) => {
     }
 
     // Prevent admin from deleting themselves
-    if (user._id.toString() === req.user._id.toString()) {
+    if (user.id === req.user.id) {
       return res.status(400).json({
         success: false,
         message: 'You cannot delete your own account',
       });
     }
 
-    // Delete user
-    await User.findByIdAndDelete(req.params.id);
+    // Delete user (their reviews are removed; their orders are kept with user = null)
+    check(await supabase.from('users').delete().eq('id', user.id));
 
     res.status(200).json({
       success: true,

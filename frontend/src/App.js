@@ -9,8 +9,6 @@ import { Toaster } from 'react-hot-toast';
 // Public Pages
 import Register from './pages/auth/Register';
 import Login from './pages/auth/Login';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import ResetPassword from './pages/auth/ResetPassword';
 import Home from './pages/Home';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
@@ -51,8 +49,6 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
 
               {/* Customer Routes */}
               <Route path="/products" element={<Products />} />

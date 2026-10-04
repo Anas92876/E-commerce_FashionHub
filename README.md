@@ -7,13 +7,12 @@ A modern, full-stack e-commerce platform for selling premium fashion online, bui
 ## ✨ Features
 
 ### Customer Features
-- 🔐 **User Authentication** - Secure registration, login, and password reset
+- 🔐 **User Authentication** - Secure registration and login
 - 🛒 **Shopping Cart** - Persistent cart with size and color variants
 - 🔍 **Advanced Product Search** - Filter by category, price, size, and more
 - ⭐ **Product Reviews & Ratings** - Customer feedback system
 - 📦 **Order Tracking** - View order status and history
 - 💳 **Cash on Delivery** - Simple and secure payment
-- 📧 **Email Notifications** - Order confirmations and status updates
 - 🌓 **Theme System** - Light, Dark, and Auto modes with system preference detection
 - 📱 **Fully Responsive** - Optimized for all devices
 
@@ -21,7 +20,7 @@ A modern, full-stack e-commerce platform for selling premium fashion online, bui
 - 📊 **Admin Dashboard** - Comprehensive analytics and statistics
 - 🏷️ **Product Management** - Add, edit, delete products with variants
 - 📂 **Category Management** - Organize products efficiently
-- 🎨 **Cloudinary Integration** - Cloud-based image management
+- 🎨 **Supabase Storage** - Cloud-based image storage
 - 📋 **Order Management** - Process and track orders
 - 👥 **User Management** - Manage customers and admins
 - 💬 **Contact Form Management** - View and respond to inquiries
@@ -50,33 +49,34 @@ A modern, full-stack e-commerce platform for selling premium fashion online, bui
 ### Backend
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
-- **MongoDB** - NoSQL database
-- **Mongoose** - ODM library
+- **Supabase (PostgreSQL)** - Database (via `@supabase/supabase-js`)
 - **JWT** - Authentication
 - **Bcrypt** - Password hashing
-- **Nodemailer** - Email service
 - **Multer** - File upload
-- **Cloudinary** - Image storage and optimization
+- **Supabase Storage** - Image storage
 
 ### Deployment
-- **Frontend:** Vercel
-- **Backend:** Railway
-- **Database:** MongoDB Atlas
-- **Image Storage:** Cloudinary
+- **Frontend + API:** Vercel (React static site + Express as a serverless function)
+- **Database:** Supabase (PostgreSQL)
+- **Image Storage:** Supabase Storage
 
 ## 📁 Project Structure
 
 ```
-ecommerce-clothing-app/
+fashionhub/
+├── api/index.js          # Vercel serverless function -> backend/app.js
+├── vercel.json           # Vercel build + routing config
 ├── backend/
-│   ├── config/           # Database & Cloudinary configuration
-│   ├── models/           # Mongoose models (User, Product, Order, Review, etc.)
+│   ├── config/           # Supabase client configuration
+│   ├── supabase/         # schema.sql (tables, triggers, stock functions, storage bucket)
+│   ├── scripts/          # Sample reviews + one-time MongoDB -> Supabase migration
 │   ├── routes/           # API routes
 │   ├── controllers/      # Route controllers
-│   ├── middleware/       # Auth, upload, error handling middleware
-│   ├── utils/            # Utility functions
+│   ├── middleware/       # Auth, upload (Supabase Storage) middleware
+│   ├── utils/            # Row mapping, product & user helpers
 │   ├── .env              # Environment variables
-│   └── server.js         # Entry point
+│   ├── app.js            # Express app (used by Vercel and server.js)
+│   └── server.js         # Local development server
 ├── frontend/
 │   ├── public/
 │   │   ├── index.html    # HTML template with SEO meta tags
@@ -101,7 +101,6 @@ ecommerce-clothing-app/
 │   │   │   └── ThemeContext.js
 │   │   ├── utils/        # Utility functions
 │   │   └── App.js        # Main app component
-│   └── .env              # Environment variables
 └── README.md
 ```
 
@@ -109,9 +108,8 @@ ecommerce-clothing-app/
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
-- MongoDB Atlas account
-- Cloudinary account
+- Node.js (v20 or higher)
+- Supabase account (free tier works)
 - Git
 
 ### Installation
@@ -134,40 +132,48 @@ cd ../frontend
 npm install
 ```
 
-4. **Configure environment variables:**
+4. **Create the Supabase database:**
+   - Create a project at [supabase.com](https://supabase.com)
+   - Open **SQL Editor → New query**, paste the contents of `backend/supabase/schema.sql` and click **Run**.
+     This creates the tables, triggers, stock functions and the public `product-images` storage bucket.
+   - Copy the **Project URL** and the **service_role** key from **Project Settings → API**
+
+5. **Configure environment variables:**
 
 **Backend (`.env`):**
 ```env
 NODE_ENV=development
 PORT=5000
 
-# Database
-MONGO_URI=your_mongodb_connection_string
+# Supabase (service_role key is server-side only - never expose it to the frontend)
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_STORAGE_BUCKET=product-images
 
 # JWT
 JWT_SECRET=your_jwt_secret_here
 JWT_EXPIRE=30d
-
-# Email (Gmail App Password)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASSWORD=your_app_password
-
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-
-# Frontend URL
-CLIENT_URL=http://localhost:3000
 ```
 
-**Frontend (`.env`):**
-```env
-REACT_APP_API_URL=http://localhost:5000/api
-REACT_APP_SITE_URL=http://localhost:3000
+The frontend needs no `.env`: in development it calls `http://localhost:5000/api`, and in production it calls `/api` on the same domain.
+
+6. **(Optional) Seed sample data** - creates categories, products, sample reviews and an admin user
+   (`admin@fashionhub.com` / `Admin123!`). **Warning:** it wipes existing users, products and categories.
+```bash
+cd backend
+npm run seed           # everything
+npm run seed:reviews   # only (re)create the sample reviews
 ```
+
+### Migrating existing data from MongoDB
+
+If you have data in the old MongoDB database, set `MONGO_URI` in `backend/.env` and run:
+```bash
+cd backend
+npm run migrate:mongo                   # copy all data
+npm run migrate:mongo -- --copy-images  # also move Cloudinary images into Supabase Storage
+```
+IDs are converted deterministically, passwords keep working, and the script is safe to re-run.
 
 ### Running the Application
 
@@ -187,23 +193,26 @@ npm start
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
 
-## 📦 Deployment
+## 📦 Deployment (Vercel only)
 
-### Vercel (Frontend)
+The whole app - React frontend **and** Express API - deploys as **one Vercel project**:
+- `frontend/build` is served as a static site
+- every `/api/*` request runs `api/index.js` (the Express app) as a serverless function
+- images are uploaded from the browser straight to Supabase Storage using one-time signed URLs,
+  so uploads are not limited by Vercel's 4.5 MB request size
 
-1. Connect your GitHub repository to Vercel
-2. Add environment variables:
-   - `REACT_APP_API_URL`
-   - `REACT_APP_SITE_URL`
-3. Deploy!
-
-### Railway (Backend)
-
-1. Connect your GitHub repository to Railway
-2. Add environment variables (all variables from backend `.env`)
-3. Deploy!
-
-**Note:** Update `CLIENT_URL` in Railway to your Vercel deployment URL
+Steps:
+1. Push the repository to GitHub
+2. In Vercel: **Add New → Project**, import the repository, and keep **Root Directory** as the repository root (`./`).
+   Build settings come from `vercel.json` - don't override them.
+3. Add **Environment Variables**:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `SUPABASE_STORAGE_BUCKET` = `product-images`
+   - `JWT_SECRET` (a long random string)
+   - `JWT_EXPIRE` = `30d`
+   - `NODE_ENV` = `production`
+4. Deploy. Check `https://<your-app>.vercel.app/api/health` returns `"healthy"`.
 
 ## 🔌 API Endpoints
 
@@ -211,8 +220,6 @@ npm start
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login user
 - `GET /api/auth/me` - Get current user
-- `POST /api/auth/forgot-password` - Request password reset
-- `POST /api/auth/reset-password/:token` - Reset password
 - `PUT /api/auth/update-profile` - Update user profile
 - `PUT /api/auth/update-password` - Change password
 
@@ -246,7 +253,6 @@ npm start
 ### Contact
 - `POST /api/contact` - Submit contact form
 - `GET /api/contact` - Get all messages (admin)
-- `PUT /api/contact/:id/reply` - Reply to message (admin)
 
 ## 🎨 Theme System
 
@@ -280,7 +286,7 @@ The theme persists across sessions and automatically updates when system prefere
 
 To access the admin panel:
 1. Create an account
-2. Manually set `role: "admin"` in MongoDB
+2. In Supabase **Table Editor → users**, set `role` to `admin` for your account
 3. Navigate to `/admin/dashboard`
 
 ## 🤝 Contributing
@@ -297,11 +303,11 @@ Created with dedication to modern web development practices.
 
 ## 🙏 Acknowledgments
 
-- Built with React, Node.js, and MongoDB
+- Built with React, Node.js, and Supabase
 - Icons by Heroicons
 - Animations by Framer Motion
 - Styling with Tailwind CSS
-- Hosted on Vercel and Railway
+- Hosted on Vercel, data on Supabase
 
 ---
 

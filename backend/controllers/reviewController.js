@@ -1,6 +1,47 @@
-const Review = require('../models/Review');
-const Product = require('../models/Product');
-const Order = require('../models/Order');
+const { supabase } = require('../config/supabase');
+const { toApi, check, normalizeId, UNIQUE_VIOLATION } = require('../utils/db');
+
+// Note: products.rating / num_reviews are kept in sync by a database trigger
+// (see supabase/schema.sql -> refresh_product_rating).
+
+const REVIEW_WITH_USER = '*, user:users(id, first_name, last_name)';
+
+// Row -> API review (`user` / `product` are populated objects when embedded, else ids)
+const toReview = (row) => {
+  const review = toApi(row, ['user', 'product']);
+  if (review.user && typeof review.user === 'object') {
+    review.user.name = `${review.user.firstName} ${review.user.lastName}`.trim();
+  }
+  review.user = review.user || review.userId;
+  review.product = review.product || review.productId;
+  delete review.userId;
+  delete review.productId;
+  return review;
+};
+
+const REVIEW_SORT_COLUMNS = { createdAt: 'created_at', rating: 'rating', updatedAt: 'updated_at' };
+
+// Has the user bought this product in a shipped/delivered order? (verified purchase)
+const hasPurchased = async (userId, productId) => {
+  const result = await supabase
+    .from('orders')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .in('status', ['Delivered', 'Shipped'])
+    .filter('items', 'cs', JSON.stringify([{ product: productId }])); // jsonb @> containment
+  check(result);
+  return result.count > 0;
+};
+
+const productExists = async (productId) =>
+  productId &&
+  check(await supabase.from('products').select('id, rating').eq('id', productId).maybeSingle());
+
+const findReview = async (id) => {
+  const reviewId = normalizeId(id);
+  if (!reviewId) return null;
+  return check(await supabase.from('reviews').select('*').eq('id', reviewId).maybeSingle());
+};
 
 /**
  * @desc    Create a new review
@@ -9,56 +50,61 @@ const Order = require('../models/Order');
  */
 exports.createReview = async (req, res) => {
   try {
-    const { product, rating, comment } = req.body;
+    const { rating, comment } = req.body;
+    const productId = normalizeId(req.body.product);
 
     // Check if product exists
-    const productExists = await Product.findById(product);
-    if (!productExists) {
+    if (!(await productExists(productId))) {
       return res.status(404).json({
         success: false,
         message: 'Product not found'
       });
     }
 
-    // Check if user already reviewed this product
-    const existingReview = await Review.findOne({
-      product,
-      user: req.user._id
-    });
-
-    if (existingReview) {
+    const ratingValue = Number(rating);
+    if (!Number.isInteger(ratingValue) || ratingValue < 1 || ratingValue > 5) {
       return res.status(400).json({
         success: false,
-        message: 'You have already reviewed this product'
+        message: 'Rating must be between 1 and 5'
       });
     }
 
-    // Check if user has purchased this product (verified purchase)
-    const hasPurchased = await Order.findOne({
-      user: req.user._id,
-      'items.product': product,
-      status: { $in: ['Delivered', 'Shipped'] } // Only count delivered or shipped orders
-    });
+    if (!comment || !String(comment).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a review comment'
+      });
+    }
 
-    // Create review
-    const review = await Review.create({
-      product,
-      user: req.user._id,
-      rating,
-      comment,
-      verifiedPurchase: !!hasPurchased
-    });
+    if (String(comment).trim().length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: 'Review cannot be more than 500 characters'
+      });
+    }
 
-    // Populate user info
-    await review.populate('user', 'firstName lastName');
+    // Create review (unique (product_id, user_id) prevents duplicates)
+    const row = check(
+      await supabase
+        .from('reviews')
+        .insert({
+          product_id: productId,
+          user_id: req.user.id,
+          rating: ratingValue,
+          comment: String(comment).trim(),
+          verified_purchase: await hasPurchased(req.user.id, productId),
+        })
+        .select(REVIEW_WITH_USER)
+        .single()
+    );
 
     res.status(201).json({
       success: true,
       message: 'Review created successfully',
-      data: review
+      data: toReview(row)
     });
   } catch (error) {
-    if (error.code === 11000) {
+    if (error.code === UNIQUE_VIOLATION) {
       return res.status(400).json({
         success: false,
         message: 'You have already reviewed this product'
@@ -80,11 +126,11 @@ exports.createReview = async (req, res) => {
  */
 exports.getProductReviews = async (req, res) => {
   try {
-    const { productId } = req.params;
+    const productId = normalizeId(req.params.productId);
     const { sort = '-createdAt' } = req.query;
 
     // Check if product exists
-    const product = await Product.findById(productId);
+    const product = await productExists(productId);
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -92,29 +138,33 @@ exports.getProductReviews = async (req, res) => {
       });
     }
 
-    // Get reviews
-    const reviews = await Review.find({ product: productId })
-      .populate('user', 'firstName lastName')
-      .sort(sort);
+    // Sort like Mongoose: "-createdAt" = newest first
+    const descending = sort.startsWith('-');
+    const column = REVIEW_SORT_COLUMNS[sort.replace(/^-/, '')] || 'created_at';
 
-    // Calculate rating distribution
-    const ratingDistribution = await Review.aggregate([
-      { $match: { product: product._id } },
-      {
-        $group: {
-          _id: '$rating',
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { _id: -1 } }
-    ]);
+    const rows = check(
+      await supabase
+        .from('reviews')
+        .select(REVIEW_WITH_USER)
+        .eq('product_id', productId)
+        .order(column, { ascending: !descending })
+    );
+
+    // Rating distribution: [{ _id: 5, count: 12 }, { _id: 4, count: 3 }, ...]
+    const counts = {};
+    for (const row of rows) {
+      counts[row.rating] = (counts[row.rating] || 0) + 1;
+    }
+    const ratingDistribution = Object.entries(counts)
+      .map(([value, count]) => ({ _id: Number(value), count }))
+      .sort((a, b) => b._id - a._id);
 
     res.status(200).json({
       success: true,
-      count: reviews.length,
-      averageRating: product.rating || 0,
+      count: rows.length,
+      averageRating: Number(product.rating) || 0,
       ratingDistribution,
-      data: reviews
+      data: rows.map(toReview)
     });
   } catch (error) {
     res.status(500).json({
@@ -132,14 +182,18 @@ exports.getProductReviews = async (req, res) => {
  */
 exports.getMyReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ user: req.user._id })
-      .populate('product', 'name images price')
-      .sort('-createdAt');
+    const rows = check(
+      await supabase
+        .from('reviews')
+        .select('*, product:products(id, name, image, price)')
+        .eq('user_id', req.user.id)
+        .order('created_at', { ascending: false })
+    );
 
     res.status(200).json({
       success: true,
-      count: reviews.length,
-      data: reviews
+      count: rows.length,
+      data: rows.map(toReview)
     });
   } catch (error) {
     res.status(500).json({
@@ -159,8 +213,7 @@ exports.updateReview = async (req, res) => {
   try {
     const { rating, comment } = req.body;
 
-    // Find review
-    let review = await Review.findById(req.params.id);
+    const review = await findReview(req.params.id);
 
     if (!review) {
       return res.status(404).json({
@@ -170,24 +223,42 @@ exports.updateReview = async (req, res) => {
     }
 
     // Check ownership
-    if (review.user.toString() !== req.user._id.toString()) {
+    if (review.user_id !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this review'
       });
     }
 
-    // Update review
-    review.rating = rating || review.rating;
-    review.comment = comment || review.comment;
-    await review.save();
+    const updates = {};
+    if (rating) {
+      const ratingValue = Number(rating);
+      if (!Number.isInteger(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+        return res.status(400).json({
+          success: false,
+          message: 'Rating must be between 1 and 5'
+        });
+      }
+      updates.rating = ratingValue;
+    }
+    if (comment) {
+      if (String(comment).trim().length > 500) {
+        return res.status(400).json({
+          success: false,
+          message: 'Review cannot be more than 500 characters'
+        });
+      }
+      updates.comment = String(comment).trim();
+    }
 
-    await review.populate('user', 'firstName lastName');
+    const row = check(
+      await supabase.from('reviews').update(updates).eq('id', review.id).select(REVIEW_WITH_USER).single()
+    );
 
     res.status(200).json({
       success: true,
       message: 'Review updated successfully',
-      data: review
+      data: toReview(row)
     });
   } catch (error) {
     res.status(500).json({
@@ -205,7 +276,7 @@ exports.updateReview = async (req, res) => {
  */
 exports.deleteReview = async (req, res) => {
   try {
-    const review = await Review.findById(req.params.id);
+    const review = await findReview(req.params.id);
 
     if (!review) {
       return res.status(404).json({
@@ -215,18 +286,14 @@ exports.deleteReview = async (req, res) => {
     }
 
     // Check ownership or admin
-    if (review.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+    if (review.user_id !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this review'
       });
     }
 
-    const productId = review.product;
-    await review.deleteOne();
-
-    // Recalculate product rating
-    await Review.calculateAverageRating(productId);
+    check(await supabase.from('reviews').delete().eq('id', review.id));
 
     res.status(200).json({
       success: true,
@@ -248,13 +315,24 @@ exports.deleteReview = async (req, res) => {
  */
 exports.canReview = async (req, res) => {
   try {
-    const { productId } = req.params;
+    const productId = normalizeId(req.params.productId);
+
+    if (!productId) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
 
     // Check if user already reviewed
-    const existingReview = await Review.findOne({
-      product: productId,
-      user: req.user._id
-    });
+    const existingReview = check(
+      await supabase
+        .from('reviews')
+        .select('id')
+        .eq('product_id', productId)
+        .eq('user_id', req.user.id)
+        .maybeSingle()
+    );
 
     if (existingReview) {
       return res.status(200).json({
@@ -266,16 +344,10 @@ exports.canReview = async (req, res) => {
     }
 
     // Anyone can review, but we check if they purchased for verification badge
-    const hasPurchased = await Order.findOne({
-      user: req.user._id,
-      'items.product': productId,
-      status: { $in: ['Delivered', 'Shipped'] }
-    });
-
     res.status(200).json({
       success: true,
       canReview: true,
-      hasPurchased: !!hasPurchased
+      hasPurchased: await hasPurchased(req.user.id, productId)
     });
   } catch (error) {
     res.status(500).json({

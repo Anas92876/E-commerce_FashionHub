@@ -1,109 +1,129 @@
-const mongoose = require('mongoose');
+/**
+ * Add sample customer reviews to every product.
+ *
+ *   npm run seed:reviews
+ *
+ * Creates a few sample reviewer accounts (with random, unusable passwords) and
+ * 2-4 reviews per product. Safe to re-run: the sample reviewers' old reviews are
+ * replaced. Product ratings update automatically (database trigger).
+ */
+const crypto = require('crypto');
 const dotenv = require('dotenv');
-const connectDB = require('../config/db');
-const User = require('../models/User');
-const Product = require('../models/Product');
-const Review = require('../models/Review');
 
-// Load environment variables
-dotenv.config();
+dotenv.config({ quiet: true });
 
-// Sample review texts for variety
-const reviewComments = [
-  "Absolutely love this product! The quality exceeded my expectations. Highly recommend!",
-  "Great purchase! The fabric is soft and the fit is perfect. Will definitely buy again.",
-  "This is exactly what I was looking for. Amazing quality and fast shipping!",
-  "Incredible product! The attention to detail is outstanding. Very satisfied with my purchase.",
-  "Best purchase I've made this year! The quality is top-notch and it looks even better in person.",
-  "Fantastic! The product arrived quickly and exceeded all my expectations. 5 stars!",
-  "Really impressed with the quality. It's comfortable, stylish, and well-made.",
-  "This product is worth every penny! Great quality and beautiful design.",
-  "I'm so happy with this purchase! The product is exactly as described and the quality is superb.",
-  "Outstanding quality! This has become my favorite item. Highly recommended!",
-  "Perfect! The product fits great and the material is excellent. Very pleased!",
-  "Excellent product! The craftsmanship is evident. Will be ordering more soon.",
-  "Amazing! The quality is incredible and it arrived in perfect condition.",
-  "Love it! The product is beautiful and the quality is exceptional.",
-  "This exceeded my expectations! Great quality, great price, great service!"
+const { supabase } = require('../config/supabase');
+const { check } = require('../utils/db');
+const { hashPassword } = require('../utils/user');
+
+const REVIEWERS = [
+  { first_name: 'Sara', last_name: 'Ahmed', email: 'sara.ahmed@reviews.fashionhub.example' },
+  { first_name: 'Omar', last_name: 'Khan', email: 'omar.khan@reviews.fashionhub.example' },
+  { first_name: 'Lina', last_name: 'Hassan', email: 'lina.hassan@reviews.fashionhub.example' },
+  { first_name: 'Daniel', last_name: 'Brooks', email: 'daniel.brooks@reviews.fashionhub.example' },
+  { first_name: 'Maya', last_name: 'Patel', email: 'maya.patel@reviews.fashionhub.example' },
+  { first_name: 'Youssef', last_name: 'Ali', email: 'youssef.ali@reviews.fashionhub.example' },
 ];
 
-const seedReviews = async () => {
-  try {
-    // Connect to MongoDB
-    await connectDB();
-    console.log('Connected to MongoDB...');
-
-    // Find or create Moaz user
-    let moazUser = await User.findOne({ email: 'Moaz@gmail.com' });
-
-    if (!moazUser) {
-      console.log('Moaz@gmail.com user not found. Creating user...');
-      moazUser = await User.create({
-        firstName: 'Moaz',
-        lastName: 'Ahmed',
-        email: 'Moaz@gmail.com',
-        password: 'password123', // Will be hashed by the model pre-save hook
-        role: 'customer'
-      });
-      console.log('Moaz user created successfully!');
-    } else {
-      console.log('Found existing Moaz user');
-    }
-
-    // Get all products
-    const products = await Product.find({ isActive: true });
-    console.log(`Found ${products.length} products`);
-
-    if (products.length === 0) {
-      console.log('No products found. Please add products first.');
-      process.exit(0);
-    }
-
-    // Delete existing reviews from Moaz user (to avoid duplicates)
-    await Review.deleteMany({ user: moazUser._id });
-    console.log('Cleared existing reviews from Moaz user');
-
-    // Create reviews for random products
-    const reviewsToCreate = Math.min(products.length, 10); // Create up to 10 reviews
-    const createdReviews = [];
-
-    for (let i = 0; i < reviewsToCreate; i++) {
-      const product = products[i];
-      const randomRating = Math.floor(Math.random() * 2) + 4; // Rating between 4-5
-      const randomComment = reviewComments[Math.floor(Math.random() * reviewComments.length)];
-
-      try {
-        const review = await Review.create({
-          product: product._id,
-          user: moazUser._id,
-          rating: randomRating,
-          comment: randomComment,
-          verifiedPurchase: true
-        });
-
-        createdReviews.push(review);
-        console.log(`✓ Created review for product: ${product.name} (${randomRating} stars)`);
-      } catch (error) {
-        if (error.code === 11000) {
-          console.log(`⚠ Review already exists for product: ${product.name}`);
-        } else {
-          console.error(`✗ Error creating review for ${product.name}:`, error.message);
-        }
-      }
-    }
-
-    console.log(`\n✅ Successfully created ${createdReviews.length} reviews!`);
-    console.log('\nReview Summary:');
-    console.log(`User: ${moazUser.firstName} ${moazUser.lastName} (${moazUser.email})`);
-    console.log(`Total Reviews: ${createdReviews.length}`);
-    console.log(`Average Rating: ${(createdReviews.reduce((sum, r) => sum + r.rating, 0) / createdReviews.length).toFixed(1)}`);
-
-    process.exit(0);
-  } catch (error) {
-    console.error('Error seeding reviews:', error);
-    process.exit(1);
-  }
+// [rating, comment] pools per category
+const COMMENTS = {
+  'T-Shirts': [
+    [5, 'Super soft cotton and the fit is perfect. Still looks new after many washes.'],
+    [5, 'My go-to everyday tee. Bought a second one right away.'],
+    [4, 'Great quality for the price. Runs slightly large, consider sizing down.'],
+    [4, 'Comfortable and breathable, perfect for summer days.'],
+    [3, 'Nice fabric but it shrank a little after the first wash.'],
+  ],
+  Jeans: [
+    [5, 'Best jeans I have owned. The stretch makes them comfortable all day.'],
+    [4, 'Great fit through the waist and legs. The color is exactly as pictured.'],
+    [5, 'Solid denim, well stitched, and they hold their shape.'],
+    [4, 'Really comfortable. Length was a bit long for me, but easy to hem.'],
+    [3, 'Good jeans, though the denim is a little stiff at first.'],
+  ],
+  Dresses: [
+    [5, 'Absolutely beautiful! I got so many compliments at the party.'],
+    [5, 'The fabric is lovely and it flows nicely. True to size.'],
+    [4, 'Gorgeous dress. I wish it had pockets, but otherwise perfect.'],
+    [4, 'Elegant and comfortable. The color is even nicer in person.'],
+    [3, 'Pretty design, but the fabric wrinkles easily.'],
+  ],
+  Jackets: [
+    [5, 'Excellent quality and it keeps me warm. Worth every penny.'],
+    [5, 'Looks premium and fits perfectly across the shoulders.'],
+    [4, 'Great jacket, a little heavy, but very well made.'],
+    [4, 'Stylish and goes with everything in my wardrobe.'],
+    [3, 'Nice look, but the sleeves are slightly long for me.'],
+  ],
+  Shoes: [
+    [5, 'Very comfortable right out of the box, no break-in needed.'],
+    [4, 'Good support and they look great. Runs half a size big.'],
+    [5, 'I walk all day in these with no problem. Highly recommend.'],
+    [4, 'Well made and stylish. The sole has good grip.'],
+    [3, 'Look nice, but they took a week to get comfortable.'],
+  ],
+  Accessories: [
+    [5, 'Great quality and finish. Makes a perfect gift.'],
+    [4, 'Exactly as described, good value for money.'],
+    [5, 'Simple, classic, and well made. Love it.'],
+    [4, 'Nice item, fast delivery. Would buy again.'],
+    [3, 'Decent quality, but smaller than I expected.'],
+  ],
 };
 
-// Run the seeder
-seedReviews();
+const DEFAULT_COMMENTS = COMMENTS['T-Shirts'];
+
+const seedReviews = async () => {
+  // Create or update the sample reviewer accounts
+  const password = await hashPassword(crypto.randomBytes(24).toString('hex'));
+  const reviewers = check(
+    await supabase
+      .from('users')
+      .upsert(REVIEWERS.map((r) => ({ ...r, password, role: 'customer' })), { onConflict: 'email' })
+      .select('id')
+  );
+  const reviewerIds = reviewers.map((r) => r.id);
+
+  // Remove previous sample reviews so the script can be re-run
+  check(await supabase.from('reviews').delete().in('user_id', reviewerIds));
+
+  const products = check(await supabase.from('products').select('id, category').eq('is_active', true));
+
+  const rows = [];
+  products.forEach((product, i) => {
+    const pool = COMMENTS[product.category] || DEFAULT_COMMENTS;
+    const count = 2 + (i % 3); // 2-4 reviews per product
+    for (let j = 0; j < count; j++) {
+      const [rating, comment] = pool[(i + j) % pool.length];
+      const daysAgo = 3 + ((i * 7 + j * 11) % 60);
+      rows.push({
+        product_id: product.id,
+        user_id: reviewerIds[(i + j) % reviewerIds.length],
+        rating,
+        comment,
+        verified_purchase: false,
+        created_at: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
+      });
+    }
+  });
+
+  if (rows.length) {
+    check(await supabase.from('reviews').insert(rows));
+  }
+
+  return { reviewers: reviewerIds.length, reviews: rows.length, products: products.length };
+};
+
+module.exports = seedReviews;
+
+if (require.main === module) {
+  seedReviews()
+    .then(({ reviews, products }) => {
+      console.log(`✅ Added ${reviews} reviews across ${products} products`);
+      process.exit();
+    })
+    .catch((error) => {
+      console.error('❌ Error seeding reviews:', error.message);
+      process.exit(1);
+    });
+}

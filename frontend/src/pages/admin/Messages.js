@@ -138,20 +138,17 @@ const Messages = () => {
       return;
     }
 
+    // The server doesn't send email - open the admin's own email app with the reply filled in
     setSending(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API_URL}/contact/${selectedMessage._id}/reply`,
-        replyData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const mailto = `mailto:${encodeURIComponent(replyData.to)}` +
+        `?subject=${encodeURIComponent(replyData.subject)}` +
+        `&body=${encodeURIComponent(replyData.message)}`;
+      window.location.href = mailto;
 
-      toast.success('Reply sent successfully');
       await handleStatusChange(selectedMessage._id, 'replied');
       setShowReplyModal(false);
       setReplyData({ to: '', subject: '', message: '' });
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to send reply');
     } finally {
       setSending(false);
     }
@@ -526,14 +523,8 @@ const Messages = () => {
                         disabled={sending}
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500 dark:to-indigo-500 text-white font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700 dark:hover:from-purple-600 dark:hover:to-indigo-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-50"
                       >
-                        {sending ? (
-                          'Sending...'
-                        ) : (
-                          <>
-                            <PaperAirplaneIcon className="w-5 h-5" />
-                            Send Reply
-                          </>
-                        )}
+                        <PaperAirplaneIcon className="w-5 h-5" />
+                        Open in Email App
                       </motion.button>
                     </div>
                   </motion.div>

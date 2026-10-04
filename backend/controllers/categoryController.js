@@ -1,17 +1,36 @@
-const Category = require('../models/Category');
-const Product = require('../models/Product');
+const { supabase } = require('../config/supabase');
+const { toApi, check, normalizeId, UNIQUE_VIOLATION } = require('../utils/db');
+
+// Create slug from name
+const slugify = (name) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
+const findCategory = async (id) => {
+  const categoryId = normalizeId(id);
+  if (!categoryId) return null;
+  return check(await supabase.from('categories').select('*').eq('id', categoryId).maybeSingle());
+};
+
+const categoryExists = (res) =>
+  res.status(400).json({
+    success: false,
+    message: 'Category already exists',
+  });
 
 // @desc    Get all categories
 // @route   GET /api/categories
 // @access  Public
 exports.getCategories = async (req, res, next) => {
   try {
-    const categories = await Category.find().sort({ name: 1 });
+    const rows = check(await supabase.from('categories').select('*').order('name'));
 
     res.status(200).json({
       success: true,
-      count: categories.length,
-      data: categories,
+      count: rows.length,
+      data: rows.map((row) => toApi(row)),
     });
   } catch (error) {
     next(error);
@@ -19,11 +38,11 @@ exports.getCategories = async (req, res, next) => {
 };
 
 // @desc    Create new category (admin only)
-// @route   POST /api/admin/categories
+// @route   POST /api/categories
 // @access  Private/Admin
 exports.createCategory = async (req, res, next) => {
   try {
-    const { name } = req.body;
+    const name = req.body.name && req.body.name.trim();
 
     if (!name) {
       return res.status(400).json({
@@ -32,41 +51,35 @@ exports.createCategory = async (req, res, next) => {
       });
     }
 
-    // Create category object
-    const categoryData = { name };
+    const categoryData = { name, slug: slugify(name) };
 
-    // Add image path if file was uploaded
+    // Add image URL (Supabase Storage) if file was uploaded
     if (req.file) {
-      // With Cloudinary, req.file.path contains the full URL
-      // For local uploads, it would be a relative path
       categoryData.image = req.file.path;
     }
 
-    const category = await Category.create(categoryData);
+    const row = check(await supabase.from('categories').insert(categoryData).select('*').single());
 
     res.status(201).json({
       success: true,
       message: 'Category created successfully',
-      data: category,
+      data: toApi(row),
     });
   } catch (error) {
     // Handle duplicate category name
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Category already exists',
-      });
+    if (error.code === UNIQUE_VIOLATION) {
+      return categoryExists(res);
     }
     next(error);
   }
 };
 
 // @desc    Update category (admin only)
-// @route   PUT /api/admin/categories/:id
+// @route   PUT /api/categories/:id
 // @access  Private/Admin
 exports.updateCategory = async (req, res, next) => {
   try {
-    const { name } = req.body;
+    const name = req.body.name && req.body.name.trim();
 
     if (!name) {
       return res.status(400).json({
@@ -75,7 +88,7 @@ exports.updateCategory = async (req, res, next) => {
       });
     }
 
-    let category = await Category.findById(req.params.id);
+    const category = await findCategory(req.params.id);
 
     if (!category) {
       return res.status(404).json({
@@ -84,40 +97,37 @@ exports.updateCategory = async (req, res, next) => {
       });
     }
 
-    category.name = name;
+    const updates = { name, slug: slugify(name) };
 
     // Update image if a new file was uploaded
     if (req.file) {
-      // With Cloudinary, req.file.path contains the full URL
-      // For local uploads, it would be a relative path
-      category.image = req.file.path;
+      updates.image = req.file.path;
     }
 
-    await category.save();
+    const row = check(
+      await supabase.from('categories').update(updates).eq('id', category.id).select('*').single()
+    );
 
     res.status(200).json({
       success: true,
       message: 'Category updated successfully',
-      data: category,
+      data: toApi(row),
     });
   } catch (error) {
     // Handle duplicate category name
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Category already exists',
-      });
+    if (error.code === UNIQUE_VIOLATION) {
+      return categoryExists(res);
     }
     next(error);
   }
 };
 
 // @desc    Delete category (admin only)
-// @route   DELETE /api/admin/categories/:id
+// @route   DELETE /api/categories/:id
 // @access  Private/Admin
 exports.deleteCategory = async (req, res, next) => {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await findCategory(req.params.id);
 
     if (!category) {
       return res.status(404).json({
@@ -127,16 +137,21 @@ exports.deleteCategory = async (req, res, next) => {
     }
 
     // Delete all products that belong to this category (cascade delete)
-    // Products store category as a string (category name), not ObjectId
-    const deleteResult = await Product.deleteMany({ category: category.name });
+    // Products store category as a string (category name), not an id
+    const deleteResult = await supabase
+      .from('products')
+      .delete({ count: 'exact' })
+      .eq('category', category.name);
+    check(deleteResult);
+    const deletedCount = deleteResult.count || 0;
 
     // Delete the category
-    await Category.findByIdAndDelete(req.params.id);
+    check(await supabase.from('categories').delete().eq('id', category.id));
 
     res.status(200).json({
       success: true,
-      message: `Category "${category.name}" deleted successfully. ${deleteResult.deletedCount} product(s) also deleted.`,
-      deletedProducts: deleteResult.deletedCount,
+      message: `Category "${category.name}" deleted successfully. ${deletedCount} product(s) also deleted.`,
+      deletedProducts: deletedCount,
     });
   } catch (error) {
     next(error);

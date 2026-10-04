@@ -1,4 +1,33 @@
-const Product = require('../models/Product');
+const { supabase } = require('../config/supabase');
+const { check, normalizeId } = require('../utils/db');
+const {
+  toProduct,
+  generateSKU,
+  getAvailabilityMatrix,
+  checkAvailability,
+  prepareVariants,
+} = require('../utils/product');
+
+const findProduct = async (id) => {
+  const productId = normalizeId(id);
+  if (!productId) return null;
+  const row = check(await supabase.from('products').select('*').eq('id', productId).maybeSingle());
+  return row ? toProduct(row) : null;
+};
+
+const saveVariants = async (productId, variants) =>
+  check(
+    await supabase
+      .from('products')
+      .update({ variants: prepareVariants(variants) })
+      .eq('id', productId)
+  );
+
+const productNotFound = (res) =>
+  res.status(404).json({
+    success: false,
+    message: 'Product not found'
+  });
 
 /**
  * Get availability matrix for a product
@@ -8,15 +37,10 @@ const Product = require('../models/Product');
  */
 exports.getAvailabilityMatrix = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const product = await Product.findById(id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+      return productNotFound(res);
     }
 
     if (!product.isActive) {
@@ -26,8 +50,7 @@ exports.getAvailabilityMatrix = async (req, res) => {
       });
     }
 
-    // Get availability matrix using model method
-    const matrix = product.getAvailabilityMatrix();
+    const matrix = getAvailabilityMatrix(product);
 
     res.status(200).json({
       success: true,
@@ -55,7 +78,7 @@ exports.getAvailabilityMatrix = async (req, res) => {
  */
 exports.checkVariantAvailability = async (req, res) => {
   try {
-    const { id, sku } = req.params;
+    const { sku } = req.params;
     const { size } = req.query;
 
     if (!size) {
@@ -65,17 +88,13 @@ exports.checkVariantAvailability = async (req, res) => {
       });
     }
 
-    const product = await Product.findById(id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+      return productNotFound(res);
     }
 
-    // Check availability using model method
-    const availability = product.checkAvailability(sku, size);
+    const availability = checkAvailability(product, sku, size);
 
     if (availability.error) {
       return res.status(404).json({
@@ -106,15 +125,12 @@ exports.checkVariantAvailability = async (req, res) => {
  */
 exports.getVariant = async (req, res) => {
   try {
-    const { id, sku } = req.params;
+    const { sku } = req.params;
 
-    const product = await Product.findById(id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+      return productNotFound(res);
     }
 
     if (!product.variants || product.variants.length === 0) {
@@ -171,12 +187,11 @@ exports.getVariant = async (req, res) => {
 /**
  * ADMIN: Add new variant to product
  *
- * POST /api/admin/products/:id/variants
+ * POST /api/products/:id/variants
  * Body: { color: { name, hex, code }, images: [], priceOverride?, sizes: [{ size, stock }] }
  */
 exports.addVariant = async (req, res) => {
   try {
-    const { id } = req.params;
     const { color, images, priceOverride, sizes } = req.body;
 
     // Validation
@@ -208,21 +223,16 @@ exports.addVariant = async (req, res) => {
       });
     }
 
-    const product = await Product.findById(id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+      return productNotFound(res);
     }
 
-    // Generate SKUs
-    const { generateSKU } = require('../scripts/migrateProductsToVariants');
     const variantSku = generateSKU(product.name, color.code);
 
     // Check if variant SKU already exists
-    if (product.variants && product.variants.some(v => v.sku === variantSku)) {
+    if (product.variants.some(v => v.sku === variantSku)) {
       return res.status(400).json({
         success: false,
         message: 'Variant with this color already exists'
@@ -241,16 +251,10 @@ exports.addVariant = async (req, res) => {
         lowStockThreshold: s.lowStockThreshold || 5
       })),
       isActive: true,
-      createdAt: new Date()
+      createdAt: new Date().toISOString()
     };
 
-    // Add variant
-    if (!product.variants) {
-      product.variants = [];
-    }
-    product.variants.push(newVariant);
-
-    await product.save();
+    await saveVariants(product._id, [...product.variants, newVariant]);
 
     res.status(201).json({
       success: true,
@@ -260,7 +264,7 @@ exports.addVariant = async (req, res) => {
 
   } catch (error) {
     console.error('Error adding variant:', error);
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       message: 'Error adding variant',
       error: error.message
@@ -271,21 +275,18 @@ exports.addVariant = async (req, res) => {
 /**
  * ADMIN: Update existing variant
  *
- * PUT /api/admin/products/:id/variants/:sku
+ * PUT /api/products/:id/variants/:sku
  * Body: { color, images, priceOverride, sizes, isActive }
  */
 exports.updateVariant = async (req, res) => {
   try {
-    const { id, sku } = req.params;
+    const { sku } = req.params;
     const { color, images, priceOverride, sizes, isActive } = req.body;
 
-    const product = await Product.findById(id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+      return productNotFound(res);
     }
 
     const variantIndex = product.variants.findIndex(v => v.sku === sku);
@@ -321,7 +322,6 @@ exports.updateVariant = async (req, res) => {
     }
 
     if (sizes) {
-      const { generateSKU } = require('../scripts/migrateProductsToVariants');
       variant.sizes = sizes.map(s => ({
         size: s.size,
         stock: s.stock || 0,
@@ -335,7 +335,7 @@ exports.updateVariant = async (req, res) => {
     }
 
     product.variants[variantIndex] = variant;
-    await product.save();
+    await saveVariants(product._id, product.variants);
 
     res.status(200).json({
       success: true,
@@ -345,7 +345,7 @@ exports.updateVariant = async (req, res) => {
 
   } catch (error) {
     console.error('Error updating variant:', error);
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       message: 'Error updating variant',
       error: error.message
@@ -356,19 +356,16 @@ exports.updateVariant = async (req, res) => {
 /**
  * ADMIN: Delete variant (soft delete - set isActive to false)
  *
- * DELETE /api/admin/products/:id/variants/:sku
+ * DELETE /api/products/:id/variants/:sku
  */
 exports.deleteVariant = async (req, res) => {
   try {
-    const { id, sku } = req.params;
+    const { sku } = req.params;
 
-    const product = await Product.findById(id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+      return productNotFound(res);
     }
 
     const variant = product.variants.find(v => v.sku === sku);
@@ -383,7 +380,7 @@ exports.deleteVariant = async (req, res) => {
     // Soft delete - set isActive to false
     variant.isActive = false;
 
-    await product.save();
+    await saveVariants(product._id, product.variants);
 
     res.status(200).json({
       success: true,
@@ -403,12 +400,12 @@ exports.deleteVariant = async (req, res) => {
 /**
  * ADMIN: Update stock for multiple sizes in a variant
  *
- * PATCH /api/admin/products/:id/variants/:sku/stock
+ * PATCH /api/products/:id/variants/:sku/stock
  * Body: { sizeStockUpdates: [{ size: 'M', stock: 15 }, { size: 'L', stock: 20 }] }
  */
 exports.updateVariantStock = async (req, res) => {
   try {
-    const { id, sku } = req.params;
+    const { sku } = req.params;
     const { sizeStockUpdates } = req.body;
 
     if (!sizeStockUpdates || !Array.isArray(sizeStockUpdates)) {
@@ -418,13 +415,10 @@ exports.updateVariantStock = async (req, res) => {
       });
     }
 
-    const product = await Product.findById(id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+      return productNotFound(res);
     }
 
     const variant = product.variants.find(v => v.sku === sku);
@@ -440,11 +434,11 @@ exports.updateVariantStock = async (req, res) => {
     for (const update of sizeStockUpdates) {
       const sizeObj = variant.sizes.find(s => s.size === update.size);
       if (sizeObj) {
-        sizeObj.stock = update.stock;
+        sizeObj.stock = Number(update.stock);
       }
     }
 
-    await product.save();
+    await saveVariants(product._id, product.variants);
 
     res.status(200).json({
       success: true,
@@ -460,7 +454,7 @@ exports.updateVariantStock = async (req, res) => {
 
   } catch (error) {
     console.error('Error updating stock:', error);
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       message: 'Error updating stock',
       error: error.message

@@ -16,6 +16,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { useConfirm } from '../../hooks/useConfirm';
 import { API_URL, getImageUrl, IMAGE_BASE_URL } from '../../utils/api';
+import { uploadImage } from '../../utils/uploadImages';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -87,7 +88,7 @@ const Categories = () => {
       formData.append('name', categoryName);
 
       if (categoryImage) {
-        formData.append('image', categoryImage);
+        formData.append('imageUrl', await uploadImage(categoryImage, 'categories'));
       }
 
       const config = {
@@ -122,7 +123,7 @@ const Categories = () => {
     } catch (err) {
       console.error('Error saving category:', err);
       const errorMessage =
-        err.response?.data?.message || 'Failed to save category';
+        err.response?.data?.message || err.message || 'Failed to save category';
       setError(errorMessage);
       toast.error(errorMessage);
     }

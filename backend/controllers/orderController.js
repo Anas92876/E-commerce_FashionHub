@@ -1,27 +1,74 @@
-const Order = require('../models/Order');
-const Product = require('../models/Product');
-const User = require('../models/User');
+const { supabase } = require('../config/supabase');
+const { toApi, check, normalizeId } = require('../utils/db');
+const { toProduct, checkAvailability } = require('../utils/product');
+
+// Free shipping on all orders (matches the Cart/Checkout pages)
+const SHIPPING_PRICE = 0;
+
+const roundMoney = (value) => Math.round(value * 100) / 100;
+
+// The price the store charges for an item - never trust the price sent by the browser
+const unitPrice = (product, item) => {
+  if (item.variantSku) {
+    const variant = product.variants.find((v) => v.sku === item.variantSku);
+    if (variant) return Number(variant.priceOverride || product.basePrice || product.price);
+  }
+  return Number(product.price || product.basePrice);
+};
+
+const ORDER_WITH_USER = '*, user:users(id, first_name, last_name, email)';
+
+// Row -> API order. `user` is the populated user when embedded, else the user id.
+const toOrder = (row) => {
+  if (!row) return row;
+  const order = toApi(row, ['user']);
+  order.user = order.user || order.userId;
+  delete order.userId;
+  return order;
+};
+
+const findOrder = async (id, columns = ORDER_WITH_USER) => {
+  const orderId = normalizeId(id);
+  if (!orderId) return null;
+  return check(await supabase.from('orders').select(columns).eq('id', orderId).maybeSingle());
+};
+
+const orderNotFound = (res) =>
+  res.status(404).json({
+    success: false,
+    message: 'Order not found'
+  });
+
+const ownerId = (row) => row.user_id || row.user?.id;
+
+// Keep only the fields an order item is allowed to have
+const sanitizeItem = (item) => ({
+  product: normalizeId(item.product),
+  name: item.name,
+  price: Number(item.price),
+  quantity: parseInt(item.quantity, 10),
+  size: item.size,
+  image: item.image,
+  variantSku: item.variantSku || null,
+  color: {
+    name: item.color?.name || null,
+    hex: item.color?.hex || null,
+    code: item.color?.code || null,
+  },
+  sizeSku: item.sizeSku || null,
+});
 
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private
 exports.createOrder = async (req, res, next) => {
   try {
-    const {
-      items,
-      shippingAddress,
-      paymentMethod,
-      itemsPrice,
-      shippingPrice,
-      totalPrice,
-      notes
-    } = req.body;
-
-    console.log('Creating order with data:', { itemsCount: items?.length, shippingAddress, paymentMethod });
+    // itemsPrice / shippingPrice / totalPrice from the client are ignored;
+    // they are calculated below from the prices stored in the database
+    const { shippingAddress, paymentMethod, notes } = req.body;
 
     // Validation
-    if (!items || items.length === 0) {
-      console.log('Validation failed: No items');
+    if (!req.body.items || req.body.items.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'No order items provided'
@@ -29,31 +76,53 @@ exports.createOrder = async (req, res, next) => {
     }
 
     if (!shippingAddress) {
-      console.log('Validation failed: No shipping address');
       return res.status(400).json({
         success: false,
         message: 'Shipping address is required'
       });
     }
 
-    // Verify all products exist and have enough stock
+    const items = req.body.items.map(sanitizeItem);
+
     for (const item of items) {
-      console.log('Checking product:', item.product, 'variantSku:', item.variantSku, 'size:', item.size);
-      const product = await Product.findById(item.product);
+      if (!item.size || !Number.isInteger(item.quantity) || item.quantity < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Each order item needs a size and a quantity of at least 1'
+        });
+      }
+    }
+
+    const { fullName, phone, address, city, postalCode } = shippingAddress;
+    if (!fullName || !phone || !address || !city || !postalCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Shipping address is incomplete'
+      });
+    }
+
+    // Verify all products exist and have enough stock (gives a clear error message;
+    // the create_order function re-checks atomically while decrementing)
+    const productIds = [...new Set(items.map((item) => item.product).filter(Boolean))];
+    const rows = productIds.length
+      ? check(await supabase.from('products').select('*').in('id', productIds))
+      : [];
+    const products = new Map(rows.map((row) => [row.id, toProduct(row)]));
+
+    for (const item of items) {
+      const product = products.get(item.product);
 
       if (!product) {
-        console.log('Product not found:', item.product);
         return res.status(404).json({
           success: false,
-          message: `Product not found: ${item.name}`
+          message: `Product not found: ${item.name || item.product}`
         });
       }
 
-      // Check availability using the Product model method
       let availability;
       if (item.variantSku && item.size) {
-        // New variant system
-        availability = product.checkAvailability(item.variantSku, item.size);
+        // Variant system
+        availability = checkAvailability(product, item.variantSku, item.size);
         if (availability.error) {
           return res.status(404).json({
             success: false,
@@ -74,50 +143,55 @@ exports.createOrder = async (req, res, next) => {
           message: `Insufficient stock for ${product.name} (${item.size}). Available: ${availability.stock}, Requested: ${item.quantity}`
         });
       }
-    }
 
-    // Create order
-    console.log('Creating order in database...');
-    const order = await Order.create({
-      user: req.user._id,
-      items,
-      shippingAddress,
-      paymentMethod: paymentMethod || 'Cash on Delivery',
-      itemsPrice,
-      shippingPrice,
-      totalPrice,
-      notes
-    });
-    console.log('Order created successfully:', order._id);
-
-    // Reduce product stock
-    for (const item of items) {
-      const product = await Product.findById(item.product);
-
-      try {
-        if (item.variantSku && item.size) {
-          // New variant system - use model method
-          await product.updateStock(item.variantSku, item.size, item.quantity, 'decrement');
-        } else {
-          // Legacy system - simple decrement
-          await Product.findByIdAndUpdate(
-            item.product,
-            { $inc: { stock: -item.quantity } }
-          );
-        }
-      } catch (stockError) {
-        // If stock update fails, we should ideally rollback the order
-        console.error('Stock update error:', stockError);
-        return res.status(500).json({
+      // Use the real name and price from the database
+      item.name = product.name;
+      item.price = unitPrice(product, item);
+      if (!(item.price >= 0)) {
+        return res.status(400).json({
           success: false,
-          message: `Error updating stock: ${stockError.message}`
+          message: `${product.name} has no price set`
         });
       }
     }
 
+    const itemsPrice = roundMoney(items.reduce((sum, item) => sum + item.price * item.quantity, 0));
+    const shippingPrice = SHIPPING_PRICE;
+    const totalPrice = roundMoney(itemsPrice + shippingPrice);
+
+    // Reduce stock and create the order in a single transaction
+    const { data, error } = await supabase.rpc('create_order', {
+      p_user_id: req.user.id,
+      p_order: {
+        items,
+        shippingAddress: {
+          fullName,
+          phone,
+          address,
+          city,
+          postalCode,
+          country: shippingAddress.country || 'Pakistan',
+        },
+        paymentMethod: paymentMethod || 'Cash on Delivery',
+        itemsPrice,
+        shippingPrice,
+        totalPrice,
+        notes,
+      },
+    });
+
+    if (error) {
+      console.error('Create order error:', error);
+      // Stock changed between the check and the order (or another validation failed)
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+
     res.status(201).json({
       success: true,
-      data: order
+      data: toOrder(data)
     });
 
   } catch (error) {
@@ -130,14 +204,18 @@ exports.createOrder = async (req, res, next) => {
 // @access  Private
 exports.getMyOrders = async (req, res, next) => {
   try {
-    const orders = await Order.find({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .populate('items.product', 'name');
+    const rows = check(
+      await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', req.user.id)
+        .order('created_at', { ascending: false })
+    );
 
     res.status(200).json({
       success: true,
-      count: orders.length,
-      data: orders
+      count: rows.length,
+      data: rows.map(toOrder)
     });
 
   } catch (error) {
@@ -150,19 +228,14 @@ exports.getMyOrders = async (req, res, next) => {
 // @access  Private
 exports.getOrderById = async (req, res, next) => {
   try {
-    const order = await Order.findById(req.params.id)
-      .populate('user', 'firstName lastName email')
-      .populate('items.product', 'name');
+    const row = await findOrder(req.params.id);
 
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
+    if (!row) {
+      return orderNotFound(res);
     }
 
     // Check if user is authorized to view this order
-    if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    if (ownerId(row) !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to view this order'
@@ -171,7 +244,7 @@ exports.getOrderById = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: order
+      data: toOrder(row)
     });
 
   } catch (error) {
@@ -188,43 +261,41 @@ exports.getAllOrders = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    // Build query
-    let query = {};
+    let query = supabase.from('orders').select(ORDER_WITH_USER, { count: 'exact' });
 
     // Filter by status
     if (req.query.status) {
-      query.status = req.query.status;
+      query = query.eq('status', req.query.status);
     }
 
     // Filter by payment status
     if (req.query.isPaid !== undefined) {
-      query.isPaid = req.query.isPaid === 'true';
+      query = query.eq('is_paid', req.query.isPaid === 'true');
     }
 
     // Filter by delivery status
     if (req.query.isDelivered !== undefined) {
-      query.isDelivered = req.query.isDelivered === 'true';
+      query = query.eq('is_delivered', req.query.isDelivered === 'true');
     }
 
-    // Search by order ID
+    // Search by (partial) order ID
     if (req.query.search) {
-      query._id = { $regex: req.query.search, $options: 'i' };
+      query = query.ilike('id_text', `%${req.query.search}%`);
     }
 
-    const total = await Order.countDocuments(query);
-    const orders = await Order.find(query)
-      .populate('user', 'firstName lastName email')
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip(skip);
+    const result = await query
+      .order('created_at', { ascending: false })
+      .range(skip, skip + limit - 1);
+    const rows = check(result);
+    const total = result.count || 0;
 
     res.status(200).json({
       success: true,
-      count: orders.length,
+      count: rows.length,
       total,
       page,
       pages: Math.ceil(total / limit),
-      data: orders
+      data: rows.map(toOrder)
     });
 
   } catch (error) {
@@ -254,28 +325,27 @@ exports.updateOrderStatus = async (req, res, next) => {
       });
     }
 
-    const order = await Order.findById(req.params.id).populate('user', 'firstName lastName email emailPreferences');
+    const order = await findOrder(req.params.id, 'id');
 
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
+      return orderNotFound(res);
     }
 
-    order.status = status;
+    const updates = { status };
 
     // If status is Delivered, mark as delivered
     if (status === 'Delivered') {
-      order.isDelivered = true;
-      order.deliveredAt = Date.now();
+      updates.is_delivered = true;
+      updates.delivered_at = new Date().toISOString();
     }
 
-    await order.save();
+    const row = check(
+      await supabase.from('orders').update(updates).eq('id', order.id).select(ORDER_WITH_USER).single()
+    );
 
     res.status(200).json({
       success: true,
-      data: order
+      data: toOrder(row)
     });
 
   } catch (error) {
@@ -288,23 +358,24 @@ exports.updateOrderStatus = async (req, res, next) => {
 // @access  Private/Admin
 exports.markOrderAsPaid = async (req, res, next) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await findOrder(req.params.id, 'id');
 
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
+      return orderNotFound(res);
     }
 
-    order.isPaid = true;
-    order.paidAt = Date.now();
-
-    await order.save();
+    const row = check(
+      await supabase
+        .from('orders')
+        .update({ is_paid: true, paid_at: new Date().toISOString() })
+        .eq('id', order.id)
+        .select('*')
+        .single()
+    );
 
     res.status(200).json({
       success: true,
-      data: order
+      data: toOrder(row)
     });
 
   } catch (error) {
@@ -317,17 +388,14 @@ exports.markOrderAsPaid = async (req, res, next) => {
 // @access  Private
 exports.cancelOrder = async (req, res, next) => {
   try {
-    const order = await Order.findById(req.params.id).populate('user', 'firstName lastName email emailPreferences');
+    const order = await findOrder(req.params.id);
 
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
+      return orderNotFound(res);
     }
 
     // Check if user is authorized
-    if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    if (ownerId(order) !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to cancel this order'
@@ -342,35 +410,45 @@ exports.cancelOrder = async (req, res, next) => {
       });
     }
 
+    // Mark as cancelled first (only if still cancellable) so stock is never restored twice
+    const row = check(
+      await supabase
+        .from('orders')
+        .update({ status: 'Cancelled' })
+        .eq('id', order.id)
+        .in('status', ['Pending', 'Processing'])
+        .select(ORDER_WITH_USER)
+        .maybeSingle()
+    );
+
+    if (!row) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot cancel order at this stage'
+      });
+    }
+
     // Restore product stock
     for (const item of order.items) {
-      const product = await Product.findById(item.product);
+      const productId = normalizeId(item.product);
+      if (!productId) continue;
 
-      if (product) {
-        try {
-          if (item.variantSku && item.size) {
-            // New variant system - use model method to restore stock
-            await product.updateStock(item.variantSku, item.size, item.quantity, 'increment');
-          } else {
-            // Legacy system - simple increment
-            await Product.findByIdAndUpdate(
-              item.product,
-              { $inc: { stock: item.quantity } }
-            );
-          }
-        } catch (stockError) {
-          console.error('Error restoring stock:', stockError);
-          // Continue with cancellation even if stock restoration fails
-        }
+      const { error } = await supabase.rpc('adjust_stock', {
+        p_product_id: productId,
+        p_variant_sku: item.variantSku && item.size ? item.variantSku : null,
+        p_size: item.size,
+        p_delta: item.quantity,
+      });
+
+      if (error) {
+        // Continue with cancellation even if stock restoration fails (e.g. product deleted)
+        console.error('Error restoring stock:', error.message);
       }
     }
 
-    order.status = 'Cancelled';
-    await order.save();
-
     res.status(200).json({
       success: true,
-      data: order
+      data: toOrder(row)
     });
 
   } catch (error) {
@@ -383,16 +461,13 @@ exports.cancelOrder = async (req, res, next) => {
 // @access  Private/Admin
 exports.deleteOrder = async (req, res, next) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await findOrder(req.params.id, 'id');
 
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
+      return orderNotFound(res);
     }
 
-    await order.deleteOne();
+    check(await supabase.from('orders').delete().eq('id', order.id));
 
     res.status(200).json({
       success: true,

@@ -9,8 +9,6 @@ Disallow: /admin/*
 # Disallow auth pages
 Disallow: /login
 Disallow: /register
-Disallow: /forgot-password
-Disallow: /reset-password
 
 # Disallow user-specific pages
 Disallow: /profile

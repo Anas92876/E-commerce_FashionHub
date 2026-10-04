@@ -273,16 +273,6 @@ const Login = () => {
                 )}
               </div>
 
-              {/* Forgot Password Link */}
-              <div className="text-right">
-                <Link
-                  to="/forgot-password"
-                  className="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
-
               {/* Submit Button */}
               <motion.button
                 type="submit"

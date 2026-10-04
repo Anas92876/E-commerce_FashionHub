@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdminLayout from '../../components/AdminLayout';
 import { API_URL } from '../../utils/api';
+import { uploadImages } from '../../utils/uploadImages';
 import './ProductForm.css';
 
 // Helper function to generate SKU
@@ -340,14 +341,14 @@ const AddProduct = () => {
         formData.append('stock', 0);
         formData.append('sizes', JSON.stringify(availableSizes));
 
-        // Build variants data and append all images
+        // Upload all variant images to storage first (in variant order);
+        // the API assigns them to variants using imageCount
+        const imageUrls = await uploadImages(variants.flatMap((variant) => variant.images));
+        formData.append('imageUrls', JSON.stringify(imageUrls));
+
+        // Build variants data
         const variantsData = variants.map((variant) => {
           const sku = generateSKU(productInfo.name, variant.color.code);
-
-          // Append all variant images to FormData with 'images' field name
-          variant.images.forEach((imageFile) => {
-            formData.append('images', imageFile);
-          });
 
           return {
             sku,
@@ -400,7 +401,7 @@ const AddProduct = () => {
         formData.append('stock', simpleProduct.stock);
         formData.append('sizes', JSON.stringify(['One Size']));
         formData.append('isActive', productInfo.isActive);
-        formData.append('images', simpleProduct.image);
+        formData.append('imageUrls', JSON.stringify(await uploadImages([simpleProduct.image])));
 
         const token = localStorage.getItem('token');
 

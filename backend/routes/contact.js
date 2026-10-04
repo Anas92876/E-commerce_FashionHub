@@ -7,7 +7,6 @@ const {
   getContactById,
   updateContactStatus,
   deleteContact,
-  replyToContact,
 } = require('../controllers/contactController');
 const { protect, admin } = require('../middleware/auth');
 
@@ -26,7 +25,6 @@ router.post('/', contactValidation, submitContact);
 router.get('/', protect, admin, getAllContacts);
 router.get('/:id', protect, admin, getContactById);
 router.put('/:id/status', protect, admin, updateContactStatus);
-router.post('/:id/reply', protect, admin, replyToContact);
 router.delete('/:id', protect, admin, deleteContact);
 
 module.exports = router;

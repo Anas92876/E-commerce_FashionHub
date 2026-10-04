@@ -2,11 +2,10 @@
 // Ensure API_URL always ends with /api and is a full absolute URL
 const getApiUrl = () => {
   const envUrl = process.env.REACT_APP_API_URL;
-  
-  // Debug logging removed for production
-  
+
   if (!envUrl) {
-    return 'http://localhost:5000/api';
+    // On Vercel the API is served from the same domain at /api
+    return process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api';
   }
   
   // Clean and normalize the URL
@@ -60,11 +59,9 @@ const getImageBaseUrl = () => {
     return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
   }
   
-  // Default fallback (only for local development)
-  const defaultUrl = 'http://localhost:5000/';
-  console.warn('[Image Config] WARNING: No REACT_APP_API_URL or REACT_APP_IMAGE_BASE_URL set! Using default:', defaultUrl);
-  console.warn('[Image Config] Please set REACT_APP_API_URL in Vercel environment variables!');
-  return defaultUrl;
+  // Images are full Supabase Storage URLs, so this only matters for old relative
+  // paths: same domain in production, the local API in development
+  return process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000/';
 };
 
 export const IMAGE_BASE_URL = getImageBaseUrl();

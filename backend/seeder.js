@@ -1,15 +1,20 @@
-const mongoose = require('mongoose');
+// Seed Supabase with sample categories, products and an admin user.
+//   node seeder.js      -> wipe categories/products/users, then import
+//   node seeder.js -d   -> wipe only
 const dotenv = require('dotenv');
-const Category = require('./models/Category');
-const Product = require('./models/Product');
-const User = require('./models/User');
-const connectDB = require('./config/db');
 
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
-connectDB();
+const { supabase } = require('./config/supabase');
+const { check } = require('./utils/db');
+const { hashPassword } = require('./utils/user');
+const seedReviews = require('./scripts/seedReviews');
+
+const slugify = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+// supabase-js requires a filter on delete; this matches every row
+const deleteAll = async (table) => check(await supabase.from(table).delete().not('id', 'is', null));
 
 // Sample categories
 const categories = [
@@ -148,31 +153,63 @@ const importData = async () => {
     console.log('Deleting existing data...');
 
     // Delete existing data
-    await Category.deleteMany();
-    await Product.deleteMany();
-    await User.deleteMany();
+    await deleteAll('categories');
+    await deleteAll('products');
+    await deleteAll('users');
 
     console.log('Creating admin user...');
 
     // Create admin user
-    const admin = await User.create(adminUser);
+    const admin = check(
+      await supabase
+        .from('users')
+        .insert({
+          first_name: adminUser.firstName,
+          last_name: adminUser.lastName,
+          email: adminUser.email,
+          password: await hashPassword(adminUser.password),
+          role: adminUser.role,
+        })
+        .select('email')
+        .single()
+    );
     console.log(`✓ Admin user created (${admin.email})`);
 
     console.log('Creating categories...');
 
-    // Create categories one by one to trigger pre-save hooks
-    const createdCategories = [];
-    for (const cat of categories) {
-      const category = await Category.create(cat);
-      createdCategories.push(category);
-    }
+    const createdCategories = check(
+      await supabase
+        .from('categories')
+        .insert(categories.map((cat) => ({ name: cat.name, slug: slugify(cat.name) })))
+        .select('id')
+    );
     console.log(`✓ ${createdCategories.length} categories created`);
 
     console.log('Creating products...');
 
     // Create products
-    const createdProducts = await Product.insertMany(products);
+    const createdProducts = check(
+      await supabase
+        .from('products')
+        .insert(
+          products.map((p) => ({
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            base_price: p.price,
+            category: p.category,
+            sizes: p.sizes,
+            stock: p.stock,
+            is_active: p.isActive,
+          }))
+        )
+        .select('id')
+    );
     console.log(`✓ ${createdProducts.length} products created`);
+
+    console.log('Creating sample reviews...');
+    const { reviews } = await seedReviews();
+    console.log(`✓ ${reviews} reviews created`);
 
     console.log('\n✅ Data imported successfully!');
     console.log('\n📊 Summary:');
@@ -192,9 +229,9 @@ const deleteData = async () => {
   try {
     console.log('Deleting all data...');
 
-    await Category.deleteMany();
-    await Product.deleteMany();
-    await User.deleteMany();
+    await deleteAll('categories');
+    await deleteAll('products');
+    await deleteAll('users');
 
     console.log('✅ Data deleted successfully!');
     process.exit();

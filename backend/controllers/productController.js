@@ -1,5 +1,32 @@
-const Product = require('../models/Product');
-const Category = require('../models/Category');
+const { supabase } = require('../config/supabase');
+const { check, normalizeId } = require('../utils/db');
+const { toProduct, prepareVariants } = require('../utils/product');
+
+// Multipart form fields arrive as strings ("true"/"false")
+const toBool = (value) => (typeof value === 'string' ? value === 'true' : Boolean(value));
+
+const parseSizes = (sizes) => (Array.isArray(sizes) ? sizes : JSON.parse(sizes));
+
+const SORT_OPTIONS = {
+  'price-asc': ['price', true],
+  'price-desc': ['price', false],
+  'name-asc': ['name', true],
+  'name-desc': ['name', false],
+  'rating-desc': ['rating', false],
+  newest: ['created_at', false],
+};
+
+const notFound = (res) =>
+  res.status(404).json({
+    success: false,
+    message: 'Product not found',
+  });
+
+const findProduct = async (id) => {
+  const productId = normalizeId(id);
+  if (!productId) return null;
+  return check(await supabase.from('products').select('*').eq('id', productId).maybeSingle());
+};
 
 // @desc    Get all products (public)
 // @route   GET /api/products
@@ -11,64 +38,46 @@ exports.getProducts = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     // Build query
-    let query = { isActive: true };
+    let query = supabase
+      .from('products')
+      .select('*', { count: 'exact' })
+      .eq('is_active', true);
 
     // Filter by category
     if (req.query.category) {
-      query.category = req.query.category;
+      query = query.eq('category', req.query.category);
     }
 
     // Search by name
     if (req.query.search) {
-      query.name = { $regex: req.query.search, $options: 'i' };
+      query = query.ilike('name', `%${req.query.search}%`);
     }
 
     // Filter by price range
-    if (req.query.minPrice || req.query.maxPrice) {
-      query.price = {};
-      if (req.query.minPrice) {
-        query.price.$gte = parseFloat(req.query.minPrice);
-      }
-      if (req.query.maxPrice) {
-        query.price.$lte = parseFloat(req.query.maxPrice);
-      }
+    if (req.query.minPrice) {
+      query = query.gte('price', parseFloat(req.query.minPrice));
+    }
+    if (req.query.maxPrice) {
+      query = query.lte('price', parseFloat(req.query.maxPrice));
     }
 
-    // Sort options
-    let sortOptions = {};
-    if (req.query.sort === 'price-asc') {
-      sortOptions.price = 1;
-    } else if (req.query.sort === 'price-desc') {
-      sortOptions.price = -1;
-    } else if (req.query.sort === 'name-asc') {
-      sortOptions.name = 1;
-    } else if (req.query.sort === 'name-desc') {
-      sortOptions.name = -1;
-    } else if (req.query.sort === 'rating-desc') {
-      sortOptions.rating = -1;
-    } else if (req.query.sort === 'newest') {
-      sortOptions.createdAt = -1;
-    } else {
-      sortOptions.createdAt = -1; // Default sort by newest
-    }
+    // Sort options (default: newest)
+    const [column, ascending] = SORT_OPTIONS[req.query.sort] || SORT_OPTIONS.newest;
+    query = query.order(column, { ascending }).range(skip, skip + limit - 1);
 
-    // Get products with pagination
-    const products = await Product.find(query)
-      .sort(sortOptions)
-      .limit(limit)
-      .skip(skip);
-
-    // Get total count for pagination
-    const totalProducts = await Product.countDocuments(query);
+    // Get products with pagination + total count
+    const result = await query;
+    const rows = check(result);
+    const totalProducts = result.count || 0;
     const totalPages = Math.ceil(totalProducts / limit);
 
     res.status(200).json({
       success: true,
-      count: products.length,
+      count: rows.length,
       total: totalProducts,
       page,
       pages: totalPages,
-      data: products,
+      data: rows.map(toProduct),
     });
   } catch (error) {
     next(error);
@@ -80,17 +89,14 @@ exports.getProducts = async (req, res, next) => {
 // @access  Public
 exports.getProductById = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const row = await findProduct(req.params.id);
 
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found',
-      });
+    if (!row) {
+      return notFound(res);
     }
 
     // Check if product is active
-    if (!product.isActive) {
+    if (!row.is_active) {
       return res.status(404).json({
         success: false,
         message: 'Product not available',
@@ -99,7 +105,7 @@ exports.getProductById = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: product,
+      data: toProduct(row),
     });
   } catch (error) {
     next(error);
@@ -107,7 +113,7 @@ exports.getProductById = async (req, res, next) => {
 };
 
 // @desc    Create new product (admin only)
-// @route   POST /api/admin/products
+// @route   POST /api/products
 // @access  Private/Admin
 exports.createProduct = async (req, res, next) => {
   try {
@@ -125,23 +131,22 @@ exports.createProduct = async (req, res, next) => {
 
     // Check if this is a variant-based product
     const hasVariants = variants && variants !== 'undefined';
+    let row;
 
     if (hasVariants) {
       // Parse variants data from JSON string
       const variantsData = JSON.parse(variants);
 
-      // Process uploaded images and assign them to variants
+      // Uploaded images arrive in order; assign them to variants by imageCount
       const uploadedFiles = req.files || [];
       let fileIndex = 0;
 
-      // Build variants array with image paths
-      const processedVariants = variantsData.map((variant, variantIndex) => {
+      const processedVariants = prepareVariants(variantsData.map((variant) => {
         const imageCount = variant.imageCount || 0;
         const variantImages = [];
 
-        // Assign images for this variant
         for (let i = 0; i < imageCount && fileIndex < uploadedFiles.length; i++) {
-          // Use Cloudinary URL (file.path) instead of local path
+          // file.path holds the Supabase Storage public URL
           variantImages.push(uploadedFiles[fileIndex].path);
           fileIndex++;
         }
@@ -153,54 +158,69 @@ exports.createProduct = async (req, res, next) => {
           priceOverride: variant.priceOverride,
           sizes: variant.sizes,
           isActive: true,
-          createdAt: new Date()
         };
-      });
+      }));
+
+      const parsedBasePrice = parseFloat(basePrice);
 
       // Create product with variants
-      const product = await Product.create({
-        name,
-        description,
-        basePrice: parseFloat(basePrice),
-        category,
-        isActive: isActive !== undefined ? isActive : true,
-        variants: processedVariants,
-        // Legacy fields for backward compatibility
-        price: parseFloat(basePrice),
-        image: processedVariants[0]?.images[0] || '',
-        sizes: sizes ? (Array.isArray(sizes) ? sizes : JSON.parse(sizes)) : [],
-        stock: 0,
-      });
+      row = check(
+        await supabase
+          .from('products')
+          .insert({
+            name: name && name.trim(),
+            description,
+            base_price: parsedBasePrice,
+            category,
+            is_active: isActive !== undefined ? toBool(isActive) : true,
+            variants: processedVariants,
+            // Legacy fields for backward compatibility
+            price: parsedBasePrice,
+            image: processedVariants[0]?.images[0] || '',
+            sizes: sizes ? parseSizes(sizes) : [],
+            stock: 0,
+          })
+          .select('*')
+          .single()
+      );
 
       res.status(201).json({
         success: true,
         message: 'Product with variants created successfully',
-        data: product,
+        data: toProduct(row),
       });
 
     } else {
       // Legacy simple product creation
       let imagePath = '';
       if (req.files && req.files.length > 0) {
-        // Use Cloudinary URL (file.path) instead of local path
         imagePath = req.files[0].path;
       }
 
-      const product = await Product.create({
-        name,
-        description,
-        price: parseFloat(price),
-        category,
-        image: imagePath,
-        sizes: sizes ? (Array.isArray(sizes) ? sizes : JSON.parse(sizes)) : ['S', 'M', 'L', 'XL'],
-        stock: parseInt(stock) || 0,
-        isActive: isActive !== undefined ? isActive : true,
-      });
+      const parsedPrice = parseFloat(price);
+
+      row = check(
+        await supabase
+          .from('products')
+          .insert({
+            name: name && name.trim(),
+            description,
+            price: parsedPrice,
+            base_price: parsedPrice,
+            category,
+            image: imagePath,
+            sizes: sizes ? parseSizes(sizes) : ['S', 'M', 'L', 'XL'],
+            stock: parseInt(stock) || 0,
+            is_active: isActive !== undefined ? toBool(isActive) : true,
+          })
+          .select('*')
+          .single()
+      );
 
       res.status(201).json({
         success: true,
         message: 'Product created successfully',
-        data: product,
+        data: toProduct(row),
       });
     }
 
@@ -211,17 +231,14 @@ exports.createProduct = async (req, res, next) => {
 };
 
 // @desc    Update product (admin only)
-// @route   PUT /api/admin/products/:id
+// @route   PUT /api/products/:id
 // @access  Private/Admin
 exports.updateProduct = async (req, res, next) => {
   try {
-    let product = await Product.findById(req.params.id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found',
-      });
+      return notFound(res);
     }
 
     const {
@@ -238,6 +255,7 @@ exports.updateProduct = async (req, res, next) => {
 
     // Check if this is a variant-based product update
     const hasVariants = variants && variants !== 'undefined';
+    const updates = {};
 
     if (hasVariants) {
       // Parse variants data from JSON string
@@ -247,8 +265,7 @@ exports.updateProduct = async (req, res, next) => {
       const uploadedFiles = req.files || [];
       let fileIndex = 0;
 
-      // Build variants array with image paths
-      const processedVariants = variantsData.map((variant) => {
+      const processedVariants = prepareVariants(variantsData.map((variant) => {
         const imageCount = variant.imageCount || 0;
         const variantImages = [];
 
@@ -259,7 +276,6 @@ exports.updateProduct = async (req, res, next) => {
 
         // Add new images for this variant
         for (let i = 0; i < imageCount && fileIndex < uploadedFiles.length; i++) {
-          // Use Cloudinary URL (file.path) instead of local path
           variantImages.push(uploadedFiles[fileIndex].path);
           fileIndex++;
         }
@@ -271,53 +287,59 @@ exports.updateProduct = async (req, res, next) => {
           priceOverride: variant.priceOverride,
           sizes: variant.sizes,
           isActive: variant.isActive !== undefined ? variant.isActive : true,
-          createdAt: variant.createdAt || new Date()
+          createdAt: variant.createdAt,
         };
-      });
+      }));
 
-      // Update product with variants
-      product.name = name || product.name;
-      product.description = description || product.description;
-      product.basePrice = basePrice ? parseFloat(basePrice) : product.basePrice;
-      product.category = category || product.category;
-      product.isActive = isActive !== undefined ? isActive : product.isActive;
-      product.variants = processedVariants;
+      if (name) updates.name = name.trim();
+      if (description) updates.description = description;
+      if (basePrice) {
+        updates.base_price = parseFloat(basePrice);
+        // Update legacy price for backward compatibility
+        updates.price = parseFloat(basePrice);
+      }
+      if (category) updates.category = category;
+      if (isActive !== undefined) updates.is_active = toBool(isActive);
+      updates.variants = processedVariants;
 
-      // Update legacy fields for backward compatibility
-      product.price = basePrice ? parseFloat(basePrice) : product.price;
       if (sizes) {
-        product.sizes = Array.isArray(sizes) ? sizes : JSON.parse(sizes);
+        updates.sizes = parseSizes(sizes);
       }
       if (processedVariants.length > 0 && processedVariants[0].images.length > 0) {
-        product.image = processedVariants[0].images[0];
+        updates.image = processedVariants[0].images[0];
       }
 
     } else {
       // Legacy simple product update
-      if (name) product.name = name;
-      if (description) product.description = description;
-      if (price) product.price = price;
-      if (category) product.category = category;
-      if (sizes) product.sizes = Array.isArray(sizes) ? sizes : JSON.parse(sizes);
-      if (stock !== undefined) product.stock = stock;
-      if (isActive !== undefined) product.isActive = isActive;
+      if (name) updates.name = name.trim();
+      if (description) updates.description = description;
+      if (price) updates.price = parseFloat(price);
+      if (category) updates.category = category;
+      if (sizes) updates.sizes = parseSizes(sizes);
+      if (stock !== undefined) updates.stock = parseInt(stock) || 0;
+      if (isActive !== undefined) updates.is_active = toBool(isActive);
 
       // Handle image upload if new image is provided
       if (req.files && req.files.length > 0) {
-        // Use Cloudinary URL (file.path) instead of local path
-        product.image = req.files[0].path;
+        updates.image = req.files[0].path;
       } else if (req.file) {
-        // Use Cloudinary URL (file.path) instead of local path
-        product.image = req.file.path;
+        updates.image = req.file.path;
       }
     }
 
-    await product.save();
+    // Ensure basePrice is set from price if not already set
+    if (!product.base_price && !updates.base_price && (updates.price || product.price)) {
+      updates.base_price = updates.price || product.price;
+    }
+
+    const row = check(
+      await supabase.from('products').update(updates).eq('id', product.id).select('*').single()
+    );
 
     res.status(200).json({
       success: true,
       message: 'Product updated successfully',
-      data: product,
+      data: toProduct(row),
     });
   } catch (error) {
     console.error('Error updating product:', error);
@@ -326,20 +348,17 @@ exports.updateProduct = async (req, res, next) => {
 };
 
 // @desc    Delete product (admin only)
-// @route   DELETE /api/admin/products/:id
+// @route   DELETE /api/products/:id
 // @access  Private/Admin
 exports.deleteProduct = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found',
-      });
+      return notFound(res);
     }
 
-    await Product.findByIdAndDelete(req.params.id);
+    check(await supabase.from('products').delete().eq('id', product.id));
 
     res.status(200).json({
       success: true,

@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { supabase } = require('../config/supabase');
+const { normalizeId } = require('../utils/db');
+const { USER_PUBLIC_COLUMNS, toUser } = require('../utils/user');
 
 // Protect routes - verify JWT token
 exports.protect = async (req, res, next) => {
@@ -26,16 +28,33 @@ exports.protect = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Get user from token
-    req.user = await User.findById(decoded.id);
+    // Tokens issued before the Supabase migration hold Mongo ObjectIds
+    const userId = normalizeId(decoded.id);
 
-    if (!req.user) {
+    if (!userId) {
       return res.status(401).json({
         success: false,
         message: 'User not found',
       });
     }
 
+    // Get user from token
+    const { data, error } = await supabase
+      .from('users')
+      .select(USER_PUBLIC_COLUMNS)
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    req.user = toUser(data);
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);

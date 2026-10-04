@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import AdminLayout from '../../components/AdminLayout';
 import { API_URL, getImageUrl } from '../../utils/api';
+import { uploadImages } from '../../utils/uploadImages';
 import './ProductForm.css';
 
 // Helper function to generate SKU
@@ -414,12 +415,9 @@ const EditProduct = () => {
         formData.append('variants', JSON.stringify(variantsData));
         formData.append('sizes', JSON.stringify(availableSizes));
 
-        // Add all variant images
-        variants.forEach(variant => {
-          variant.newImages.forEach(image => {
-            formData.append('images', image);
-          });
-        });
+        // Upload new variant images to storage first (in variant order)
+        const imageUrls = await uploadImages(variants.flatMap(variant => variant.newImages));
+        formData.append('imageUrls', JSON.stringify(imageUrls));
       }
 
       const token = localStorage.getItem('token');
@@ -441,7 +439,7 @@ const EditProduct = () => {
 
     } catch (err) {
       console.error('Error updating product:', err);
-      setError(err.response?.data?.message || 'Failed to update product');
+      setError(err.response?.data?.message || err.message || 'Failed to update product');
     } finally {
       setLoading(false);
     }
