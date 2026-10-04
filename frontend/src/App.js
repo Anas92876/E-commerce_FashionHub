@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Toaster } from 'react-hot-toast';
 
@@ -20,6 +21,7 @@ import Cart from './pages/customer/Cart';
 import Checkout from './pages/customer/Checkout';
 import MyOrders from './pages/customer/MyOrders';
 import Profile from './pages/customer/Profile';
+import Wishlist from './pages/customer/Wishlist';
 
 // Admin Route Protection
 import AdminRoute from './components/AdminRoute';
@@ -33,6 +35,7 @@ import Categories from './pages/admin/Categories';
 import Orders from './pages/admin/Orders';
 import Users from './pages/admin/Users';
 import Messages from './pages/admin/Messages';
+import Coupons from './pages/admin/Coupons';
 
 function App() {
   return (
@@ -40,6 +43,7 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <CartProvider>
+          <WishlistProvider>
             <Router>
               <div className="App bg-white dark:bg-gray-900 min-h-screen transition-colors duration-300">
             <Routes>
@@ -57,6 +61,7 @@ function App() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/my-orders" element={<MyOrders />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/contact" element={<Contact />} />
 
             {/* ============================================
@@ -136,6 +141,16 @@ function App() {
               }
             />
 
+            {/* Coupons - Create and manage discount codes */}
+            <Route
+              path="/admin/coupons"
+              element={
+                <AdminRoute>
+                  <Coupons />
+                </AdminRoute>
+              }
+            />
+
             {/* Users - Manage users and admins */}
             <Route
               path="/admin/users"
@@ -176,6 +191,7 @@ function App() {
               />
               </div>
             </Router>
+          </WishlistProvider>
           </CartProvider>
         </AuthProvider>
       </ThemeProvider>

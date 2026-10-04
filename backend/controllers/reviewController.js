@@ -176,6 +176,43 @@ exports.getProductReviews = async (req, res) => {
 };
 
 /**
+ * @desc    Latest reviews across all active products (for the home page)
+ * @route   GET /api/reviews/recent?limit=12
+ * @access  Public
+ */
+exports.getRecentReviews = async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 12, 1), 30);
+
+    const rows = check(
+      await supabase
+        .from('reviews')
+        .select('*, user:users(id, first_name, last_name), product:products!inner(id, name, image, is_active)')
+        .eq('product.is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+    );
+
+    res.status(200).json({
+      success: true,
+      count: rows.length,
+      data: rows.map((row) => {
+        const review = toReview(row);
+        review.productName = review.product?.name;
+        review.productImage = review.product?.image;
+        return review;
+      }),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching reviews',
+      error: error.message
+    });
+  }
+};
+
+/**
  * @desc    Get user's reviews
  * @route   GET /api/reviews/my-reviews
  * @access  Private

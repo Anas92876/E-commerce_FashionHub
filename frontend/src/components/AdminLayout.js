@@ -15,7 +15,8 @@ import {
   ArrowRightOnRectangleIcon,
   ChevronRightIcon,
   ChartBarIcon,
-  UsersIcon
+  UsersIcon,
+  TicketIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 
@@ -52,6 +53,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Add Product', path: '/admin/products/add', icon: PlusCircleIcon },
     { name: 'Categories', path: '/admin/categories', icon: TagIcon },
     { name: 'Orders', path: '/admin/orders', icon: ShoppingCartIcon },
+    { name: 'Coupons', path: '/admin/coupons', icon: TicketIcon },
     { name: 'Users', path: '/admin/users', icon: UsersIcon },
     { name: 'Messages', path: '/admin/messages', icon: EnvelopeIcon },
   ];

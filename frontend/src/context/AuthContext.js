@@ -79,13 +79,6 @@ export const AuthProvider = ({ children }) => {
     return { success: false, error: 'No token available' };
   };
 
-  // Expose refreshUser to window for console access
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.refreshUserData = refreshUser;
-    }
-  }, [token]);
-
   // Register user
   const register = async (userData) => {
     try {

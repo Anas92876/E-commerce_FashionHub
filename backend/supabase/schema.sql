@@ -231,14 +231,118 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------
--- create_order: decrement stock for every item and insert the order in one
--- transaction. If any item is short on stock, nothing is changed.
+-- ORDERS: coupon, discount and status history (added after the first release;
+-- ALTER ... IF NOT EXISTS keeps re-runs safe on existing databases)
+-- ---------------------------------------------------------------------
+alter table public.orders add column if not exists coupon_code    text;
+alter table public.orders add column if not exists discount_price numeric(10, 2) not null default 0;
+alter table public.orders add column if not exists status_history jsonb not null default '[]'::jsonb;
+
+-- Record every status change with a timestamp (order tracking timeline)
+create or replace function public.record_order_status()
+returns trigger language plpgsql as $$
+begin
+  if tg_op = 'INSERT' or new.status is distinct from old.status then
+    new.status_history := coalesce(new.status_history, '[]'::jsonb)
+      || jsonb_build_array(jsonb_build_object('status', new.status, 'at', now()));
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists orders_status_history on public.orders;
+create trigger orders_status_history before insert or update of status on public.orders
+  for each row execute function public.record_order_status();
+
+-- Backfill history for orders created before the trigger existed
+update public.orders
+   set status_history = jsonb_build_array(jsonb_build_object('status', 'Pending', 'at', created_at))
+       || case when status <> 'Pending'
+               then jsonb_build_array(jsonb_build_object('status', status, 'at', updated_at))
+               else '[]'::jsonb end
+ where status_history = '[]'::jsonb;
+
+-- ---------------------------------------------------------------------
+-- COUPONS (discount codes)
+-- ---------------------------------------------------------------------
+create table if not exists public.coupons (
+  id               uuid primary key default gen_random_uuid(),
+  code             text not null unique check (code = upper(code) and char_length(code) between 3 and 30),
+  description      text not null default '',
+  discount_type    text not null check (discount_type in ('percent', 'fixed')),
+  discount_value   numeric(10, 2) not null check (discount_value > 0),
+  min_order_amount numeric(10, 2) not null default 0 check (min_order_amount >= 0),
+  max_uses         integer check (max_uses > 0),
+  used_count       integer not null default 0 check (used_count >= 0),
+  starts_at        timestamptz,
+  expires_at       timestamptz,
+  is_active        boolean not null default true,
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now(),
+  check (discount_type <> 'percent' or discount_value <= 100)
+);
+
+drop trigger if exists coupons_updated_at on public.coupons;
+create trigger coupons_updated_at before update on public.coupons
+  for each row execute function public.set_updated_at();
+
+-- Validate a coupon for an order subtotal and return the discount.
+-- p_reserve = true also counts one use (called inside create_order).
+create or replace function public.coupon_discount(p_code text, p_items_price numeric, p_reserve boolean default false)
+returns numeric language plpgsql as $$
+declare
+  c public.coupons;
+  v_discount numeric;
+begin
+  select * into c from public.coupons where code = upper(trim(p_code)) for update;
+
+  if not found or not c.is_active then
+    raise exception 'Invalid coupon code';
+  end if;
+  if c.starts_at is not null and now() < c.starts_at then
+    raise exception 'This coupon is not active yet';
+  end if;
+  if c.expires_at is not null and now() > c.expires_at then
+    raise exception 'This coupon has expired';
+  end if;
+  if c.max_uses is not null and c.used_count >= c.max_uses then
+    raise exception 'This coupon has reached its usage limit';
+  end if;
+  if p_items_price < c.min_order_amount then
+    raise exception 'This coupon needs a minimum order of $%', to_char(c.min_order_amount, 'FM999999990.00');
+  end if;
+
+  v_discount := case
+    when c.discount_type = 'percent' then round(p_items_price * c.discount_value / 100, 2)
+    else least(c.discount_value, p_items_price)
+  end;
+
+  if p_reserve then
+    update public.coupons set used_count = used_count + 1 where id = c.id;
+  end if;
+
+  return v_discount;
+end $$;
+
+-- Give a use back when an order with a coupon is cancelled
+create or replace function public.release_coupon(p_code text)
+returns void language sql as $$
+  update public.coupons set used_count = greatest(used_count - 1, 0) where code = upper(trim(p_code));
+$$;
+
+-- ---------------------------------------------------------------------
+-- create_order: decrement stock for every item, apply the coupon and insert
+-- the order in one transaction. If anything fails, nothing is changed.
+-- itemsPrice / shippingPrice are calculated by the API from database prices.
 -- ---------------------------------------------------------------------
 create or replace function public.create_order(p_user_id uuid, p_order jsonb)
 returns public.orders language plpgsql as $$
 declare
-  v_item  jsonb;
-  v_order public.orders;
+  v_item     jsonb;
+  v_order    public.orders;
+  v_items    numeric := coalesce((p_order ->> 'itemsPrice')::numeric, 0);
+  v_shipping numeric := coalesce((p_order ->> 'shippingPrice')::numeric, 0);
+  v_code     text    := nullif(upper(trim(p_order ->> 'couponCode')), '');
+  v_discount numeric := 0;
 begin
   for v_item in select * from jsonb_array_elements(p_order -> 'items') loop
     perform public.adjust_stock(
@@ -249,16 +353,22 @@ begin
     );
   end loop;
 
-  insert into public.orders (user_id, items, shipping_address, payment_method,
-                             items_price, shipping_price, total_price, notes)
+  if v_code is not null then
+    v_discount := public.coupon_discount(v_code, v_items, true);
+  end if;
+
+  insert into public.orders (user_id, items, shipping_address, payment_method, items_price,
+                             shipping_price, discount_price, total_price, coupon_code, notes)
   values (
     p_user_id,
     p_order -> 'items',
     p_order -> 'shippingAddress',
     coalesce(p_order ->> 'paymentMethod', 'Cash on Delivery'),
-    coalesce((p_order ->> 'itemsPrice')::numeric, 0),
-    coalesce((p_order ->> 'shippingPrice')::numeric, 0),
-    coalesce((p_order ->> 'totalPrice')::numeric, 0),
+    v_items,
+    v_shipping,
+    v_discount,
+    v_items + v_shipping - v_discount,
+    v_code,
     p_order ->> 'notes'
   )
   returning * into v_order;
@@ -267,21 +377,222 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------
+-- WISHLISTS (saved products per user)
+-- ---------------------------------------------------------------------
+create table if not exists public.wishlists (
+  user_id    uuid not null references public.users (id) on delete cascade,
+  product_id uuid not null references public.products (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, product_id)
+);
+
+-- ---------------------------------------------------------------------
+-- RATE LIMITS (login / register brute-force protection; works across
+-- serverless instances because the counter lives in the database)
+-- ---------------------------------------------------------------------
+create table if not exists public.rate_limits (
+  key        text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists rate_limits_key_idx on public.rate_limits (key, created_at);
+
+-- Returns true and records the attempt if under p_max attempts in the window;
+-- returns false (blocked) otherwise.
+create or replace function public.hit_rate_limit(p_key text, p_max integer, p_window_seconds integer)
+returns boolean language plpgsql as $$
+declare
+  v_count integer;
+begin
+  -- occasional global cleanup of old rows
+  if random() < 0.02 then
+    delete from public.rate_limits where created_at < now() - interval '1 day';
+  end if;
+
+  select count(*) into v_count from public.rate_limits
+   where key = p_key and created_at > now() - make_interval(secs => p_window_seconds);
+
+  if v_count >= p_max then
+    return false;
+  end if;
+
+  insert into public.rate_limits (key) values (p_key);
+  return true;
+end $$;
+
+create or replace function public.clear_rate_limit(p_key text)
+returns void language sql as $$
+  delete from public.rate_limits where key = p_key;
+$$;
+
+-- ---------------------------------------------------------------------
+-- PRODUCT SEARCH & FILTERS
+-- ---------------------------------------------------------------------
+-- Active products matching all given filters (null = ignore that filter).
+-- p_search should already have % and _ escaped.
+create or replace function public.search_products(
+  p_search    text    default null,
+  p_category  text    default null,
+  p_min_price numeric default null,
+  p_max_price numeric default null,
+  p_size      text    default null,
+  p_color     text    default null,
+  p_in_stock  boolean default false
+) returns setof public.products language sql stable as $$
+  select p.*
+    from public.products p
+   where p.is_active
+     and (p_category is null or p.category = p_category)
+     and (p_search is null
+          or p.name ilike '%' || p_search || '%'
+          or p.description ilike '%' || p_search || '%'
+          or p.category ilike '%' || p_search || '%')
+     and (p_min_price is null or p.price >= p_min_price)
+     and (p_max_price is null or p.price <= p_max_price)
+     and (p_size is null
+          or (jsonb_array_length(p.variants) = 0 and p_size = any (p.sizes))
+          or exists (select 1
+                       from jsonb_array_elements(p.variants) v, jsonb_array_elements(v -> 'sizes') s
+                      where coalesce((v ->> 'isActive')::boolean, true)
+                        and s ->> 'size' = p_size
+                        and (not p_in_stock or (s ->> 'stock')::integer > 0)))
+     and (p_color is null
+          or exists (select 1 from jsonb_array_elements(p.variants) v
+                      where coalesce((v ->> 'isActive')::boolean, true)
+                        and lower(v -> 'color' ->> 'name') = lower(p_color)))
+     and (not p_in_stock
+          or (jsonb_array_length(p.variants) = 0 and p.stock > 0)
+          or exists (select 1
+                       from jsonb_array_elements(p.variants) v, jsonb_array_elements(v -> 'sizes') s
+                      where coalesce((v ->> 'isActive')::boolean, true)
+                        and (s ->> 'stock')::integer > 0))
+$$;
+
+-- Values for the filter sidebar: sizes, colors and price range in the catalog
+create or replace function public.product_filter_options()
+returns jsonb language sql stable as $$
+  with active as (select * from public.products where is_active),
+  variant_sizes as (
+    select s ->> 'size' as size
+      from active, jsonb_array_elements(variants) v, jsonb_array_elements(v -> 'sizes') s
+     where coalesce((v ->> 'isActive')::boolean, true)
+    union
+    select unnest(sizes) from active where jsonb_array_length(variants) = 0
+  ),
+  colors as (
+    select distinct on (lower(v -> 'color' ->> 'name'))
+           v -> 'color' ->> 'name' as name, v -> 'color' ->> 'hex' as hex
+      from active, jsonb_array_elements(variants) v
+     where coalesce((v ->> 'isActive')::boolean, true)
+  )
+  select jsonb_build_object(
+    'sizes',    (select coalesce(jsonb_agg(distinct size), '[]'::jsonb) from variant_sizes where size is not null),
+    'colors',   (select coalesce(jsonb_agg(jsonb_build_object('name', name, 'hex', hex) order by name), '[]'::jsonb) from colors),
+    'minPrice', (select coalesce(min(price), 0) from active),
+    'maxPrice', (select coalesce(max(price), 0) from active)
+  );
+$$;
+
+-- ---------------------------------------------------------------------
+-- ADMIN DASHBOARD STATS (computed in the database, not from a page of orders)
+-- Revenue excludes cancelled orders. Days are UTC calendar days.
+-- ---------------------------------------------------------------------
+create or replace function public.admin_dashboard_stats(p_days integer default 30)
+returns jsonb language sql stable as $$
+  with paid as (select * from public.orders where status <> 'Cancelled'),
+  cur  as (select * from paid where created_at >= now() - make_interval(days => p_days)),
+  prev as (select * from paid where created_at >= now() - make_interval(days => 2 * p_days)
+                                and created_at <  now() - make_interval(days => p_days)),
+  days as (select (generate_series(current_date - (p_days - 1), current_date, interval '1 day'))::date as day),
+  daily as (
+    select d.day, count(p.id) as orders, coalesce(sum(p.total_price), 0) as revenue
+      from days d left join paid p on (p.created_at at time zone 'utc')::date = d.day
+     group by d.day
+  ),
+  sold as (
+    select i ->> 'product' as product_id, i ->> 'name' as name,
+           (i ->> 'quantity')::integer as qty,
+           (i ->> 'price')::numeric * (i ->> 'quantity')::integer as revenue
+      from paid, jsonb_array_elements(paid.items) i
+  ),
+  best as (
+    select product_id, max(name) as name, sum(qty) as quantity, sum(revenue) as revenue
+      from sold group by product_id order by sum(qty) desc, max(name) limit 5
+  ),
+  low as (
+    select p.id, p.name, v -> 'color' ->> 'name' as color, s ->> 'size' as size,
+           (s ->> 'stock')::integer as stock, coalesce((s ->> 'lowStockThreshold')::integer, 5) as threshold
+      from public.products p, jsonb_array_elements(p.variants) v, jsonb_array_elements(v -> 'sizes') s
+     where p.is_active and coalesce((v ->> 'isActive')::boolean, true)
+       and (s ->> 'stock')::integer <= coalesce((s ->> 'lowStockThreshold')::integer, 5)
+    union all
+    select p.id, p.name, null, null, p.stock, 5
+      from public.products p
+     where p.is_active and jsonb_array_length(p.variants) = 0 and p.stock <= 5
+  )
+  select jsonb_build_object(
+    'totals', jsonb_build_object(
+      'products',       (select count(*) from public.products),
+      'activeProducts', (select count(*) from public.products where is_active),
+      'categories',     (select count(*) from public.categories),
+      'orders',         (select count(*) from public.orders),
+      'revenue',        (select coalesce(sum(total_price), 0) from paid),
+      'pendingOrders',  (select count(*) from public.orders where status = 'Pending'),
+      'customers',      (select count(distinct user_id) from paid)
+    ),
+    'period', jsonb_build_object(
+      'days',              p_days,
+      'orders',            (select count(*) from cur),
+      'previousOrders',    (select count(*) from prev),
+      'revenue',           (select coalesce(sum(total_price), 0) from cur),
+      'previousRevenue',   (select coalesce(sum(total_price), 0) from prev),
+      'customers',         (select count(distinct user_id) from cur),
+      'previousCustomers', (select count(distinct user_id) from prev)
+    ),
+    'statusCounts', (select coalesce(jsonb_object_agg(status, n), '{}'::jsonb)
+                       from (select status, count(*) as n from public.orders group by status) x),
+    'dailySales',   (select jsonb_agg(jsonb_build_object('date', day, 'orders', orders, 'revenue', revenue) order by day) from daily),
+    'bestSellers',  (select coalesce(jsonb_agg(jsonb_build_object('productId', product_id, 'name', name,
+                                     'quantity', quantity, 'revenue', revenue) order by quantity desc, name), '[]'::jsonb) from best),
+    'lowStock',     (select coalesce(jsonb_agg(jsonb_build_object('productId', id, 'name', name, 'color', color,
+                                     'size', size, 'stock', stock, 'threshold', threshold) order by stock, name), '[]'::jsonb)
+                       from (select * from low order by stock, name limit 10) l)
+  );
+$$;
+
+-- ---------------------------------------------------------------------
 -- Security: the Express API talks to Supabase with the service_role key.
 -- Enable RLS with no policies so the public anon key can read/write nothing
 -- (the users table holds password hashes), and lock the functions down.
 -- ---------------------------------------------------------------------
-alter table public.users      enable row level security;
-alter table public.categories enable row level security;
-alter table public.products   enable row level security;
-alter table public.orders     enable row level security;
-alter table public.reviews    enable row level security;
-alter table public.contacts   enable row level security;
+alter table public.users       enable row level security;
+alter table public.categories  enable row level security;
+alter table public.products    enable row level security;
+alter table public.orders      enable row level security;
+alter table public.reviews     enable row level security;
+alter table public.contacts    enable row level security;
+alter table public.coupons     enable row level security;
+alter table public.wishlists   enable row level security;
+alter table public.rate_limits enable row level security;
 
-revoke execute on function public.adjust_stock(uuid, text, text, integer) from public, anon, authenticated;
-revoke execute on function public.create_order(uuid, jsonb) from public, anon, authenticated;
-grant  execute on function public.adjust_stock(uuid, text, text, integer) to service_role;
-grant  execute on function public.create_order(uuid, jsonb) to service_role;
+do $$
+declare
+  fn text;
+begin
+  foreach fn in array array[
+    'public.adjust_stock(uuid, text, text, integer)',
+    'public.create_order(uuid, jsonb)',
+    'public.coupon_discount(text, numeric, boolean)',
+    'public.release_coupon(text)',
+    'public.hit_rate_limit(text, integer, integer)',
+    'public.clear_rate_limit(text)',
+    'public.search_products(text, text, numeric, numeric, text, text, boolean)',
+    'public.product_filter_options()',
+    'public.admin_dashboard_stats(integer)'
+  ] loop
+    execute format('revoke execute on function %s from public, anon, authenticated', fn);
+    execute format('grant execute on function %s to service_role', fn);
+  end loop;
+end $$;
 
 -- ---------------------------------------------------------------------
 -- STORAGE: public bucket for product & category images (max 5 MB, images only)

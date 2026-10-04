@@ -7,7 +7,8 @@ const {
   getMyReviews,
   updateReview,
   deleteReview,
-  canReview
+  canReview,
+  getRecentReviews
 } = require('../controllers/reviewController');
 
 /**
@@ -15,6 +16,7 @@ const {
  */
 
 // Public routes
+router.get('/recent', getRecentReviews); // Latest reviews across the store (home page)
 router.get('/product/:productId', getProductReviews); // Get all reviews for a product
 
 // Protected routes (require authentication)

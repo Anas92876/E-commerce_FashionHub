@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { supabase } = require('../config/supabase');
 const { check, UNIQUE_VIOLATION } = require('../utils/db');
+const { resetAttempts, loginEmailKey } = require('../utils/rateLimit');
 const {
   USER_PUBLIC_COLUMNS,
   hashPassword,
@@ -119,6 +120,9 @@ exports.login = async (req, res) => {
     }
 
     const user = toUser(row);
+
+    // Successful login: forget earlier failed attempts for this account
+    await resetAttempts(loginEmailKey(email));
 
     // Generate token
     const token = generateToken(user.id);

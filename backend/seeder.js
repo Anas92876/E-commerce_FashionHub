@@ -1,6 +1,8 @@
-// Seed Supabase with sample categories, products and an admin user.
-//   node seeder.js      -> wipe categories/products/users, then import
-//   node seeder.js -d   -> wipe only
+// Seed Supabase with sample categories, products (with photos), reviews and an admin user.
+//   node seeder.js            -> wipe categories/products/users, then import everything
+//   node seeder.js --catalog  -> only add missing sample categories/products/photos/reviews
+//                                (keeps existing users, orders and products)
+//   node seeder.js -d         -> wipe only
 const dotenv = require('dotenv');
 
 // Load environment variables
@@ -10,6 +12,7 @@ const { supabase } = require('./config/supabase');
 const { check } = require('./utils/db');
 const { hashPassword } = require('./utils/user');
 const seedReviews = require('./scripts/seedReviews');
+const seedPhotos = require('./scripts/seedPhotos');
 
 const slugify = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -147,103 +150,86 @@ const adminUser = {
   role: 'admin',
 };
 
-// Import data
+// Insert sample categories + products that don't exist yet (matched by name)
+const addCatalog = async () => {
+  const existingCats = new Set(check(await supabase.from('categories').select('name')).map((c) => c.name));
+  const newCats = categories.filter((cat) => !existingCats.has(cat.name));
+  if (newCats.length) {
+    check(await supabase.from('categories').insert(newCats.map((cat) => ({ name: cat.name, slug: slugify(cat.name) }))));
+  }
+
+  const existingProducts = new Set(check(await supabase.from('products').select('name')).map((p) => p.name));
+  const newProducts = products.filter((p) => !existingProducts.has(p.name));
+  if (newProducts.length) {
+    check(
+      await supabase.from('products').insert(
+        newProducts.map((p) => ({
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          base_price: p.price,
+          category: p.category,
+          sizes: p.sizes,
+          stock: p.stock,
+          is_active: p.isActive,
+        }))
+      )
+    );
+  }
+
+  console.log(`✓ ${newCats.length} categories and ${newProducts.length} products added`);
+
+  const { added } = await seedPhotos();
+  console.log(`✓ Photos added to ${added} products`);
+
+  const { reviews } = await seedReviews();
+  console.log(`✓ ${reviews} sample reviews created`);
+};
+
+// Full reset: wipe users, categories and products, then import everything
 const importData = async () => {
-  try {
-    console.log('Deleting existing data...');
+  console.log('Deleting existing data...');
 
-    // Delete existing data
-    await deleteAll('categories');
-    await deleteAll('products');
-    await deleteAll('users');
+  await deleteAll('categories');
+  await deleteAll('products');
+  await deleteAll('users');
 
-    console.log('Creating admin user...');
+  console.log('Creating admin user...');
 
-    // Create admin user
-    const admin = check(
-      await supabase
-        .from('users')
-        .insert({
-          first_name: adminUser.firstName,
-          last_name: adminUser.lastName,
-          email: adminUser.email,
-          password: await hashPassword(adminUser.password),
-          role: adminUser.role,
-        })
-        .select('email')
-        .single()
-    );
-    console.log(`✓ Admin user created (${admin.email})`);
+  const admin = check(
+    await supabase
+      .from('users')
+      .insert({
+        first_name: adminUser.firstName,
+        last_name: adminUser.lastName,
+        email: adminUser.email,
+        password: await hashPassword(adminUser.password),
+        role: adminUser.role,
+      })
+      .select('email')
+      .single()
+  );
+  console.log(`✓ Admin user created (${admin.email})`);
 
-    console.log('Creating categories...');
-
-    const createdCategories = check(
-      await supabase
-        .from('categories')
-        .insert(categories.map((cat) => ({ name: cat.name, slug: slugify(cat.name) })))
-        .select('id')
-    );
-    console.log(`✓ ${createdCategories.length} categories created`);
-
-    console.log('Creating products...');
-
-    // Create products
-    const createdProducts = check(
-      await supabase
-        .from('products')
-        .insert(
-          products.map((p) => ({
-            name: p.name,
-            description: p.description,
-            price: p.price,
-            base_price: p.price,
-            category: p.category,
-            sizes: p.sizes,
-            stock: p.stock,
-            is_active: p.isActive,
-          }))
-        )
-        .select('id')
-    );
-    console.log(`✓ ${createdProducts.length} products created`);
-
-    console.log('Creating sample reviews...');
-    const { reviews } = await seedReviews();
-    console.log(`✓ ${reviews} reviews created`);
-
-    console.log('\n✅ Data imported successfully!');
-    console.log('\n📊 Summary:');
-    console.log(`   Admin User: 1 (${adminUser.email})`);
-    console.log(`   Categories: ${createdCategories.length}`);
-    console.log(`   Products: ${createdProducts.length}`);
-
-    process.exit();
-  } catch (error) {
-    console.error('❌ Error importing data:', error);
-    process.exit(1);
-  }
+  await addCatalog();
 };
 
-// Delete data
 const deleteData = async () => {
-  try {
-    console.log('Deleting all data...');
+  console.log('Deleting all data...');
 
-    await deleteAll('categories');
-    await deleteAll('products');
-    await deleteAll('users');
-
-    console.log('✅ Data deleted successfully!');
-    process.exit();
-  } catch (error) {
-    console.error('❌ Error deleting data:', error);
-    process.exit(1);
-  }
+  await deleteAll('categories');
+  await deleteAll('products');
+  await deleteAll('users');
 };
 
-// Check command line arguments
-if (process.argv[2] === '-d') {
-  deleteData();
-} else {
-  importData();
-}
+const commands = {
+  '-d': deleteData,      // wipe only
+  '--catalog': addCatalog, // add missing sample catalog; keeps users & orders
+};
+
+(commands[process.argv[2]] || importData)()
+  .then(() => console.log('✅ Done'))
+  .catch((error) => {
+    console.error('❌ Error:', error.message);
+    process.exitCode = 1;
+  });

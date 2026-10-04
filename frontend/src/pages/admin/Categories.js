@@ -10,12 +10,12 @@ import {
   PhotoIcon
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { useConfirm } from '../../hooks/useConfirm';
-import { API_URL, getImageUrl, IMAGE_BASE_URL } from '../../utils/api';
+import { API_URL, getImageUrl } from '../../utils/api';
 import { uploadImage } from '../../utils/uploadImages';
 
 const Categories = () => {

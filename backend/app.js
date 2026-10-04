@@ -61,6 +61,9 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/uploads', require('./routes/uploads'));
+app.use('/api/wishlist', require('./routes/wishlist'));
+app.use('/api/coupons', require('./routes/coupons'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Unknown API routes -> JSON 404
 app.use('/api', (req, res) => {

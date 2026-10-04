@@ -7,17 +7,20 @@ A modern, full-stack e-commerce platform for selling premium fashion online, bui
 ## ✨ Features
 
 ### Customer Features
-- 🔐 **User Authentication** - Secure registration and login
+- 🔐 **User Authentication** - Secure registration and login, with brute-force protection
 - 🛒 **Shopping Cart** - Persistent cart with size and color variants
-- 🔍 **Advanced Product Search** - Filter by category, price, size, and more
-- ⭐ **Product Reviews & Ratings** - Customer feedback system
-- 📦 **Order Tracking** - View order status and history
+- 🔍 **Search & Filters** - Live search suggestions; filter by category, price, size, color and stock (filters live in the URL, so they can be shared)
+- ❤️ **Wishlist** - Save products for later
+- 🏷️ **Coupons** - Percent or fixed discount codes at checkout
+- ⭐ **Product Reviews & Ratings** - Customer feedback with verified-purchase badges
+- 📦 **Order Tracking** - Timeline with the date of every status change
 - 💳 **Cash on Delivery** - Simple and secure payment
 - 🌓 **Theme System** - Light, Dark, and Auto modes with system preference detection
 - 📱 **Fully Responsive** - Optimized for all devices
 
 ### Admin Features
-- 📊 **Admin Dashboard** - Comprehensive analytics and statistics
+- 📊 **Admin Dashboard** - Revenue chart, best sellers, low-stock alerts and 7/30/90-day comparisons (calculated in the database over all orders)
+- 🎟️ **Coupon Management** - Create, limit, schedule and disable discount codes
 - 🏷️ **Product Management** - Add, edit, delete products with variants
 - 📂 **Category Management** - Organize products efficiently
 - 🎨 **Supabase Storage** - Cloud-based image storage
@@ -157,13 +160,18 @@ JWT_EXPIRE=30d
 
 The frontend needs no `.env`: in development it calls `http://localhost:5000/api`, and in production it calls `/api` on the same domain.
 
-6. **(Optional) Seed sample data** - creates categories, products, sample reviews and an admin user
-   (`admin@fashionhub.com` / `Admin123!`). **Warning:** it wipes existing users, products and categories.
+6. **(Optional) Seed sample data** - creates categories, products (with photos), sample reviews and an admin user
+   (`admin@fashionhub.com` / `Admin123!`).
 ```bash
 cd backend
-npm run seed           # everything
+npm run seed:catalog   # SAFE: only adds missing sample categories/products/photos/reviews
+npm run seed           # FULL RESET: wipes users, products and categories, then imports everything
 npm run seed:reviews   # only (re)create the sample reviews
+npm run seed:photos    # only add photos to sample products that have none
 ```
+
+7. **Updating an existing database** - `backend/supabase/schema.sql` is safe to re-run. After pulling
+   new features, run it again in the Supabase SQL Editor to add new tables and functions.
 
 ### Migrating existing data from MongoDB
 
@@ -192,6 +200,14 @@ npm start
 3. **Access the application:**
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
+
+### Running the Tests
+
+```bash
+npm test                         # everything (from the repository root)
+cd backend && npm test           # API + business logic (Node test runner, fake database)
+cd frontend && npx react-scripts test --watchAll=false   # React components (Jest + Testing Library)
+```
 
 ## 📦 Deployment (Vercel only)
 
@@ -224,7 +240,9 @@ Steps:
 - `PUT /api/auth/update-password` - Change password
 
 ### Products
-- `GET /api/products` - Get all products (with filters & pagination)
+- `GET /api/products` - Get products. Query: `search`, `category`, `minPrice`, `maxPrice`, `size`, `color`, `inStock=true`, `sort`, `page`, `limit`
+- `GET /api/products/filters` - Available sizes, colors and price range
+- `GET /api/products/suggest?q=` - Search suggestions (max 6)
 - `GET /api/products/:id` - Get single product
 - `POST /api/products` - Create product (admin)
 - `PUT /api/products/:id` - Update product (admin)
@@ -237,7 +255,7 @@ Steps:
 - `DELETE /api/categories/:id` - Delete category (admin)
 
 ### Orders
-- `POST /api/orders` - Create new order
+- `POST /api/orders` - Create new order (prices and coupon applied on the server)
 - `GET /api/orders/:id` - Get order details
 - `GET /api/orders/my-orders` - Get user's orders
 - `GET /api/orders` - Get all orders (admin)
@@ -245,6 +263,7 @@ Steps:
 - `PUT /api/orders/:id/cancel` - Cancel order
 
 ### Reviews
+- `GET /api/reviews/recent` - Latest reviews across the store
 - `GET /api/reviews/product/:productId` - Get product reviews
 - `POST /api/reviews` - Create review
 - `PUT /api/reviews/:id` - Update review
@@ -253,6 +272,19 @@ Steps:
 ### Contact
 - `POST /api/contact` - Submit contact form
 - `GET /api/contact` - Get all messages (admin)
+
+### Wishlist (logged in)
+- `GET /api/wishlist` - Saved products
+- `POST /api/wishlist/:productId` - Save a product
+- `DELETE /api/wishlist/:productId` - Remove a product
+
+### Coupons
+- `POST /api/coupons/validate` - Preview a coupon for the current cart (logged in)
+- `GET / POST /api/coupons`, `PUT / DELETE /api/coupons/:id` - Manage coupons (admin)
+
+### Admin
+- `GET /api/admin/stats?days=30` - Dashboard statistics (7, 30 or 90 days)
+- `POST /api/uploads/sign` - One-time URL for uploading an image to Supabase Storage
 
 ## 🎨 Theme System
 

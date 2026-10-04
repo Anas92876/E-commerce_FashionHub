@@ -23,6 +23,7 @@ import Footer from '../../components/Footer';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { useConfirm } from '../../hooks/useConfirm';
 import { API_URL, getImageUrl } from '../../utils/api';
+import OrderTimeline from '../../components/OrderTimeline';
 
 const MyOrders = () => {
   const navigate = useNavigate();
@@ -254,6 +255,12 @@ const MyOrders = () => {
                         className="border-t border-gray-100 dark:border-gray-700 overflow-hidden"
                       >
                             <div className="p-6 bg-gray-50 dark:bg-gray-900/50">
+                              {/* Tracking */}
+                              <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6">
+                                <h4 className="font-semibold text-gray-900 dark:text-white mb-5">Order Tracking</h4>
+                                <OrderTimeline order={order} />
+                              </div>
+
                               {/* Order Items Detail */}
                               <div className="mb-6">
                                 <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -283,16 +290,16 @@ const MyOrders = () => {
                                         <h5 className="font-semibold text-gray-900 dark:text-white">{item.name}</h5>
                                         <div className="flex items-center gap-4 flex-wrap mt-2">
                                           {/* Color Swatch for Variant Products */}
-                                          {item.variant && item.variant.color && (
+                                          {item.color?.name && (
                                             <div className="flex items-center gap-1.5">
                                               <span className="text-sm text-gray-600 dark:text-gray-400">Color:</span>
                                               <div
                                                 className="w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600"
-                                                style={{ backgroundColor: item.variant.color.hex || '#808080' }}
-                                                title={item.variant.color.name || 'Color'}
+                                                style={{ backgroundColor: item.color.hex || '#808080' }}
+                                                title={item.color.name}
                                               />
                                               <span className="font-medium text-sm text-gray-900 dark:text-white">
-                                                {item.variant.color.name || item.variant.color.code || 'Default'}
+                                                {item.color.name}
                                               </span>
                                             </div>
                                           )}
@@ -304,7 +311,7 @@ const MyOrders = () => {
                                           </p>
                                         </div>
                                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                          ${item.price} × {item.quantity} = <span className="font-semibold text-gray-900 dark:text-white">${(item.price * item.quantity).toFixed(2)}</span>
+                                          ${Number(item.price).toFixed(2)} × {item.quantity} = <span className="font-semibold text-gray-900 dark:text-white">${(item.price * item.quantity).toFixed(2)}</span>
                                         </p>
                                       </div>
                                     </div>
@@ -358,9 +365,19 @@ const MyOrders = () => {
                                     <div className="flex justify-between text-sm">
                                       <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
                                       <span className="font-medium text-gray-900 dark:text-white">
-                                        ${order.totalPrice.toFixed(2)}
+                                        ${Number(order.itemsPrice ?? order.totalPrice).toFixed(2)}
                                       </span>
                                     </div>
+                                    {Number(order.discountPrice) > 0 && (
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">
+                                          Discount{order.couponCode ? ` (${order.couponCode})` : ''}:
+                                        </span>
+                                        <span className="font-medium text-green-600 dark:text-green-400">
+                                          −${Number(order.discountPrice).toFixed(2)}
+                                        </span>
+                                      </div>
+                                    )}
                                     <div className="flex justify-between text-sm">
                                       <span className="text-gray-600 dark:text-gray-400">Shipping:</span>
                                       <span className="font-medium text-green-600 dark:text-green-400">Free</span>

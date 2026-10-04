@@ -4,7 +4,7 @@ import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/react/24/outl
 import { useTheme } from '../context/ThemeContext';
 
 const ThemeToggle = () => {
-  const { theme, setTheme, isLight, isDark, isAuto } = useTheme();
+  const { theme, setTheme, isDark, isAuto } = useTheme();
 
   // Cycle through themes: light → dark → auto → light
   const cycleTheme = () => {

@@ -14,7 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { API_URL, getImageUrl } from '../../utils/api';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 import AdminLayout from '../../components/AdminLayout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import LazyImage from '../../components/LazyImage';

@@ -118,7 +118,7 @@ const NotFound = () => {
               transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
               className="space-y-6 sm:space-y-8 order-1 lg:order-2 text-center lg:text-left"
             >
-              <div class="my-4"></div>
+              <div className="my-4"></div>
 
               {/* Badge */}
               <motion.div
@@ -205,7 +205,7 @@ const NotFound = () => {
                   Suggestion: Use the navigation menu above
                 </p>
 
-                <div class="my-12"></div>
+                <div className="my-12"></div>
 
               </motion.div>
 
@@ -213,7 +213,7 @@ const NotFound = () => {
 
           </div>
         </div>
-        <div class="my-12"></div>
+        <div className="my-12"></div>
       </main>
 
 

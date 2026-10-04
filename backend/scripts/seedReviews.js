@@ -120,10 +120,9 @@ if (require.main === module) {
   seedReviews()
     .then(({ reviews, products }) => {
       console.log(`✅ Added ${reviews} reviews across ${products} products`);
-      process.exit();
     })
     .catch((error) => {
       console.error('❌ Error seeding reviews:', error.message);
-      process.exit(1);
+      process.exitCode = 1;
     });
 }

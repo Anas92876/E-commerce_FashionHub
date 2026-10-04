@@ -1,33 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Tab, Dialog, Transition } from '@headlessui/react';
+import { Tab } from '@headlessui/react';
 import {
   ShoppingCartIcon,
-  StarIcon as StarIconOutline,
   ChevronRightIcon,
-  XMarkIcon,
   MagnifyingGlassPlusIcon,
   ShareIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
-import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import { useCart } from '../../context/CartContext';
-import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import LazyImage from '../../components/LazyImage';
 import { ProductDetailsSkeleton } from '../../components/skeletons';
 import VariantSelector from '../../components/VariantSelector';
+import ProductCard from '../../components/ProductCard';
+import StarRating from '../../components/StarRating';
+import WishlistButton from '../../components/WishlistButton';
+import SEO from '../../components/SEO';
+import ProductReviews from '../../components/product/ProductReviews';
+import SizeGuideModal from '../../components/product/SizeGuideModal';
+import ImageZoomModal from '../../components/product/ImageZoomModal';
 import { API_URL, getImageUrl } from '../../utils/api';
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { user } = useAuth();
 
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -54,14 +55,10 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // Reviews state
-  const [reviews, setReviews] = useState([]);
-  const [canReview, setCanReview] = useState(false);
+  // Reviews (list + form live in ProductReviews; these let the top button open it)
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewData, setReviewData] = useState({
-    rating: 5,
-    comment: ''
-  });
+  const [canReview, setCanReview] = useState(false);
+  const [selectedTab, setSelectedTab] = useState(0);
 
   // Fetch product details and availability matrix
   useEffect(() => {
@@ -99,8 +96,8 @@ const ProductDetails = () => {
 
         // Fetch related products
         if (data.data.category) {
-          const relatedRes = await axios.get(`${API_URL}/products?category=${data.data.category}&limit=4`);
-          setRelatedProducts(relatedRes.data.data.filter(p => p._id !== id));
+          const relatedRes = await axios.get(`${API_URL}/products`, { params: { category: data.data.category, limit: 5 } });
+          setRelatedProducts(relatedRes.data.data.filter(p => p._id !== id).slice(0, 4));
         }
 
         setLoading(false);
@@ -113,46 +110,6 @@ const ProductDetails = () => {
 
     fetchProduct();
   }, [id]);
-
-  // Fetch reviews
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const { data } = await axios.get(`${API_URL}/reviews/product/${id}`);
-        setReviews(data.data || []);
-      } catch (err) {
-        console.error('Failed to fetch reviews');
-        setReviews([]); // Set empty array on error
-      }
-    };
-
-    if (product) {
-      fetchReviews();
-    }
-  }, [id, product]);
-
-  // Check if user can review
-  useEffect(() => {
-    const checkCanReview = async () => {
-      if (!user) {
-        setCanReview(false);
-        return;
-      }
-
-      try {
-        const { data } = await axios.get(`${API_URL}/reviews/can-review/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        setCanReview(data.canReview);
-      } catch (err) {
-        setCanReview(false);
-      }
-    };
-
-    if (product) {
-      checkCanReview();
-    }
-  }, [id, product, user]);
 
   const handleVariantChange = (selection) => {
     setVariantSelection(selection);
@@ -249,55 +206,23 @@ const ProductDetails = () => {
     }
   };
 
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-
-    if (!user) {
-      toast.error('Please login to submit a review');
-      navigate('/login');
-      return;
-    }
-
-    if (!reviewData.comment.trim()) {
-      toast.error('Please write a review comment');
-      return;
-    }
-
+  // Refresh rating / review count after a new review
+  const refreshProduct = async () => {
     try {
-      await axios.post(
-        `${API_URL}/reviews`,
-        {
-          product: id,
-          rating: reviewData.rating,
-          comment: reviewData.comment
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
-
-      toast.success('Review submitted successfully!');
-      setShowReviewForm(false);
-      setReviewData({ rating: 5, comment: '' });
-
-      // Refresh reviews
-      const { data } = await axios.get(`${API_URL}/reviews/product/${id}`);
-      setReviews(data.data || []);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to submit review');
+      const { data } = await axios.get(`${API_URL}/products/${id}`);
+      setProduct(data.data);
+    } catch {
+      // keep the current data
     }
   };
 
-  const renderStars = (rating) => {
-    return [...Array(5)].map((_, index) => (
-      index < rating ? (
-        <StarIconSolid key={index} className="w-4 h-4 text-yellow-400" />
-      ) : (
-        <StarIconOutline key={index} className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-      )
-    ));
+  const openReviewForm = () => {
+    setSelectedTab(1);
+    setShowReviewForm(true);
+    // wait for the Reviews tab to render, then scroll to it
+    setTimeout(() => {
+      document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
   };
 
   if (loading) {
@@ -356,6 +281,7 @@ const ProductDetails = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors duration-300">
+      <SEO title={product.name} description={product.description?.slice(0, 160)} />
       <Navbar />
 
       {/* Breadcrumb */}
@@ -475,12 +401,16 @@ const ProductDetails = () => {
                 <span className="inline-block px-3 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-semibold rounded-full uppercase tracking-wide">
                   {product.category}
                 </span>
-                <button
-                  onClick={handleShare}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-                >
-                  <ShareIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <WishlistButton productId={product._id} />
+                  <button
+                    onClick={handleShare}
+                    aria-label="Share product"
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                  >
+                    <ShareIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  </button>
+                </div>
               </div>
 
               {/* Product Title */}
@@ -492,11 +422,9 @@ const ProductDetails = () => {
               <div className="flex items-center justify-between mb-6">
                 {product.numReviews > 0 ? (
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1">
-                      {renderStars(Math.round(product.rating))}
-                    </div>
+                    <StarRating rating={product.rating} />
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {product.rating.toFixed(1)}
+                      {Number(product.rating).toFixed(1)}
                     </span>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
                       ({product.numReviews} {product.numReviews === 1 ? 'review' : 'reviews'})
@@ -507,14 +435,7 @@ const ProductDetails = () => {
                 )}
                 {canReview && (
                   <button
-                    onClick={() => {
-                      setShowReviewForm(true);
-                      // Scroll to reviews tab
-                      const reviewsSection = document.getElementById('reviews-section');
-                      if (reviewsSection) {
-                        reviewsSection.scrollIntoView({ behavior: 'smooth' });
-                      }
-                    }}
+                    onClick={openReviewForm}
                     className="px-4 py-2 border border-primary-600 dark:border-primary-500 text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors text-sm font-medium"
                   >
                     Write Review
@@ -615,7 +536,7 @@ const ProductDetails = () => {
 
           {/* Product Details Tabs */}
           <div className="mt-16 lg:mt-20">
-            <Tab.Group>
+            <Tab.Group selectedIndex={selectedTab} onChange={setSelectedTab}>
               <Tab.List className="flex gap-8 border-b border-gray-200 dark:border-gray-700">
                 {['Description', 'Reviews', 'Shipping Info'].map((tab) => (
                   <Tab
@@ -661,129 +582,15 @@ const ProductDetails = () => {
 
                 {/* Reviews Panel */}
                 <Tab.Panel id="reviews-section">
-                  <div className="max-w-3xl">
-                    {/* Reviews Header */}
-                    <div className="flex items-center justify-between mb-8">
-                      <div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Customer Reviews</h3>
-                        {product.numReviews > 0 && (
-                          <div className="flex items-center gap-3 mt-2">
-                            <div className="flex items-center gap-1">
-                              {renderStars(Math.round(product.rating))}
-                            </div>
-                            <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                              {product.rating.toFixed(1)} out of 5
-                            </span>
-                            <span className="text-gray-500 dark:text-gray-400">
-                              ({product.numReviews} reviews)
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      {canReview && (
-                        <button
-                          onClick={() => setShowReviewForm(!showReviewForm)}
-                          className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors text-sm font-medium"
-                        >
-                          Write a Review
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Review Form */}
-                    {showReviewForm && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8"
-                      >
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Write Your Review</h4>
-                        <form onSubmit={handleSubmitReview} className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                              Rating
-                            </label>
-                            <div className="flex gap-2">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <button
-                                  key={star}
-                                  type="button"
-                                  onClick={() => setReviewData({ ...reviewData, rating: star })}
-                                  className="focus:outline-none"
-                                >
-                                  {star <= reviewData.rating ? (
-                                    <StarIconSolid className="w-8 h-8 text-yellow-400" />
-                                  ) : (
-                                    <StarIconOutline className="w-8 h-8 text-gray-300 dark:text-gray-600" />
-                                  )}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                              Your Review
-                            </label>
-                            <textarea
-                              value={reviewData.comment}
-                              onChange={(e) => setReviewData({ ...reviewData, comment: e.target.value })}
-                              rows={4}
-                              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                              placeholder="Share your thoughts about this product..."
-                              required
-                            />
-                          </div>
-                          <div className="flex gap-3">
-                            <button
-                              type="submit"
-                              className="px-6 py-2.5 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors font-medium"
-                            >
-                              Submit Review
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setShowReviewForm(false)}
-                              className="px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </form>
-                      </motion.div>
-                    )}
-
-                    {/* Reviews List */}
-                    <div className="space-y-6">
-                      {reviews.length > 0 ? (
-                        reviews.map((review) => (
-                          <div key={review._id} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0">
-                            <div className="flex items-center justify-between mb-3">
-                              <div>
-                                <p className="font-semibold text-gray-900 dark:text-white">{review.user?.name || 'Anonymous'}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <div className="flex gap-0.5">
-                                    {renderStars(review.rating)}
-                                  </div>
-                                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                                    {new Date(review.createdAt).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{review.comment}</p>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-12">
-                          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                            <StarIconOutline className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                          </div>
-                          <p className="text-gray-500 dark:text-gray-400 text-lg">No reviews yet</p>
-                          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Be the first to review this product</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <ProductReviews
+                    productId={id}
+                    rating={product.rating}
+                    numReviews={product.numReviews}
+                    formOpen={showReviewForm}
+                    setFormOpen={setShowReviewForm}
+                    onCanReviewChange={setCanReview}
+                    onReviewAdded={refreshProduct}
+                  />
                 </Tab.Panel>
 
                 {/* Shipping Info Panel */}
@@ -820,45 +627,9 @@ const ProductDetails = () => {
           {relatedProducts.length > 0 && (
             <div className="mt-20">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">You May Also Like</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {relatedProducts.map((relatedProduct) => (
-                  <Link
-                    key={relatedProduct._id}
-                    to={`/product/${relatedProduct._id}`}
-                    className="group"
-                  >
-                    <div className="aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden mb-3">
-                      {relatedProduct.image ? (
-                        <img
-                          src={getImageUrl(relatedProduct.image)}
-                          alt={relatedProduct.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <svg className="w-12 h-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                      {relatedProduct.name}
-                    </h3>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      ${relatedProduct.price?.toFixed(2)}
-                    </p>
-                    {relatedProduct.numReviews > 0 && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <div className="flex gap-0.5">
-                          {renderStars(Math.round(relatedProduct.rating))}
-                        </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          ({relatedProduct.numReviews})
-                        </span>
-                      </div>
-                    )}
-                  </Link>
+                  <ProductCard key={relatedProduct._id} product={relatedProduct} />
                 ))}
               </div>
             </div>
@@ -866,155 +637,13 @@ const ProductDetails = () => {
         </div>
       </div>
 
-      {/* Size Guide Modal */}
-      <Transition appear show={showSizeGuide} as={React.Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowSizeGuide(false)}>
-          <Transition.Child
-            as={React.Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4">
-              <Transition.Child
-                as={React.Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl transition-all">
-                  <div className="flex items-center justify-between mb-6">
-                    <Dialog.Title className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Size Guide
-                    </Dialog.Title>
-                    <button
-                      onClick={() => setShowSizeGuide(false)}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                    >
-                      <XMarkIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                    </button>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b-2 border-gray-200 dark:border-gray-700">
-                          <th className="py-3 px-4 font-semibold text-gray-900 dark:text-white">Size</th>
-                          <th className="py-3 px-4 font-semibold text-gray-900 dark:text-white">Chest (in)</th>
-                          <th className="py-3 px-4 font-semibold text-gray-900 dark:text-white">Waist (in)</th>
-                          <th className="py-3 px-4 font-semibold text-gray-900 dark:text-white">Hips (in)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border-b border-gray-100 dark:border-gray-700">
-                          <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">XS</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">32-34</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">24-26</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">34-36</td>
-                        </tr>
-                        <tr className="border-b border-gray-100 dark:border-gray-700">
-                          <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">S</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">34-36</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">26-28</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">36-38</td>
-                        </tr>
-                        <tr className="border-b border-gray-100 dark:border-gray-700">
-                          <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">M</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">36-38</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">28-30</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">38-40</td>
-                        </tr>
-                        <tr className="border-b border-gray-100 dark:border-gray-700">
-                          <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">L</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">38-40</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">30-32</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">40-42</td>
-                        </tr>
-                        <tr className="border-b border-gray-100 dark:border-gray-700">
-                          <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">XL</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">40-42</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">32-34</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">42-44</td>
-                        </tr>
-                        <tr>
-                          <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">XXL</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">42-44</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">34-36</td>
-                          <td className="py-3 px-4 text-gray-600 dark:text-gray-300">44-46</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      <strong>Note:</strong> Measurements are in inches. For the best fit, measure yourself
-                      and compare with the size chart above. If you're between sizes, we recommend sizing up.
-                    </p>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
-
-      {/* Image Zoom Modal */}
-      <Transition appear show={showImageZoom} as={React.Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowImageZoom(false)}>
-          <Transition.Child
-            as={React.Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black bg-opacity-90" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4">
-              <Transition.Child
-                as={React.Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="relative max-w-5xl w-full">
-                  <button
-                    onClick={() => setShowImageZoom(false)}
-                    className="absolute -top-12 right-0 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                  >
-                    <XMarkIcon className="w-6 h-6 text-white" />
-                  </button>
-                  {currentImages.length > 0 && (
-                    <img
-                      src={getImageUrl(currentImages[selectedImageIndex])}
-                      alt={product.name}
-                      className="w-full h-auto rounded-lg"
-                    />
-                  )}
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
+      <SizeGuideModal open={showSizeGuide} onClose={() => setShowSizeGuide(false)} />
+      <ImageZoomModal
+        open={showImageZoom}
+        onClose={() => setShowImageZoom(false)}
+        src={currentImages.length > 0 ? getImageUrl(currentImages[selectedImageIndex]) : null}
+        alt={product.name}
+      />
 
       <Footer />
     </div>

@@ -1,20 +1,6 @@
 const { supabase } = require('../config/supabase');
 const { toApi, check, normalizeId } = require('../utils/db');
-const { toProduct, checkAvailability } = require('../utils/product');
-
-// Free shipping on all orders (matches the Cart/Checkout pages)
-const SHIPPING_PRICE = 0;
-
-const roundMoney = (value) => Math.round(value * 100) / 100;
-
-// The price the store charges for an item - never trust the price sent by the browser
-const unitPrice = (product, item) => {
-  if (item.variantSku) {
-    const variant = product.variants.find((v) => v.sku === item.variantSku);
-    if (variant) return Number(variant.priceOverride || product.basePrice || product.price);
-  }
-  return Number(product.price || product.basePrice);
-};
+const { priceItems } = require('../utils/pricing');
 
 const ORDER_WITH_USER = '*, user:users(id, first_name, last_name, email)';
 
@@ -41,56 +27,20 @@ const orderNotFound = (res) =>
 
 const ownerId = (row) => row.user_id || row.user?.id;
 
-// Keep only the fields an order item is allowed to have
-const sanitizeItem = (item) => ({
-  product: normalizeId(item.product),
-  name: item.name,
-  price: Number(item.price),
-  quantity: parseInt(item.quantity, 10),
-  size: item.size,
-  image: item.image,
-  variantSku: item.variantSku || null,
-  color: {
-    name: item.color?.name || null,
-    hex: item.color?.hex || null,
-    code: item.color?.code || null,
-  },
-  sizeSku: item.sizeSku || null,
-});
-
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private
 exports.createOrder = async (req, res, next) => {
   try {
     // itemsPrice / shippingPrice / totalPrice from the client are ignored;
-    // they are calculated below from the prices stored in the database
-    const { shippingAddress, paymentMethod, notes } = req.body;
-
-    // Validation
-    if (!req.body.items || req.body.items.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No order items provided'
-      });
-    }
+    // prices come from the database and the coupon is applied in create_order
+    const { shippingAddress, paymentMethod, notes, couponCode } = req.body;
 
     if (!shippingAddress) {
       return res.status(400).json({
         success: false,
         message: 'Shipping address is required'
       });
-    }
-
-    const items = req.body.items.map(sanitizeItem);
-
-    for (const item of items) {
-      if (!item.size || !Number.isInteger(item.quantity) || item.quantity < 1) {
-        return res.status(400).json({
-          success: false,
-          message: 'Each order item needs a size and a quantity of at least 1'
-        });
-      }
     }
 
     const { fullName, phone, address, city, postalCode } = shippingAddress;
@@ -101,69 +51,19 @@ exports.createOrder = async (req, res, next) => {
       });
     }
 
-    // Verify all products exist and have enough stock (gives a clear error message;
-    // the create_order function re-checks atomically while decrementing)
-    const productIds = [...new Set(items.map((item) => item.product).filter(Boolean))];
-    const rows = productIds.length
-      ? check(await supabase.from('products').select('*').in('id', productIds))
-      : [];
-    const products = new Map(rows.map((row) => [row.id, toProduct(row)]));
-
-    for (const item of items) {
-      const product = products.get(item.product);
-
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: `Product not found: ${item.name || item.product}`
-        });
-      }
-
-      let availability;
-      if (item.variantSku && item.size) {
-        // Variant system
-        availability = checkAvailability(product, item.variantSku, item.size);
-        if (availability.error) {
-          return res.status(404).json({
-            success: false,
-            message: `${availability.error} for ${product.name}`
-          });
-        }
-      } else {
-        // Legacy product without variants
-        availability = {
-          available: product.stock >= item.quantity,
-          stock: product.stock
-        };
-      }
-
-      if (!availability.available || availability.stock < item.quantity) {
-        return res.status(400).json({
-          success: false,
-          message: `Insufficient stock for ${product.name} (${item.size}). Available: ${availability.stock}, Requested: ${item.quantity}`
-        });
-      }
-
-      // Use the real name and price from the database
-      item.name = product.name;
-      item.price = unitPrice(product, item);
-      if (!(item.price >= 0)) {
-        return res.status(400).json({
-          success: false,
-          message: `${product.name} has no price set`
-        });
-      }
+    let priced;
+    try {
+      priced = await priceItems(req.body.items);
+    } catch (error) {
+      if (!error.statusCode) throw error;
+      return res.status(error.statusCode).json({ success: false, message: error.message });
     }
 
-    const itemsPrice = roundMoney(items.reduce((sum, item) => sum + item.price * item.quantity, 0));
-    const shippingPrice = SHIPPING_PRICE;
-    const totalPrice = roundMoney(itemsPrice + shippingPrice);
-
-    // Reduce stock and create the order in a single transaction
+    // Reduce stock, apply the coupon and create the order in a single transaction
     const { data, error } = await supabase.rpc('create_order', {
       p_user_id: req.user.id,
       p_order: {
-        items,
+        items: priced.items,
         shippingAddress: {
           fullName,
           phone,
@@ -173,16 +73,16 @@ exports.createOrder = async (req, res, next) => {
           country: shippingAddress.country || 'Pakistan',
         },
         paymentMethod: paymentMethod || 'Cash on Delivery',
-        itemsPrice,
-        shippingPrice,
-        totalPrice,
+        itemsPrice: priced.itemsPrice,
+        shippingPrice: priced.shippingPrice,
+        couponCode: couponCode || null,
         notes,
       },
     });
 
     if (error) {
       console.error('Create order error:', error);
-      // Stock changed between the check and the order (or another validation failed)
+      // Stock changed since the check, or the coupon is no longer valid
       return res.status(400).json({
         success: false,
         message: error.message
@@ -426,6 +326,12 @@ exports.cancelOrder = async (req, res, next) => {
         success: false,
         message: 'Cannot cancel order at this stage'
       });
+    }
+
+    // Give the coupon use back
+    if (order.coupon_code) {
+      const { error } = await supabase.rpc('release_coupon', { p_code: order.coupon_code });
+      if (error) console.error('Error releasing coupon:', error.message);
     }
 
     // Restore product stock

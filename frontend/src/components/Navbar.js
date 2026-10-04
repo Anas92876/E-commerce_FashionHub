@@ -13,15 +13,20 @@ import {
   ClipboardDocumentListIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
+  HeartIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import SearchBox from './SearchBox';
 import { CountBadge } from './Badge';
 import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
   const { user, isAdmin, logout } = useAuth();
   const { cartItems } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -47,7 +52,12 @@ const Navbar = () => {
     { name: 'Home', path: '/', icon: HomeIcon },
     { name: 'Products', path: '/products', icon: ShoppingCartIcon },
     { name: 'Contact', path: '/contact', icon: EnvelopeIcon },
-    ...(user ? [{ name: 'My Orders', path: '/my-orders', icon: ClipboardDocumentListIcon }] : []),
+    ...(user
+      ? [
+          { name: 'My Orders', path: '/my-orders', icon: ClipboardDocumentListIcon },
+          { name: 'Wishlist', path: '/wishlist', icon: HeartIcon, mobileOnly: true },
+        ]
+      : []),
   ];
 
   return (
@@ -87,7 +97,7 @@ const Navbar = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
-              {navLinks.map((link) => (
+              {navLinks.filter((link) => !link.mobileOnly).map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
@@ -102,14 +112,42 @@ const Navbar = () => {
               ))}
             </div>
 
+            {/* Search: full box on wide screens, icon linking to the products page otherwise */}
+            <SearchBox className="hidden xl:block w-64" />
+
             {/* Right Actions */}
             <div className="flex items-center gap-3">
+              <Link
+                to="/products"
+                aria-label="Search products"
+                className="xl:hidden p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <MagnifyingGlassIcon className="w-6 h-6" />
+              </Link>
+
               {/* Theme Toggle */}
               <ThemeToggle />
+
+              {/* Wishlist */}
+              {user && (
+                <Link
+                  to="/wishlist"
+                  aria-label={`Wishlist (${wishlistCount} saved)`}
+                  className="relative hidden sm:block p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <HeartIcon className="w-6 h-6" />
+                  {wishlistCount > 0 && (
+                    <div className="absolute -top-1 -right-1">
+                      <CountBadge count={wishlistCount} />
+                    </div>
+                  )}
+                </Link>
+              )}
 
               {/* Cart */}
               <Link
                 to="/cart"
+                aria-label={`Cart (${cartItemsCount} items)`}
                 className="relative p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
                 <ShoppingBagIcon className="w-6 h-6" />

@@ -28,45 +28,47 @@ const findProduct = async (id) => {
   return check(await supabase.from('products').select('*').eq('id', productId).maybeSingle());
 };
 
+// Escape LIKE wildcards so a search for "50%" matches literally
+const escapeLike = (text) => text.replace(/[\\%_]/g, (c) => `\\${c}`);
+
+const toNumberOrNull = (value) => {
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : null;
+};
+
+// Query params -> search_products() arguments
+const searchArgs = (query) => {
+  const search = String(query.search || '').trim().slice(0, 100);
+  return {
+    p_search: search ? escapeLike(search) : null,
+    p_category: query.category || null,
+    p_min_price: toNumberOrNull(query.minPrice),
+    p_max_price: toNumberOrNull(query.maxPrice),
+    p_size: query.size || null,
+    p_color: query.color || null,
+    p_in_stock: query.inStock === 'true',
+  };
+};
+
 // @desc    Get all products (public)
-// @route   GET /api/products
+// @route   GET /api/products?search=&category=&minPrice=&maxPrice=&size=&color=&inStock=true&sort=&page=&limit=
 // @access  Public
 exports.getProducts = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 12, 1), 100);
     const skip = (page - 1) * limit;
-
-    // Build query
-    let query = supabase
-      .from('products')
-      .select('*', { count: 'exact' })
-      .eq('is_active', true);
-
-    // Filter by category
-    if (req.query.category) {
-      query = query.eq('category', req.query.category);
-    }
-
-    // Search by name
-    if (req.query.search) {
-      query = query.ilike('name', `%${req.query.search}%`);
-    }
-
-    // Filter by price range
-    if (req.query.minPrice) {
-      query = query.gte('price', parseFloat(req.query.minPrice));
-    }
-    if (req.query.maxPrice) {
-      query = query.lte('price', parseFloat(req.query.maxPrice));
-    }
 
     // Sort options (default: newest)
     const [column, ascending] = SORT_OPTIONS[req.query.sort] || SORT_OPTIONS.newest;
-    query = query.order(column, { ascending }).range(skip, skip + limit - 1);
 
-    // Get products with pagination + total count
-    const result = await query;
+    // Filtering happens in the search_products database function
+    const result = await supabase
+      .rpc('search_products', searchArgs(req.query), { count: 'exact' })
+      .order(column, { ascending })
+      .order('id')
+      .range(skip, skip + limit - 1);
+
     const rows = check(result);
     const totalProducts = result.count || 0;
     const totalPages = Math.ceil(totalProducts / limit);
@@ -78,6 +80,66 @@ exports.getProducts = async (req, res, next) => {
       page,
       pages: totalPages,
       data: rows.map(toProduct),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Clothing sizes in natural order, then numeric sizes, then anything else
+const SIZE_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+const sizeRank = (size) => {
+  const i = SIZE_ORDER.indexOf(String(size).toUpperCase());
+  if (i !== -1) return [0, i];
+  const n = parseFloat(size);
+  return Number.isFinite(n) ? [1, n] : [2, 0];
+};
+const compareSizes = (a, b) => {
+  const [ga, va] = sizeRank(a);
+  const [gb, vb] = sizeRank(b);
+  return ga - gb || va - vb || String(a).localeCompare(String(b));
+};
+
+// @desc    Options for the filter sidebar (sizes, colors, price range)
+// @route   GET /api/products/filters
+// @access  Public
+exports.getFilterOptions = async (req, res, next) => {
+  try {
+    const options = check(await supabase.rpc('product_filter_options'));
+    options.sizes = (options.sizes || []).sort(compareSizes);
+    res.status(200).json({ success: true, data: options });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Search suggestions while typing (max 6)
+// @route   GET /api/products/suggest?q=
+// @access  Public
+exports.getSuggestions = async (req, res, next) => {
+  try {
+    const q = String(req.query.q || '').trim();
+    if (q.length < 2) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    const rows = check(
+      await supabase
+        .rpc('search_products', searchArgs({ search: q }))
+        .select('id, name, category, price, base_price, image, variants')
+        .order('rating', { ascending: false })
+        .limit(6)
+    );
+
+    res.status(200).json({
+      success: true,
+      data: rows.map((row) => ({
+        _id: row.id,
+        name: row.name,
+        category: row.category,
+        price: Number(row.base_price || row.price),
+        image: row.image || row.variants?.[0]?.images?.[0] || '',
+      })),
     });
   } catch (error) {
     next(error);

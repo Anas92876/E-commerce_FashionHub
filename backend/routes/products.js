@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const {
   getProducts,
+  getFilterOptions,
+  getSuggestions,
   getProductById,
   createProduct,
   updateProduct,
@@ -21,6 +23,8 @@ const upload = require('../middleware/upload');
 
 // Public routes
 router.get('/', getProducts);
+router.get('/filters', getFilterOptions);
+router.get('/suggest', getSuggestions);
 router.get('/:id', getProductById);
 
 // ===== VARIANT ROUTES (Public) =====

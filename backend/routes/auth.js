@@ -9,6 +9,7 @@ const {
   updatePassword,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
+const { loginLimiter, registerLimiter } = require('../utils/rateLimit');
 
 // Validation middleware
 const registerValidation = [
@@ -26,8 +27,8 @@ const loginValidation = [
 ];
 
 // Routes
-router.post('/register', registerValidation, register);
-router.post('/login', loginValidation, login);
+router.post('/register', registerLimiter, registerValidation, register);
+router.post('/login', loginLimiter, loginValidation, login);
 router.get('/me', protect, getMe);
 router.put('/update-profile', protect, updateProfile);
 router.put('/update-password', protect, updatePassword);

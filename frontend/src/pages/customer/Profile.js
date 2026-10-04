@@ -4,7 +4,7 @@ import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   UserIcon,
