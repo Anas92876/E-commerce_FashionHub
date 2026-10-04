@@ -18,6 +18,7 @@ const EMPTY_FORM = {
   maxUses: '',
   expiresAt: '',
   isActive: true,
+  featured: false,
 };
 
 // ISO timestamp -> value for <input type="date"> (and back)
@@ -80,6 +81,7 @@ const Coupons = () => {
       maxUses: coupon.maxUses ? String(coupon.maxUses) : '',
       expiresAt: toDateInput(coupon.expiresAt),
       isActive: coupon.isActive,
+      featured: Boolean(coupon.featured),
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -212,6 +214,16 @@ const Coupons = () => {
               Active
             </label>
 
+            <label className="flex items-start gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <input type="checkbox" checked={form.featured} onChange={set('featured')} className="mt-0.5 rounded text-primary-600" />
+              <span>
+                Show on home page
+                <span className="block text-xs font-normal text-gray-500 dark:text-gray-400">
+                  Advertised in the home page banner. Leave off for private codes.
+                </span>
+              </span>
+            </label>
+
             <div className="flex gap-2 pt-2">
               <button type="submit" disabled={saving}
                 className="flex-1 px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold disabled:opacity-50 transition-colors">
@@ -252,7 +264,14 @@ const Coupons = () => {
                       return (
                         <tr key={c._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <p className="font-mono font-semibold text-gray-900 dark:text-white">{c.code}</p>
+                            <p className="font-mono font-semibold text-gray-900 dark:text-white">
+                              {c.code}
+                              {c.featured && (
+                                <span className="ml-2 inline-flex rounded-full bg-primary-100 px-2 py-0.5 align-middle font-sans text-[11px] font-semibold text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
+                                  On home page
+                                </span>
+                              )}
+                            </p>
                             {c.description && <p className="text-xs text-gray-500 dark:text-gray-400">{c.description}</p>}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">{formatDiscount(c)}</td>

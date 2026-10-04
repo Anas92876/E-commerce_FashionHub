@@ -61,6 +61,7 @@ const buildCoupon = (body, partial = false) => {
   }
 
   if (body.isActive !== undefined) row.is_active = Boolean(body.isActive);
+  if (body.featured !== undefined) row.featured = Boolean(body.featured);
 
   return row;
 };
@@ -134,6 +135,34 @@ exports.deleteCoupon = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Coupon not found' });
     }
     res.status(200).json({ success: true, message: 'Coupon deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Coupons the admin chose to advertise ("Show on home page") that are
+//          usable right now. Private coupons are never listed.
+// @route   GET /api/coupons/featured
+// @access  Public
+exports.getFeaturedCoupons = async (req, res, next) => {
+  try {
+    const now = Date.now();
+    const rows = check(
+      await supabase
+        .from('coupons')
+        .select('code, description, discount_type, discount_value, min_order_amount, max_uses, used_count, starts_at, expires_at')
+        .eq('featured', true)
+        .eq('is_active', true)
+        .order('discount_value', { ascending: false })
+    );
+
+    const usable = rows
+      .filter((row) => !row.starts_at || new Date(row.starts_at).getTime() <= now)
+      .filter((row) => !row.expires_at || new Date(row.expires_at).getTime() > now)
+      .filter((row) => row.max_uses === null || row.used_count < row.max_uses)
+      .map(({ max_uses, used_count, starts_at, ...row }) => toApi(row));
+
+    res.status(200).json({ success: true, count: usable.length, data: usable });
   } catch (error) {
     next(error);
   }

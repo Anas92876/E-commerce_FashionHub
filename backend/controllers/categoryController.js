@@ -21,16 +21,37 @@ const categoryExists = (res) =>
   });
 
 // @desc    Get all categories
-// @route   GET /api/categories
+// @route   GET /api/categories  (?stats=true adds productCount + a cover photo)
 // @access  Public
 exports.getCategories = async (req, res, next) => {
   try {
     const rows = check(await supabase.from('categories').select('*').order('name'));
+    let categories = rows.map((row) => toApi(row));
+
+    if (req.query.stats === 'true') {
+      // Active products per category; cover = the category image, else the
+      // photo of its best-rated product
+      const products = check(
+        await supabase
+          .from('products')
+          .select('category, image, variants, rating, num_reviews')
+          .eq('is_active', true)
+          .order('rating', { ascending: false })
+          .order('num_reviews', { ascending: false })
+      );
+      categories = categories.map((category) => {
+        const inCategory = products.filter((p) => p.category === category.name);
+        const cover = inCategory
+          .map((p) => p.image || p.variants?.find((v) => v.images?.length)?.images?.[0])
+          .find(Boolean);
+        return { ...category, productCount: inCategory.length, coverImage: category.image || cover || '' };
+      });
+    }
 
     res.status(200).json({
       success: true,
-      count: rows.length,
-      data: rows.map((row) => toApi(row)),
+      count: categories.length,
+      data: categories,
     });
   } catch (error) {
     next(error);

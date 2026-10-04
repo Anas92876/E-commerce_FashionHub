@@ -281,6 +281,9 @@ create table if not exists public.coupons (
   check (discount_type <> 'percent' or discount_value <= 100)
 );
 
+-- Featured coupons are advertised on the home page (others stay private)
+alter table public.coupons add column if not exists featured boolean not null default false;
+
 drop trigger if exists coupons_updated_at on public.coupons;
 create trigger coupons_updated_at before update on public.coupons
   for each row execute function public.set_updated_at();

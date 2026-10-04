@@ -44,9 +44,9 @@ const CUSTOMERS = [
 }));
 
 const COUPONS = [
-  { code: 'WELCOME10', description: '10% off your first order', discount_type: 'percent', discount_value: 10, min_order_amount: 0, max_uses: null, expiresInDays: 365 },
-  { code: 'SAVE20', description: '$20 off orders over $150', discount_type: 'fixed', discount_value: 20, min_order_amount: 150, max_uses: 100, expiresInDays: 90 },
-  { code: 'SUMMER25', description: 'Summer sale - 25% off (ended)', discount_type: 'percent', discount_value: 25, min_order_amount: 50, max_uses: 500, expiresInDays: -10 },
+  { code: 'WELCOME10', featured: true, description: '10% off your first order', discount_type: 'percent', discount_value: 10, min_order_amount: 0, max_uses: null, expiresInDays: 365 },
+  { code: 'SAVE20', featured: true, description: '$20 off orders over $150', discount_type: 'fixed', discount_value: 20, min_order_amount: 150, max_uses: 100, expiresInDays: 90 },
+  { code: 'SUMMER25', featured: false, description: 'Summer sale - 25% off (ended)', discount_type: 'percent', discount_value: 25, min_order_amount: 50, max_uses: 500, expiresInDays: -10 },
 ];
 
 // [rating, comment] per category - mostly positive, some honest criticism

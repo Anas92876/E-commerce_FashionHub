@@ -6,8 +6,12 @@ const {
   updateCoupon,
   deleteCoupon,
   validateCoupon,
+  getFeaturedCoupons,
 } = require('../controllers/couponController');
 const { protect, admin } = require('../middleware/auth');
+
+// Public: coupons advertised on the home page
+router.get('/featured', getFeaturedCoupons);
 
 // Customer: preview a coupon at checkout
 router.post('/validate', protect, validateCoupon);
