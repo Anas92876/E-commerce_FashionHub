@@ -12,10 +12,10 @@ const OfferBar = ({ coupon }) => {
   const condition = Number(coupon.minOrderAmount) > 0 ? ` orders over $${Number(coupon.minOrderAmount)}` : ' your order';
 
   return (
-    <div className="bg-ink px-4 py-2.5 text-center text-xs text-white sm:text-sm dark:bg-gray-900">
+    <div className="border-b border-stone-200/80 bg-sand px-4 py-2 text-center text-xs tracking-wide text-stone-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
       {amount}
       {condition} with code{' '}
-      <span className="font-mono font-semibold tracking-wide">{coupon.code}</span> at checkout
+      <span className="font-semibold tracking-[0.12em] text-ink dark:text-white">{coupon.code}</span> at checkout
     </div>
   );
 };

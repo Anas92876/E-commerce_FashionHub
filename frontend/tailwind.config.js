@@ -11,6 +11,7 @@ module.exports = {
         // near-black ink for text, the brand blue (primary) for actions only
         canvas: '#FAF8F5', // warm white page background
         ink: '#1C1917',    // main text on light surfaces
+        sand: '#EEE8E0',   // quiet warm band (announcement bar)
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',
@@ -40,13 +41,25 @@ module.exports = {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],        // Body text
         heading: ['Poppins', 'system-ui', 'sans-serif'],                      // Headings
         display: ['Montserrat', 'system-ui', 'sans-serif'],                   // Logo & Accent
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],                    // Editorial accent (home hero)
       },
       animation: {
+        // Home hero: one-time image reveal + gentle settle (disabled with motion-reduce)
+        'hero-reveal': 'heroReveal 1s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'hero-settle': 'heroSettle 1.6s cubic-bezier(0.22, 1, 0.36, 1) both',
         'fade-in': 'fadeIn 0.3s ease-in-out',
         'slide-in': 'slideIn 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
       },
       keyframes: {
+        heroReveal: {
+          '0%': { clipPath: 'inset(100% 0 0 0)' },
+          '100%': { clipPath: 'inset(0 0 0 0)' },
+        },
+        heroSettle: {
+          '0%': { transform: 'scale(1.08)' },
+          '100%': { transform: 'scale(1)' },
+        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },

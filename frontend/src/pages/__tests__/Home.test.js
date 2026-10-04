@@ -65,8 +65,13 @@ test('hero, sections and offer use real store data', async () => {
   expect(await screen.findByText(/20 styles across 6 categories/)).toBeInTheDocument();
   expect(screen.getByText(/average from 65 customer reviews/)).toBeInTheDocument();
 
-  // caption links to the product in the photo
-  expect(screen.getByRole('link', { name: /Linen Midi Dress — \$69\.99/ })).toHaveAttribute('href', '/products/p1');
+  // caption links to the product in the photo (one for desktop, one for small screens)
+  const lookLinks = screen.getAllByRole('link', { name: 'Shop the look: Linen Midi Dress, $69.99' });
+  expect(lookLinks.length).toBeGreaterThan(0);
+  lookLinks.forEach((link) => expect(link).toHaveAttribute('href', '/products/p1'));
+
+  // the headline reads as one sentence to assistive tech
+  expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName('Wardrobe essentials, made to last.');
 
   // featured coupon
   expect(screen.getByText('WELCOME10')).toBeInTheDocument();
@@ -90,7 +95,7 @@ test('no offer bar without an advertised coupon, no caption without the product'
 
   expect(await screen.findByText(/20 styles across 6 categories/)).toBeInTheDocument();
   expect(screen.queryByText(/at checkout/)).not.toBeInTheDocument();
-  expect(screen.queryByText('In the photo')).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: /Shop the look/ })).not.toBeInTheDocument();
 });
 
 test('only promises the store keeps', async () => {
