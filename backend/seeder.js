@@ -1,145 +1,28 @@
-// Seed Supabase with sample categories, products (with photos), reviews and an admin user.
-//   node seeder.js            -> wipe categories/products/users, then import everything
-//   node seeder.js --catalog  -> only add missing sample categories/products/photos/reviews
-//                                (keeps existing users, orders and products)
+// Seed Supabase with a realistic sample store: 6 categories, 20 products with
+// color/size variants and photos, sample customers with orders and reviews,
+// coupons, and an admin user.
+//   node seeder.js            -> FULL RESET: wipe users/categories/products, then import everything
+//   node seeder.js --catalog  -> SAFE: add missing sample categories/products/photos and
+//                                (re)create the sample customers' orders, reviews and wishlists.
+//                                Your own users, orders and products are kept.
 //   node seeder.js -d         -> wipe only
 const dotenv = require('dotenv');
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const { supabase } = require('./config/supabase');
 const { check } = require('./utils/db');
 const { hashPassword } = require('./utils/user');
-const seedReviews = require('./scripts/seedReviews');
+const { generateSKU, prepareVariants } = require('./utils/product');
+const { CATEGORIES, PRODUCTS } = require('./scripts/sampleCatalog');
 const seedPhotos = require('./scripts/seedPhotos');
+const seedActivity = require('./scripts/seedReviews');
 
 const slugify = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 // supabase-js requires a filter on delete; this matches every row
 const deleteAll = async (table) => check(await supabase.from(table).delete().not('id', 'is', null));
-
-// Sample categories
-const categories = [
-  { name: 'T-Shirts' },
-  { name: 'Jeans' },
-  { name: 'Dresses' },
-  { name: 'Jackets' },
-  { name: 'Shoes' },
-  { name: 'Accessories' },
-];
-
-// Sample products
-const products = [
-  {
-    name: 'Classic White T-Shirt',
-    description: 'Premium quality cotton t-shirt in classic white. Perfect for any occasion. Made from 100% organic cotton for maximum comfort.',
-    price: 24.99,
-    category: 'T-Shirts',
-    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-    stock: 150,
-    isActive: true,
-  },
-  {
-    name: 'Black Cotton T-Shirt',
-    description: 'Stylish black t-shirt made from soft cotton blend. Great for casual wear.',
-    price: 22.99,
-    category: 'T-Shirts',
-    sizes: ['S', 'M', 'L', 'XL'],
-    stock: 120,
-    isActive: true,
-  },
-  {
-    name: 'Slim Fit Blue Jeans',
-    description: 'Modern slim fit jeans with stretch comfort. Made from premium denim with a contemporary cut.',
-    price: 79.99,
-    category: 'Jeans',
-    sizes: ['28', '30', '32', '34', '36'],
-    stock: 75,
-    isActive: true,
-  },
-  {
-    name: 'Classic Straight Jeans',
-    description: 'Timeless straight-leg jeans in classic blue wash. Comfortable and versatile.',
-    price: 69.99,
-    category: 'Jeans',
-    sizes: ['28', '30', '32', '34', '36', '38'],
-    stock: 90,
-    isActive: true,
-  },
-  {
-    name: 'Floral Summer Dress',
-    description: 'Light and breezy summer dress with beautiful floral pattern. Perfect for warm weather.',
-    price: 59.99,
-    category: 'Dresses',
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    stock: 50,
-    isActive: true,
-  },
-  {
-    name: 'Elegant Evening Dress',
-    description: 'Sophisticated evening dress for special occasions. Features a flattering silhouette.',
-    price: 129.99,
-    category: 'Dresses',
-    sizes: ['XS', 'S', 'M', 'L'],
-    stock: 30,
-    isActive: true,
-  },
-  {
-    name: 'Classic Leather Jacket',
-    description: 'Genuine leather jacket with premium finish. Timeless style that never goes out of fashion.',
-    price: 199.99,
-    category: 'Jackets',
-    sizes: ['S', 'M', 'L', 'XL'],
-    stock: 25,
-    isActive: true,
-  },
-  {
-    name: 'Denim Jacket',
-    description: 'Casual denim jacket with a vintage-inspired design. Perfect layering piece.',
-    price: 89.99,
-    category: 'Jackets',
-    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-    stock: 45,
-    isActive: true,
-  },
-  {
-    name: 'Canvas Sneakers',
-    description: 'Comfortable canvas sneakers for everyday wear. Classic design in multiple colors.',
-    price: 49.99,
-    category: 'Shoes',
-    sizes: ['7', '8', '9', '10', '11', '12'],
-    stock: 100,
-    isActive: true,
-  },
-  {
-    name: 'Leather Boots',
-    description: 'Durable leather boots with cushioned insole. Perfect for all-day comfort.',
-    price: 139.99,
-    category: 'Shoes',
-    sizes: ['7', '8', '9', '10', '11', '12'],
-    stock: 60,
-    isActive: true,
-  },
-  {
-    name: 'Leather Belt',
-    description: 'Classic leather belt with silver buckle. Complements any outfit.',
-    price: 29.99,
-    category: 'Accessories',
-    sizes: ['S', 'M', 'L', 'XL'],
-    stock: 80,
-    isActive: true,
-  },
-  {
-    name: 'Baseball Cap',
-    description: 'Adjustable baseball cap in cotton twill. Features embroidered logo.',
-    price: 19.99,
-    category: 'Accessories',
-    sizes: ['One Size'],
-    stock: 150,
-    isActive: true,
-  },
-];
 
 // Sample admin user
 const adminUser = {
@@ -150,40 +33,60 @@ const adminUser = {
   role: 'admin',
 };
 
-// Insert sample categories + products that don't exist yet (matched by name)
+// Catalog entry -> products row with variants
+const toProductRow = (p) => {
+  const variants = prepareVariants(
+    p.colors.map(({ color: [name, hex, code, priceOverride], stock }) => ({
+      sku: generateSKU(p.name, code),
+      color: { name, hex, code },
+      images: [],
+      priceOverride: priceOverride ?? null,
+      sizes: p.sizes.map((size, i) => ({
+        size,
+        stock: stock[i] ?? 0,
+        sku: generateSKU(p.name, code, size),
+        lowStockThreshold: 5,
+      })),
+    }))
+  );
+
+  return {
+    name: p.name,
+    description: p.description,
+    category: p.category,
+    base_price: p.basePrice,
+    price: p.basePrice,
+    sizes: p.sizes,
+    stock: 0,
+    variants,
+    is_active: true,
+  };
+};
+
+// Insert sample categories + products that don't exist yet (matched by name),
+// add photos, then sample customers / orders / reviews / coupons
 const addCatalog = async () => {
   const existingCats = new Set(check(await supabase.from('categories').select('name')).map((c) => c.name));
-  const newCats = categories.filter((cat) => !existingCats.has(cat.name));
+  const newCats = CATEGORIES.filter((name) => !existingCats.has(name));
   if (newCats.length) {
-    check(await supabase.from('categories').insert(newCats.map((cat) => ({ name: cat.name, slug: slugify(cat.name) }))));
+    check(await supabase.from('categories').insert(newCats.map((name) => ({ name, slug: slugify(name) }))));
   }
 
   const existingProducts = new Set(check(await supabase.from('products').select('name')).map((p) => p.name));
-  const newProducts = products.filter((p) => !existingProducts.has(p.name));
+  const newProducts = PRODUCTS.filter((p) => !existingProducts.has(p.name));
   if (newProducts.length) {
-    check(
-      await supabase.from('products').insert(
-        newProducts.map((p) => ({
-          name: p.name,
-          description: p.description,
-          price: p.price,
-          base_price: p.price,
-          category: p.category,
-          sizes: p.sizes,
-          stock: p.stock,
-          is_active: p.isActive,
-        }))
-      )
-    );
+    check(await supabase.from('products').insert(newProducts.map(toProductRow)));
   }
-
   console.log(`✓ ${newCats.length} categories and ${newProducts.length} products added`);
 
   const { added } = await seedPhotos();
   console.log(`✓ Photos added to ${added} products`);
 
-  const { reviews } = await seedReviews();
-  console.log(`✓ ${reviews} sample reviews created`);
+  const activity = await seedActivity();
+  console.log(
+    `✓ ${activity.customers} customers, ${activity.orders} orders, ${activity.reviews} reviews, ` +
+      `${activity.wishlists} wishlist items, ${activity.coupons} coupons`
+  );
 };
 
 // Full reset: wipe users, categories and products, then import everything
@@ -193,8 +96,6 @@ const importData = async () => {
   await deleteAll('categories');
   await deleteAll('products');
   await deleteAll('users');
-
-  console.log('Creating admin user...');
 
   const admin = check(
     await supabase
@@ -223,8 +124,8 @@ const deleteData = async () => {
 };
 
 const commands = {
-  '-d': deleteData,      // wipe only
-  '--catalog': addCatalog, // add missing sample catalog; keeps users & orders
+  '-d': deleteData,        // wipe only
+  '--catalog': addCatalog, // add missing sample data; keeps your users & orders
 };
 
 (commands[process.argv[2]] || importData)()

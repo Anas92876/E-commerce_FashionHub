@@ -126,7 +126,7 @@ exports.getSuggestions = async (req, res, next) => {
     const rows = check(
       await supabase
         .rpc('search_products', searchArgs({ search: q }))
-        .select('id, name, category, price, base_price, image, variants')
+        .select('id, name, category, price, base_price, image, variants, rating') // order column must be selected
         .order('rating', { ascending: false })
         .limit(6)
     );

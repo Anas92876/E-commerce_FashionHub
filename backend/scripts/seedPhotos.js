@@ -29,6 +29,14 @@ const PHOTOS = {
   'Leather Boots': '1608256246200-53e635b5b65f',
   'Leather Belt': '1664286074176-5206ee5dc878',
   'Baseball Cap': '1521369909029-2afed882baee',
+  'Striped Breton Tee': '1591224615614-e300d72e37c5',
+  'Oversized Graphic Tee': '1527719197793-6b777854108d',
+  'Black Skinny Jeans': '1718252540511-e958742e4165',
+  'Linen Midi Dress': '1625158244856-e5e20f733c1f',
+  'Quilted Puffer Jacket': '1614031679232-0dae776a72ee',
+  'White Leather Sneakers': '1608379743498-ac08f6d022ba',
+  'Running Shoes': '1597892657493-6847b9640bac',
+  'Leather Backpack': '1622560480605-d83c853bc5c3',
 };
 
 const seedPhotos = async () => {

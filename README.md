@@ -160,13 +160,15 @@ JWT_EXPIRE=30d
 
 The frontend needs no `.env`: in development it calls `http://localhost:5000/api`, and in production it calls `/api` on the same domain.
 
-6. **(Optional) Seed sample data** - creates categories, products (with photos), sample reviews and an admin user
-   (`admin@fashionhub.com` / `Admin123!`).
+6. **(Optional) Seed sample data** - a realistic store: 6 categories, 20 products with colors, sizes and photos,
+   12 customers with ~35 orders over the last 60 days, 65 reviews, wishlists and 3 coupons
+   (`WELCOME10`, `SAVE20`, expired `SUMMER25`). Logins: admin `admin@fashionhub.com` / `Admin123!`,
+   customers e.g. `sara.ahmed@example.com` / `Customer123!`.
 ```bash
 cd backend
 npm run seed:catalog   # SAFE: only adds missing sample categories/products/photos/reviews
 npm run seed           # FULL RESET: wipes users, products and categories, then imports everything
-npm run seed:reviews   # only (re)create the sample reviews
+npm run seed:reviews   # only (re)create the sample customers, orders, reviews and coupons
 npm run seed:photos    # only add photos to sample products that have none
 ```
 
