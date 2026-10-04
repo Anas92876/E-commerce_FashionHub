@@ -160,7 +160,7 @@ const Register = () => {
       title="Join"
       accent="FashionHub."
       intro="Save the pieces you love, follow every order and check out with cash on delivery."
-      image="/images/auth/linen-back"
+      image="/images/auth/shopping-bags"
       imageAlt=""
       tagline="Considered pieces, delivered free."
       footer={

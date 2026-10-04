@@ -36,7 +36,6 @@ const API = {
   ],
   '/products/summary': { products: 20, categories: 6, reviews: 65, averageRating: 4.2 },
   '/coupons/featured': [{ code: 'WELCOME10', discountType: 'percent', discountValue: 10, minOrderAmount: 0 }],
-  '/products/suggest': [{ _id: 'p1', name: 'Linen Midi Dress', price: 69.99 }],
 };
 
 const mockApi = (overrides = {}) => {
@@ -65,10 +64,10 @@ test('hero, sections and offer use real store data', async () => {
   expect(await screen.findByText(/20 styles across 6 categories/)).toBeInTheDocument();
   expect(screen.getByText(/average from 65 customer reviews/)).toBeInTheDocument();
 
-  // caption links to the product in the photo (one for desktop, one for small screens)
-  const lookLinks = screen.getAllByRole('link', { name: 'Shop the look: Linen Midi Dress, $69.99' });
-  expect(lookLinks.length).toBeGreaterThan(0);
-  lookLinks.forEach((link) => expect(link).toHaveAttribute('href', '/products/p1'));
+  // store caption links to the whole catalogue (one for desktop, one for small screens)
+  const shopLinks = screen.getAllByRole('link', { name: 'Shop all 20 styles' });
+  expect(shopLinks.length).toBeGreaterThan(0);
+  shopLinks.forEach((link) => expect(link).toHaveAttribute('href', '/products'));
 
   // the headline reads as one sentence to assistive tech
   expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName('Wardrobe essentials, made to last.');
@@ -89,13 +88,12 @@ test('hero, sections and offer use real store data', async () => {
   expect(screen.getByText('“Beautiful fabric.”')).toBeInTheDocument();
 });
 
-test('no offer bar without an advertised coupon, no caption without the product', async () => {
-  mockApi({ '/coupons/featured': [], '/products/suggest': [] });
+test('no offer bar without an advertised coupon', async () => {
+  mockApi({ '/coupons/featured': [] });
   renderHome();
 
   expect(await screen.findByText(/20 styles across 6 categories/)).toBeInTheDocument();
   expect(screen.queryByText(/at checkout/)).not.toBeInTheDocument();
-  expect(screen.queryByRole('link', { name: /Shop the look/ })).not.toBeInTheDocument();
 });
 
 test('only promises the store keeps', async () => {

@@ -75,7 +75,7 @@ const Login = () => {
       title="Welcome"
       accent="back."
       intro="Sign in to see your orders, track deliveries and pick up your saved pieces."
-      image="/images/auth/breton-tee"
+      image="/images/auth/browsing-rail"
       imageAlt=""
       tagline="Wardrobe essentials, made to last."
       footer={

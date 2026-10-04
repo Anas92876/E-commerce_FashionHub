@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
 
-// Campaign photo (Linen Midi Dress, Unsplash license) stored with the app,
-// plus a detail crop from the same photo.
-const HERO_IMAGE = '/images/hero/linen-midi-dress';
+// Brand photos (Unsplash license) stored with the app: the boutique for the
+// campaign image and a close-up of the knitwear rail for the detail inset.
+const HERO_IMAGE = '/images/hero/boutique-interior';
 const HERO_SRCSET = [640, 960, 1280].map((w) => `${HERO_IMAGE}-${w}.webp ${w}w`).join(', ');
-const DETAIL_IMAGE = `${HERO_IMAGE}-detail-480.webp`;
+const DETAIL_IMAGE = '/images/hero/boutique-detail-480.webp';
 
 // "Autumn 2026" from today's date (northern-hemisphere seasons)
 export const seasonLabel = (date = new Date()) => {
@@ -15,19 +15,19 @@ export const seasonLabel = (date = new Date()) => {
   return `${season} ${date.getFullYear()}`;
 };
 
-// "Look 01 — Linen Midi Dress, $69.99" link to the product in the photo
-const LookCaption = ({ featured, className = '' }) => (
+// "The store — 20 styles · 6 categories — Shop all" link to the catalogue
+const StoreCaption = ({ summary, className = '' }) => (
   <Link
-    to={`/products/${featured._id}`}
-    aria-label={`Shop the look: ${featured.name}, $${Number(featured.price).toFixed(2)}`}
+    to="/products"
+    aria-label={`Shop all ${summary.products} styles`}
     className={`group inline-flex flex-col text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-4 focus-visible:ring-offset-canvas ${className}`}
   >
-    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-gray-400">Look 01</span>
-    <span className="mt-1 font-medium text-ink dark:text-white">{featured.name}</span>
+    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500 dark:text-gray-400">The store</span>
+    <span className="mt-1 font-medium text-ink dark:text-white">
+      {summary.products} styles · {summary.categories} categories
+    </span>
     <span className="mt-0.5 inline-flex items-center gap-1.5 text-stone-600 dark:text-gray-300">
-      ${Number(featured.price).toFixed(2)}
-      <span aria-hidden="true" className="text-stone-300 dark:text-gray-600">·</span>
-      <span className="font-medium text-ink underline-offset-4 group-hover:underline dark:text-white">Shop the look</span>
+      <span className="font-medium text-ink underline-offset-4 group-hover:underline dark:text-white">Shop all</span>
       <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden="true" />
     </span>
   </Link>
@@ -37,10 +37,10 @@ const LookCaption = ({ featured, className = '' }) => (
  * Editorial campaign hero.
  * Desktop: the photo bleeds to the right edge for the full hero height; the
  * headline's last line ("made to last.") crosses onto it; a detail crop of the
- * same photo straddles the photo's edge with the product caption beside it.
+ * knitwear rail straddles the photo's edge with the store caption beside it.
  * Mobile/tablet: copy first, then the photo edge to edge, caption below.
  */
-const HeroSection = ({ summary, featured }) => (
+const HeroSection = ({ summary }) => (
   <section aria-labelledby="hero-heading" className="relative overflow-hidden bg-canvas dark:bg-gray-950">
     <div className="relative mx-auto flex max-w-7xl flex-col px-4 sm:px-6 lg:flex-row lg:min-h-[max(40rem,min(calc(100vh-6.25rem),52rem))] lg:px-8">
       {/* ---------------- Campaign photo (first in the DOM so the headline paints over it) */}
@@ -50,10 +50,10 @@ const HeroSection = ({ summary, featured }) => (
             src={`${HERO_IMAGE}-960.webp`}
             srcSet={HERO_SRCSET}
             sizes="(min-width: 1024px) 50vw, 100vw"
-            alt="A woman in a white linen midi dress standing in a field of red poppies"
+            alt="Inside a clothing boutique: rails of shirts and jackets under warm pendant lamps"
             fetchPriority="high"
             decoding="async"
-            className="absolute inset-0 h-full w-full object-cover object-[50%_58%] motion-safe:animate-hero-settle lg:object-[42%_50%]"
+            className="absolute inset-0 h-full w-full object-cover object-[50%_45%] motion-safe:animate-hero-settle lg:object-center"
           />
         </div>
 
@@ -127,14 +127,14 @@ const HeroSection = ({ summary, featured }) => (
         </div>
 
         {/* Desktop caption: bottom of the copy column, beside the detail photo */}
-        {featured && <LookCaption featured={featured} className="hidden self-end text-right lg:flex lg:items-end" />}
+        {summary && <StoreCaption summary={summary} className="hidden self-end text-right lg:flex lg:items-end" />}
       </div>
 
 
       {/* Mobile/tablet caption below the photo */}
-      {featured && (
+      {summary && (
         <div className="order-3 py-5 lg:hidden">
-          <LookCaption featured={featured} />
+          <StoreCaption summary={summary} />
         </div>
       )}
     </div>

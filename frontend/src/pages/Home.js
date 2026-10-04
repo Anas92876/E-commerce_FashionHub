@@ -11,11 +11,8 @@ import CustomerReviews from '../components/home/CustomerReviews';
 import Benefits from '../components/home/Benefits';
 import { API_URL } from '../utils/api';
 
-// The product shown in the hero photo; the caption appears only if it exists
-const HERO_PRODUCT_NAME = 'Linen Midi Dress';
-
 const Home = () => {
-  const [data, setData] = useState({ products: [], categories: [], reviews: [], summary: null, coupon: null, featured: null });
+  const [data, setData] = useState({ products: [], categories: [], reviews: [], summary: null, coupon: null });
   const [loading, setLoading] = useState(true);
 
   // Everything the page needs, in parallel; a failed request only hides its section
@@ -36,8 +33,7 @@ const Home = () => {
       get('/reviews/recent', { limit: 30 }),
       get('/products/summary'),
       get('/coupons/featured'),
-      get('/products/suggest', { q: HERO_PRODUCT_NAME }),
-    ]).then(([products, categories, reviews, summary, coupons, matches]) => {
+    ]).then(([products, categories, reviews, summary, coupons]) => {
       if (cancelled) return;
       setData({
         products: products || [],
@@ -46,7 +42,6 @@ const Home = () => {
         summary,
         // prefer a welcome-style offer (no minimum order) for the announcement
         coupon: (coupons || []).find((c) => !Number(c.minOrderAmount)) || coupons?.[0] || null,
-        featured: (matches || []).find((p) => p.name === HERO_PRODUCT_NAME) || null,
       });
       setLoading(false);
     });
@@ -63,7 +58,7 @@ const Home = () => {
 
       <main>
         <OfferBar coupon={data.coupon} />
-        <HeroSection summary={data.summary} featured={data.featured} />
+        <HeroSection summary={data.summary} />
         <NewArrivals products={data.products} loading={loading} />
         <CategoryGrid categories={data.categories} loading={loading} />
         <CustomerReviews reviews={data.reviews} summary={data.summary} />
