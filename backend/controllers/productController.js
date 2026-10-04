@@ -113,6 +113,35 @@ exports.getFilterOptions = async (req, res, next) => {
   }
 };
 
+// @desc    Store summary for the home page (real numbers, not marketing copy)
+// @route   GET /api/products/summary
+// @access  Public
+exports.getStoreSummary = async (req, res, next) => {
+  try {
+    const [productsResult, categoriesResult] = await Promise.all([
+      supabase.from('products').select('rating, num_reviews').eq('is_active', true),
+      supabase.from('categories').select('id', { count: 'exact', head: true }),
+    ]);
+    const products = check(productsResult);
+    check(categoriesResult);
+
+    const reviews = products.reduce((sum, p) => sum + p.num_reviews, 0);
+    const ratingTotal = products.reduce((sum, p) => sum + Number(p.rating) * p.num_reviews, 0);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        products: products.length,
+        categories: categoriesResult.count || 0,
+        reviews,
+        averageRating: reviews ? Math.round((ratingTotal / reviews) * 10) / 10 : 0,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Search suggestions while typing (max 6)
 // @route   GET /api/products/suggest?q=
 // @access  Public

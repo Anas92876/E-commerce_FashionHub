@@ -1,232 +1,256 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
+import axios from 'axios';
+import { ArrowRightIcon, TruckIcon, BanknotesIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { StarIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL, getImageUrl } from '../../utils/api';
+import { productImage, productPrice } from '../ProductCard';
 
-// Home page hero: headline, call-to-action buttons and decorative icons
-const HeroSection = () => {
+// "Autumn 2026" etc. from today's date (northern-hemisphere seasons)
+const seasonLabel = (date = new Date()) => {
+  const season = ['Winter', 'Winter', 'Spring', 'Spring', 'Spring', 'Summer', 'Summer', 'Summer', 'Autumn', 'Autumn', 'Autumn', 'Winter'][date.getMonth()];
+  return `${season} ${date.getFullYear()}`;
+};
+
+const TRUST = [
+  { icon: TruckIcon, label: 'Free shipping on every order' },
+  { icon: BanknotesIcon, label: 'Cash on delivery' },
+  { icon: ArrowPathIcon, label: '30-day easy returns' },
+];
+
+// One photo tile of the collage, linking to its product
+const PhotoTile = ({ product, className, eager, label }) => (
+  <Link
+    to={`/products/${product._id}`}
+    className={`group relative block overflow-hidden rounded-3xl bg-gray-100 dark:bg-gray-800 ring-1 ring-black/5 dark:ring-white/10 ${className}`}
+  >
+    <img
+      src={getImageUrl(productImage(product))}
+      alt={product.name}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchPriority={eager ? 'high' : undefined}
+      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+    />
+    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    <span className="absolute bottom-3 left-3 right-3 truncate text-sm font-semibold text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+      {label || product.name}
+    </span>
+  </Link>
+);
+
+const HeroSection = ({ categories = [] }) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
+  const [featured, setFeatured] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      axios.get(`${API_URL}/products`, { params: { sort: 'rating-desc', limit: 8 } }).catch(() => null),
+      axios.get(`${API_URL}/products/summary`).catch(() => null),
+    ]).then(([productsRes, summaryRes]) => {
+      if (cancelled) return;
+      const withPhotos = (productsRes?.data?.data || []).filter((p) => productImage(p));
+      setFeatured(withPhotos.slice(0, 3));
+      setSummary(summaryRes?.data?.data || null);
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Entrance animation (skipped for people who prefer reduced motion)
+  const rise = (delay = 0) =>
+    reduceMotion
+      ? {}
+      : { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] } };
+
+  const [main, second, third] = featured;
+  const stats = summary
+    ? [
+        { value: summary.products, label: 'Products' },
+        { value: summary.categories, label: 'Categories' },
+        { value: `${summary.averageRating.toFixed(1)}★`, label: `${summary.reviews} reviews` },
+      ]
+    : null;
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 overflow-hidden transition-colors duration-300">
-      {/* Static Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary-100/30 dark:bg-primary-900/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent-100/30 dark:bg-accent-900/20 rounded-full blur-3xl" />
-      </div>
+    <section className="relative overflow-hidden bg-white dark:bg-gray-900 transition-colors duration-300" aria-labelledby="hero-heading">
+      {/* soft brand glow behind the photos */}
+      <div aria-hidden="true" className="pointer-events-none absolute -top-40 right-[-10%] h-[36rem] w-[36rem] rounded-full bg-primary-200/40 blur-3xl dark:bg-primary-900/30" />
+      <div aria-hidden="true" className="pointer-events-none absolute bottom-[-12rem] left-[-8rem] h-[24rem] w-[24rem] rounded-full bg-primary-100/50 blur-3xl dark:bg-primary-900/20" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 min-h-screen flex items-center">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
-          {/* Left Content */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-8"
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="inline-block"
-            >
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm font-semibold border border-primary-200 dark:border-primary-700">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                New Collection 2025
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-12 sm:pt-14 lg:pt-16 lg:pb-16">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
+          {/* ---------------- Copy */}
+          <div className="lg:col-span-6">
+            <motion.p {...rise(0)} className="inline-flex items-center gap-2 rounded-full bg-primary-50 px-3.5 py-1.5 text-sm font-semibold text-primary-700 ring-1 ring-primary-200 dark:bg-primary-900/30 dark:text-primary-300 dark:ring-primary-800">
+              <span className="relative flex h-2 w-2" aria-hidden="true">
+                <span className={`absolute inline-flex h-full w-full rounded-full bg-primary-500 opacity-60 ${reduceMotion ? '' : 'animate-ping'}`} />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-600" />
               </span>
-            </motion.div>
+              {seasonLabel()} collection
+            </motion.p>
 
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight font-display"
+              {...rise(0.08)}
+              id="hero-heading"
+              className="mt-6 font-heading text-4xl font-bold leading-[1.05] tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl xl:text-7xl"
             >
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-primary-900 to-gray-900 dark:from-white dark:via-primary-300 dark:to-white">
-                Elevate Your
-              </span>
+              Style that
               <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-accent-600 dark:from-primary-400 dark:to-accent-400">
-                Style Journey
+              feels like{' '}
+              <span className="relative inline-block whitespace-nowrap text-primary-600 dark:text-primary-400">
+                you.
+                <svg aria-hidden="true" viewBox="0 0 220 18" preserveAspectRatio="none" className="absolute -bottom-2 left-0 h-3 w-full text-primary-300 dark:text-primary-700">
+                  <path d="M2 13 C 50 3, 120 3, 218 11" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+                </svg>
               </span>
             </motion.h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-xl leading-relaxed"
-            >
-              Discover premium fashion collections crafted with precision and designed to express your unique personality.
+            <motion.p {...rise(0.16)} className="mt-6 max-w-xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+              Everyday essentials and statement pieces, picked for quality and made to last.
+              Find your fit in tees, denim, dresses, jackets and shoes — delivered free to your door.
             </motion.p>
 
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4"
-            >
-              <motion.button
-                onClick={() => navigate('/products')}
-                className="group px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-500 dark:to-primary-600 text-white font-semibold rounded-xl text-lg hover:shadow-2xl hover:shadow-primary-500/50 dark:hover:shadow-primary-400/50 transition-all duration-300 flex items-center justify-center gap-2"
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
+            <motion.div {...rise(0.24)} className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/products"
+                className="group inline-flex items-center justify-center gap-2 rounded-full bg-primary-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary-600/25 transition hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/30 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-300"
               >
-                Shop Now
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </motion.button>
-
+                Shop the collection
+                <ArrowRightIcon className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              </Link>
               {!user && (
-                <motion.button
-                  onClick={() => navigate('/register')}
-                  className="px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold rounded-xl text-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary-600 dark:hover:border-primary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-300 flex items-center justify-center gap-2"
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
+                <Link
+                  to="/register"
+                  className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-base font-semibold text-gray-900 ring-1 ring-gray-300 transition hover:bg-gray-50 hover:ring-gray-400 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-300 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-800"
                 >
-                  Get Started
-                </motion.button>
+                  Create account
+                </Link>
               )}
             </motion.div>
 
-            {/* Stats */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-              className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200 dark:border-gray-700"
-            >
-              <div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white">500+</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Products</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white">10K+</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Happy Customers</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white">4.9★</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Rating</div>
-              </div>
-            </motion.div>
-          </motion.div>
+            {/* Category quick links */}
+            {categories.length > 0 && (
+              <motion.nav {...rise(0.32)} aria-label="Shop by category" className="mt-8">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Shop by category</p>
+                <ul className="flex flex-wrap gap-2">
+                  {categories.slice(0, 6).map((category) => (
+                    <li key={category._id}>
+                      <Link
+                        to={`/products?category=${encodeURIComponent(category.name)}`}
+                        className="inline-block rounded-full bg-gray-100 px-3.5 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-primary-50 hover:text-primary-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-primary-900/40 dark:hover:text-primary-300"
+                      >
+                        {category.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </motion.nav>
+            )}
 
-          {/* Right Visual - E-commerce Icons */}
+            {/* Real store numbers (fixed height while loading - no layout shift) */}
+            <motion.dl {...rise(0.4)} className="mt-10 grid min-h-[4.5rem] max-w-lg grid-cols-3 divide-x divide-gray-200 border-t border-gray-200 pt-6 dark:divide-gray-700 dark:border-gray-700">
+              {(stats || [0, 1, 2]).map((stat, i) =>
+                stats ? (
+                  <div key={stat.label} className={i === 0 ? 'pr-4' : 'px-4'}>
+                    <dt className="sr-only">{stat.label}</dt>
+                    <dd className="font-heading text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">{stat.value}</dd>
+                    <dd className="text-sm text-gray-500 dark:text-gray-400" aria-hidden="true">{stat.label}</dd>
+                  </div>
+                ) : (
+                  <div key={stat} className={i === 0 ? 'pr-4' : 'px-4'} aria-hidden="true">
+                    <div className="h-7 w-14 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                    <div className="mt-2 h-4 w-20 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
+                  </div>
+                )
+              )}
+            </motion.dl>
+          </div>
+
+          {/* ---------------- Photo collage */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative hidden lg:flex items-center justify-center"
+            {...(reduceMotion ? {} : { initial: { opacity: 0, scale: 0.97 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] } })}
+            className="relative lg:col-span-6"
           >
-            <div className="relative w-[450px] h-[450px]">
-              {/* Central Shopping Cart Icon */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                <div className="w-40 h-40 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center shadow-2xl">
-                  <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Floating Icons Around Central Cart - Simplified */}
-              {/* T-Shirt Icon */}
-              <div className="absolute top-8 left-8">
-                <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
-                  <svg className="w-10 h-10 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Tag/Price Icon */}
-              <div className="absolute top-8 right-8">
-                <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
-                  <svg className="w-10 h-10 text-accent-600 dark:text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Shopping Bag Icon */}
-              <div className="absolute bottom-8 left-8">
-                <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
-                  <svg className="w-10 h-10 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Heart/Favorite Icon */}
-              <div className="absolute bottom-8 right-8">
-                <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
-                  <svg className="w-10 h-10 text-red-500 dark:text-red-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Delivery Truck Icon */}
-              <div className="absolute top-1/2 right-0 -translate-y-1/2">
-                <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
-                  <svg className="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Star/Quality Icon */}
-              <div className="absolute top-1/2 left-0 -translate-y-1/2">
-                <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50 flex items-center justify-center">
-                  <svg className="w-10 h-10 text-yellow-500 dark:text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Small Service Badges - Reduced to 4 and Simplified */}
-              <div className="absolute top-12 left-1/2 -translate-x-1/2">
-                <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 px-3 py-2 rounded-full shadow-md border border-green-200 dark:border-green-700">
-                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-xs font-semibold text-green-700 dark:text-green-300">Free Ship</span>
-                </div>
-              </div>
-
-              <div className="absolute top-1/2 right-8 -translate-y-1/2">
-                <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 px-3 py-2 rounded-full shadow-md border border-blue-200 dark:border-blue-700">
-                  <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                  <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">24/7</span>
-                </div>
-              </div>
-
-              <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
-                <div className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 px-3 py-2 rounded-full shadow-md border border-purple-200 dark:border-purple-700">
-                  <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">Secure</span>
-                </div>
-              </div>
-
-              <div className="absolute top-1/2 left-8 -translate-y-1/2">
-                <div className="flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 px-3 py-2 rounded-full shadow-md border border-orange-200 dark:border-orange-700">
-                  <svg className="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">Fast</span>
-                </div>
-              </div>
+            <div className="grid h-[380px] grid-cols-5 grid-rows-2 gap-3 sm:h-[480px] sm:gap-4 lg:h-[560px]">
+              {main ? (
+                <>
+                  <PhotoTile product={main} eager className="col-span-3 row-span-2" />
+                  {second && <PhotoTile product={second} className="col-span-2" />}
+                  {third && <PhotoTile product={third} className="col-span-2" />}
+                </>
+              ) : (
+                <>
+                  {/* loading / empty store: calm placeholders in the same layout */}
+                  <div className={`col-span-3 row-span-2 rounded-3xl bg-gradient-to-br from-primary-100 to-primary-200 dark:from-gray-800 dark:to-gray-700 ${loaded ? '' : 'animate-pulse'}`} />
+                  <div className={`col-span-2 rounded-3xl bg-gray-100 dark:bg-gray-800 ${loaded ? '' : 'animate-pulse'}`} />
+                  <div className={`col-span-2 rounded-3xl bg-gray-100 dark:bg-gray-800 ${loaded ? '' : 'animate-pulse'}`} />
+                </>
+              )}
             </div>
+
+            {/* Floating product card for the main photo */}
+            {main && (
+              <motion.div
+                {...(reduceMotion ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay: 0.6 } })}
+                className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 lg:-left-6"
+              >
+                <Link
+                  to={`/products/${main._id}`}
+                  className="flex max-w-[16rem] items-center gap-3 rounded-2xl bg-white/95 p-2.5 pr-4 shadow-xl ring-1 ring-black/5 backdrop-blur transition hover:-translate-y-0.5 hover:shadow-2xl dark:bg-gray-800/95 dark:ring-white/10"
+                >
+                  <img
+                    src={getImageUrl(productImage(main))}
+                    alt=""
+                    className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{main.name}</p>
+                    <p className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                      <span className="font-semibold text-gray-900 dark:text-white">${productPrice(main).toFixed(2)}</span>
+                      {main.numReviews > 0 && (
+                        <span className="inline-flex items-center gap-0.5">
+                          <StarIcon className="h-4 w-4 text-yellow-400" aria-hidden="true" />
+                          {Number(main.rating).toFixed(1)}
+                          <span className="sr-only"> out of 5 stars</span>
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
+            )}
+
+            {/* Top-rated label */}
+            {main && (
+              <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-gray-900/80 px-3 py-1 text-xs font-semibold text-white backdrop-blur sm:left-4 sm:top-4">
+                Top rated
+              </span>
+            )}
           </motion.div>
         </div>
+
+        {/* Trust strip */}
+        <motion.ul
+          {...rise(0.5)}
+          className="mt-12 grid grid-cols-1 gap-4 border-t border-gray-200 pt-8 dark:border-gray-800 sm:grid-cols-3 lg:mt-16"
+        >
+          {TRUST.map(({ icon: Icon, label }) => (
+            <li key={label} className="flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-300 sm:justify-center">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-600 dark:bg-primary-900/40 dark:text-primary-400">
+                <Icon className="h-5 w-5" aria-hidden="true" />
+              </span>
+              {label}
+            </li>
+          ))}
+        </motion.ul>
       </div>
     </section>
   );

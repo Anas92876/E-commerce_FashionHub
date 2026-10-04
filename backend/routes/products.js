@@ -4,6 +4,7 @@ const {
   getProducts,
   getFilterOptions,
   getSuggestions,
+  getStoreSummary,
   getProductById,
   createProduct,
   updateProduct,
@@ -25,6 +26,7 @@ const upload = require('../middleware/upload');
 router.get('/', getProducts);
 router.get('/filters', getFilterOptions);
 router.get('/suggest', getSuggestions);
+router.get('/summary', getStoreSummary);
 router.get('/:id', getProductById);
 
 // ===== VARIANT ROUTES (Public) =====

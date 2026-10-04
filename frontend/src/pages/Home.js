@@ -45,7 +45,7 @@ const Home = () => {
     <div className="home-container pt-16 bg-white dark:bg-gray-900 transition-colors duration-300">
       <Navbar />
 
-      <HeroSection />
+      <HeroSection categories={categories} />
 
       {/* Modern Categories Section */}
       {categories.length > 0 && (
